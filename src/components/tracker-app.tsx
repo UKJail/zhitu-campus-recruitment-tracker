@@ -1082,11 +1082,12 @@ const mailProviderGuides: Record<MailProvider, { label: string; note: string; st
   },
   qq: {
     label: "QQ 邮箱",
-    note: "QQ 邮箱不同版本的入口名称可能是“收信规则”或“邮件过滤”。",
+    note: "QQ 邮箱会先验证新的外部转发地址；个人邮箱通常发送确认邮件，企业邮箱还可能要求微信二次验证。",
     steps: [
-      "进入 QQ 邮箱设置，找到收信规则或邮件过滤并新建规则。",
-      "条件填写招聘关键词，执行动作选择转发到下方专属地址。",
-      "如系统要求安全验证，请在 QQ 邮箱内完成后再发送测试邮件。",
+      "进入 QQ 邮箱设置，找到自动转发、收信规则或邮件过滤，添加下方专属地址。",
+      "回到职途，在下方已接收邮件中打开 QQ 发来的转发验证邮件，并按邮件提示确认；企业邮箱如提示微信验证，也需要先完成。",
+      "验证成功后返回 QQ 邮箱刷新设置页，再创建仅匹配招聘关键词的转发规则并保存。",
+      "从另一邮箱发送主题为“面试通知测试”的邮件，确认关键词规则已经生效。",
     ],
     filterLabel: "建议筛选关键词",
     filterText: forwardingKeywords,
@@ -1270,7 +1271,7 @@ function MailSettings({ onClose, notify }: { onClose: () => void; notify: (text:
         <div className="forward-keywords"><span><strong>{providerGuide.filterLabel}</strong><small>{providerGuide.filterText}</small></span><button type="button" onClick={copyKeywords}><Copy size={14} />复制筛选条件</button></div>
         <div className="forward-test"><span><strong>最后一步：测试收件</strong><small>从另一个邮箱向你的私人邮箱发送主题为“面试通知测试”的邮件，等待约一分钟后检测。</small></span><button className="secondary-button" type="button" disabled={checkingForwarding || !configured} onClick={() => void checkForwarding()}><RefreshCw size={14} />{checkingForwarding ? "检测中…" : "检测是否收到"}</button></div>
       </section>
-      <section className="email-records" aria-labelledby="email-records-title"><div><h4 id="email-records-title">已接收的招聘邮件</h4><span>Gmail 转发验证邮件会自动识别并置为待处理；其他招聘邮件继续用于求职跟踪。</span></div>{emails.length === 0 ? <p>暂时没有邮件记录。添加 Gmail 转发地址后，请等待 1–3 分钟再检查。</p> : emails.map((item) => { const isGmailConfirmation = isGmailForwardingConfirmation(item); return <article className={isGmailConfirmation ? "verification-email" : ""} key={item.id}><div><strong>{item.subject || "无主题邮件"}</strong><span>{item.sender || "未知发件人"} · {new Date(item.received_at).toLocaleString("zh-CN")}</span></div><em>{isGmailConfirmation ? "待完成 Gmail 验证" : item.category}</em><span className="email-record-actions"><button disabled={openingEmailId === item.id} onClick={() => void openEmail(item.id)}>{openingEmailId === item.id ? "读取中…" : isGmailConfirmation ? "打开验证" : "打开"}</button><button disabled={deletingEmailId === item.id} onClick={() => void deleteEmail(item.id)}>{deletingEmailId === item.id ? "删除中…" : "删除"}</button></span></article>; })}</section>
+      <section className="email-records" aria-labelledby="email-records-title"><div><h4 id="email-records-title">已接收的招聘邮件</h4><span>邮箱服务商发送的转发验证邮件也会显示在这里；完成验证后，招聘邮件会继续用于求职跟踪。</span></div>{emails.length === 0 ? <p>暂时没有邮件记录。添加并验证专属转发地址后，请等待 1–3 分钟再检查。</p> : emails.map((item) => { const isGmailConfirmation = isGmailForwardingConfirmation(item); return <article className={isGmailConfirmation ? "verification-email" : ""} key={item.id}><div><strong>{item.subject || "无主题邮件"}</strong><span>{item.sender || "未知发件人"} · {new Date(item.received_at).toLocaleString("zh-CN")}</span></div><em>{isGmailConfirmation ? "待完成 Gmail 验证" : item.category}</em><span className="email-record-actions"><button disabled={openingEmailId === item.id} onClick={() => void openEmail(item.id)}>{openingEmailId === item.id ? "读取中…" : isGmailConfirmation ? "打开验证" : "打开"}</button><button disabled={deletingEmailId === item.id} onClick={() => void deleteEmail(item.id)}>{deletingEmailId === item.id ? "删除中…" : "删除"}</button></span></article>; })}</section>
       <section className="privacy-settings" aria-labelledby="privacy-settings-title">
         <div><p className="eyebrow">隐私与数据</p><h4 id="privacy-settings-title">你的数据，由你掌控</h4><span>可导出全部个人记录；注销后会删除简历文件、邮件正文和业务记录，且无法恢复。</span></div>
         <button className="secondary-button" disabled={exporting} onClick={() => void exportData()}><Download size={15} />{exporting ? "导出中…" : "导出个人数据"}</button>
