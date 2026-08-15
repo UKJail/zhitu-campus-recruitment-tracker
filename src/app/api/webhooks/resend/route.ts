@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { z } from "zod";
 import { classifyMail, extractRecruitingDetails, plainTextFromHtml, reminderSchedule, suggestedStatus } from "@/lib/mail/classifier";
+import { allowedConfirmationLinks, forwardingConfirmationProvider } from "@/lib/mail/forwarding";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -79,6 +80,10 @@ export async function POST(request: Request) {
 
   const subject = parsed.data.data.subject;
   const bodyText = received.text || plainTextFromHtml(received.html || "");
+  const confirmationProvider = forwardingConfirmationProvider({ sender: parsed.data.data.from, subject });
+  const confirmationLinks = confirmationProvider
+    ? allowedConfirmationLinks(bodyText, received.html, confirmationProvider)
+    : [];
   const category = classifyMail(subject, bodyText);
   const details = extractRecruitingDetails(subject, bodyText);
   const targetStatus = suggestedStatus(category);
@@ -114,6 +119,8 @@ export async function POST(request: Request) {
     suggestedStatus: matched ? targetStatus : null,
     confidence: matched ? Math.min(0.98, 0.72 + matched.score * 0.04) : 0.45,
     requiresStatusConfirmation: Boolean(matched && targetStatus),
+    confirmationProvider,
+    confirmationLinks,
   };
 
   const { data: stored, error: storeError } = await admin

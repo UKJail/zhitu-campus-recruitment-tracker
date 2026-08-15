@@ -14,7 +14,7 @@ import { formatLocalChineseDate, greetingWithId } from "@/lib/local-time";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { InterviewPrepPage } from "@/components/interview-prep-page";
 import { BrandMascot } from "@/components/brand-mascot";
-import { allowedConfirmationLinks, gmailForwardingConfirmationCode, gmailRecruitmentFilterQuery, hasRecentInboundEmail, isGmailForwardingConfirmation, recruitmentFilterKeywords } from "@/lib/mail/forwarding";
+import { allowedConfirmationLinks, forwardingConfirmationProvider, gmailForwardingConfirmationCode, gmailRecruitmentFilterQuery, hasRecentInboundEmail, isGmailForwardingConfirmation, recruitmentFilterKeywords } from "@/lib/mail/forwarding";
 import type { JobAnalysis, StructuredResume } from "@/lib/ai/provider";
 import type { InterviewReview, Job, Resume, Suggestion } from "@/lib/types";
 import type { RecruitingCalendarEvent } from "@/lib/mail/calendar";
@@ -1053,7 +1053,7 @@ function AccountSettings({ profile, onClose, notify, onUpdated, onOpenAdmin }: {
 
 type MailProvider = "gmail" | "outlook" | "qq" | "163";
 type EmailRecord = { id: string; sender: string | null; subject: string | null; category: string; received_at: string };
-type EmailDetail = EmailRecord & { body_text: string | null };
+type EmailDetail = EmailRecord & { body_text: string | null; confirmation_links?: string[] };
 
 const forwardingKeywords = recruitmentFilterKeywords.join(" ");
 const mailProviderGuides: Record<MailProvider, { label: string; note: string; steps: string[]; filterLabel: string; filterText: string }> = {
@@ -1242,14 +1242,24 @@ function MailSettings({ onClose, notify }: { onClose: () => void; notify: (text:
 
   const providerGuide = mailProviderGuides[provider];
   const gmailConfirmationEmail = emails.find(isGmailForwardingConfirmation) || null;
-  const emailIsGmailConfirmation = emailDetail ? isGmailForwardingConfirmation(emailDetail) : false;
-  const confirmationLinks = allowedConfirmationLinks(emailDetail?.body_text);
+  const emailConfirmationProvider = emailDetail ? forwardingConfirmationProvider(emailDetail) : null;
+  const emailIsGmailConfirmation = emailConfirmationProvider === "gmail";
+  const emailIsQqConfirmation = emailConfirmationProvider === "qq";
+  const confirmationLinks = emailConfirmationProvider ? [...new Set([
+    ...(emailDetail?.confirmation_links || []),
+    ...allowedConfirmationLinks(emailDetail?.body_text, null, emailConfirmationProvider),
+  ])] : [];
   const gmailConfirmationCode = emailIsGmailConfirmation ? gmailForwardingConfirmationCode(emailDetail?.body_text) : null;
 
   async function copyGmailConfirmationCode() {
     if (!gmailConfirmationCode) return;
     await navigator.clipboard.writeText(gmailConfirmationCode);
     notify("Gmail 8 位确认码已复制，请返回 Gmail 填写");
+  }
+
+  async function copyConfirmationLink(link: string) {
+    await navigator.clipboard.writeText(link);
+    notify("官方验证链接已复制");
   }
 
   return <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
@@ -1271,7 +1281,7 @@ function MailSettings({ onClose, notify }: { onClose: () => void; notify: (text:
         <div className="forward-keywords"><span><strong>{providerGuide.filterLabel}</strong><small>{providerGuide.filterText}</small></span><button type="button" onClick={copyKeywords}><Copy size={14} />复制筛选条件</button></div>
         <div className="forward-test"><span><strong>最后一步：测试收件</strong><small>从另一个邮箱向你的私人邮箱发送主题为“面试通知测试”的邮件，等待约一分钟后检测。</small></span><button className="secondary-button" type="button" disabled={checkingForwarding || !configured} onClick={() => void checkForwarding()}><RefreshCw size={14} />{checkingForwarding ? "检测中…" : "检测是否收到"}</button></div>
       </section>
-      <section className="email-records" aria-labelledby="email-records-title"><div><h4 id="email-records-title">已接收的招聘邮件</h4><span>邮箱服务商发送的转发验证邮件也会显示在这里；完成验证后，招聘邮件会继续用于求职跟踪。</span></div>{emails.length === 0 ? <p>暂时没有邮件记录。添加并验证专属转发地址后，请等待 1–3 分钟再检查。</p> : emails.map((item) => { const isGmailConfirmation = isGmailForwardingConfirmation(item); return <article className={isGmailConfirmation ? "verification-email" : ""} key={item.id}><div><strong>{item.subject || "无主题邮件"}</strong><span>{item.sender || "未知发件人"} · {new Date(item.received_at).toLocaleString("zh-CN")}</span></div><em>{isGmailConfirmation ? "待完成 Gmail 验证" : item.category}</em><span className="email-record-actions"><button disabled={openingEmailId === item.id} onClick={() => void openEmail(item.id)}>{openingEmailId === item.id ? "读取中…" : isGmailConfirmation ? "打开验证" : "打开"}</button><button disabled={deletingEmailId === item.id} onClick={() => void deleteEmail(item.id)}>{deletingEmailId === item.id ? "删除中…" : "删除"}</button></span></article>; })}</section>
+      <section className="email-records" aria-labelledby="email-records-title"><div><h4 id="email-records-title">已接收的招聘邮件</h4><span>邮箱服务商发送的转发验证邮件也会显示在这里；完成验证后，招聘邮件会继续用于求职跟踪。</span></div>{emails.length === 0 ? <p>暂时没有邮件记录。添加并验证专属转发地址后，请等待 1–3 分钟再检查。</p> : emails.map((item) => { const confirmationProvider = forwardingConfirmationProvider(item); return <article className={confirmationProvider ? "verification-email" : ""} key={item.id}><div><strong>{item.subject || "无主题邮件"}</strong><span>{item.sender || "未知发件人"} · {new Date(item.received_at).toLocaleString("zh-CN")}</span></div><em>{confirmationProvider ? `待完成 ${confirmationProvider === "gmail" ? "Gmail" : "QQ 邮箱"}验证` : item.category}</em><span className="email-record-actions"><button disabled={openingEmailId === item.id} onClick={() => void openEmail(item.id)}>{openingEmailId === item.id ? "读取中…" : confirmationProvider ? "打开验证" : "打开"}</button><button disabled={deletingEmailId === item.id} onClick={() => void deleteEmail(item.id)}>{deletingEmailId === item.id ? "删除中…" : "删除"}</button></span></article>; })}</section>
       <section className="privacy-settings" aria-labelledby="privacy-settings-title">
         <div><p className="eyebrow">隐私与数据</p><h4 id="privacy-settings-title">你的数据，由你掌控</h4><span>可导出全部个人记录；注销后会删除简历文件、邮件正文和业务记录，且无法恢复。</span></div>
         <button className="secondary-button" disabled={exporting} onClick={() => void exportData()}><Download size={15} />{exporting ? "导出中…" : "导出个人数据"}</button>
@@ -1279,7 +1289,7 @@ function MailSettings({ onClose, notify }: { onClose: () => void; notify: (text:
       </section>
       <footer><span>邮件正文仅用于你的求职跟踪，可在设置中删除。</span><button className="primary-button" onClick={onClose}>完成</button></footer>
     </section>
-    {emailDetail && <section className="email-detail" role="dialog" aria-modal="true" aria-labelledby="email-detail-title"><header><div><p className="eyebrow">{emailIsGmailConfirmation ? "Gmail 转发地址验证" : "邮件内容"}</p><h3 id="email-detail-title">{emailDetail.subject || "无主题邮件"}</h3><span>{emailDetail.sender || "未知发件人"} · {new Date(emailDetail.received_at).toLocaleString("zh-CN")}</span></div><button onClick={() => setEmailDetail(null)} aria-label="关闭邮件内容"><X /></button></header>{emailIsGmailConfirmation && <div className="verification-safety"><ShieldCheck size={16} /><span><strong>这是 Gmail 发往你专属地址的验证邮件</strong><small>职途不会代替你授权。请自行点击下方 Google 官方链接，完成后返回 Gmail 刷新设置页。</small></span></div>}<pre>{emailDetail.body_text || "这封邮件没有可显示的纯文本内容。"}</pre>{emailIsGmailConfirmation && confirmationLinks.length === 0 && !gmailConfirmationCode && <p className="verification-missing">没有从邮件正文中识别到 Google 官方验证链接或 8 位确认码。请在 Gmail 删除该转发地址后重新添加；如果仍然如此，请联系管理员检查邮件正文解析。</p>}{(confirmationLinks.length > 0 || gmailConfirmationCode) && <footer><span>仅提供经过校验的 Google 官方链接或 Gmail 8 位确认码。</span>{gmailConfirmationCode && <button type="button" className="secondary-button" onClick={() => void copyGmailConfirmationCode()}><Copy size={14} />复制确认码 {gmailConfirmationCode}</button>}{confirmationLinks.map((link) => <a className="primary-button" href={link} target="_blank" rel="noreferrer" onClick={() => setGmailVerificationOpened(true)} key={link}>完成 Gmail 验证<ExternalLink size={14} /></a>)}</footer>}</section>}
+    {emailDetail && <section className="email-detail" role="dialog" aria-modal="true" aria-labelledby="email-detail-title"><header><div><p className="eyebrow">{emailIsGmailConfirmation ? "Gmail 转发地址验证" : emailIsQqConfirmation ? "QQ 邮箱转发地址验证" : "邮件内容"}</p><h3 id="email-detail-title">{emailDetail.subject || "无主题邮件"}</h3><span>{emailDetail.sender || "未知发件人"} · {new Date(emailDetail.received_at).toLocaleString("zh-CN")}</span></div><button onClick={() => setEmailDetail(null)} aria-label="关闭邮件内容"><X /></button></header>{emailConfirmationProvider && <div className="verification-safety"><ShieldCheck size={16} /><span><strong>这是 {emailIsGmailConfirmation ? "Gmail" : "QQ 邮箱"}发往你专属地址的验证邮件</strong><small>职途不会代替你授权，只会展示经过官方域名校验的链接。点击下方按钮完成后，请返回原邮箱刷新设置页。</small></span></div>}<pre>{emailDetail.body_text || "这封邮件没有可显示的纯文本内容。"}</pre>{emailConfirmationProvider && confirmationLinks.length === 0 && !gmailConfirmationCode && <p className="verification-missing">没有从邮件原始内容中识别到可安全打开的{emailIsGmailConfirmation ? " Google 官方验证链接或 8 位确认码" : " QQ 邮箱官方验证链接"}。请删除原转发地址后重新添加；如果仍然如此，请联系管理员检查邮件解析。</p>}{(confirmationLinks.length > 0 || gmailConfirmationCode) && <footer><span>仅展示通过官方域名校验的验证入口。</span>{gmailConfirmationCode && <button type="button" className="secondary-button" onClick={() => void copyGmailConfirmationCode()}><Copy size={14} />复制确认码 {gmailConfirmationCode}</button>}{confirmationLinks.map((link) => <span className="confirmation-actions" key={link}><button type="button" className="secondary-button" onClick={() => void copyConfirmationLink(link)}><Copy size={14} />复制验证链接</button><a className="primary-button" href={link} target="_blank" rel="noopener noreferrer" onClick={() => { if (emailIsGmailConfirmation) setGmailVerificationOpened(true); }}>{emailIsQqConfirmation ? "接受 QQ 邮箱转发" : "完成 Gmail 验证"}<ExternalLink size={14} /></a></span>)}</footer>}</section>}
   </div>;
 }
 
