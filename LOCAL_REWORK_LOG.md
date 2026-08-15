@@ -62,6 +62,8 @@ Move-Item -LiteralPath ".vercel\project.json.disabled" -Destination ".vercel\pro
 
 ### 2026-08-16：简化用户侧专属收件地址
 
+本地提交：`b1daf44`（`ui: simplify personal inbound address`）
+
 1. 自动转发设置页仅展示当前用户可直接使用的完整专属收件地址和“复制地址”按钮。
 2. 隐藏唯一前缀、共享域名及地址组成说明，避免向普通用户暴露无须理解的实现细节。
 3. 仅修改前端展示；地址生成、Webhook 精确归属、通知所有权校验和数据库隔离逻辑均未改变。
