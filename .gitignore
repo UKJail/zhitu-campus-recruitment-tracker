@@ -1,0 +1,23 @@
+node_modules
+.pnpm-store
+.qa
+.next
+out
+coverage
+dist-worker
+tmp
+railway-worker-upload
+.env
+.env.local
+*.log
+
+.vercel
+.env*
+!.env.example
+
+# Local Supabase state and private key material
+supabase/.temp
+*.pem
+*.key
+*.p12
+*.pfx

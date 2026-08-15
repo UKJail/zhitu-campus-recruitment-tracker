@@ -1,0 +1,22 @@
+{
+  "jobs": [
+    {
+      "id": 7417974,
+      "title": "Director",
+      "updated_at": "2026-08-12T08:30:00-07:00",
+      "absolute_url": "https://boards.greenhouse.io/ideo/jobs/7417974?gh_src=test#apply",
+      "location": { "name": "Shanghai, China" },
+      "content": "<p>Lead a multidisciplinary team &amp; shape meaningful impact.</p>",
+      "departments": [{ "name": "Design" }]
+    },
+    {
+      "id": 7000000,
+      "title": "Senior Designer",
+      "updated_at": "2026-08-11T08:30:00-07:00",
+      "absolute_url": "https://boards.greenhouse.io/ideo/jobs/7000000",
+      "location": { "name": "London, United Kingdom" },
+      "content": "<p>Design role.</p>",
+      "departments": []
+    }
+  ]
+}

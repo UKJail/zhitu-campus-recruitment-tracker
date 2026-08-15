@@ -1,0 +1,45 @@
+{
+  "name": "zhitutracker",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "worker:build": "tsc -p worker/tsconfig.json",
+    "worker:start": "node dist-worker/index.js",
+    "worker:once": "node dist-worker/index.js --once",
+    "worker:probe": "node dist-worker/probe.js",
+    "worker:verify": "node dist-worker/verify.js",
+    "worker:repair-runs": "node dist-worker/repair-runs.js",
+    "worker:verify-inbound": "node dist-worker/verify-inbound.js"
+  },
+  "dependencies": {
+    "@supabase/ssr": "latest",
+    "@supabase/supabase-js": "latest",
+    "clsx": "latest",
+    "jszip": "3.10.1",
+    "lucide-react": "latest",
+    "mammoth": "1.12.1",
+    "next": "latest",
+    "pdf-parse": "2.4.5",
+    "react": "latest",
+    "react-dom": "latest",
+    "resend": "6.19.0",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@testing-library/react": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "eslint": "~9.39.1",
+    "eslint-config-next": "latest",
+    "jsdom": "latest",
+    "typescript": "~5.9.3",
+    "vitest": "latest"
+  }
+}

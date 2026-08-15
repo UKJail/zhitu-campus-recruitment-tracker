@@ -1,0 +1,13 @@
+node_modules/
+.next/
+.pnpm-store/
+.qa/
+.vercel/
+dist-worker/
+tmp/
+.env
+.env.*
+*.log
+index.html
+src/
+supabase/
