@@ -4,7 +4,7 @@ import {
   ArrowUpRight, Bell, BellRing, Bookmark, BriefcaseBusiness, CalendarDays, Check, CheckCircle2,
   ChevronDown, ChevronLeft, ChevronRight, CircleUserRound, ClipboardCheck, Clock3, FileCheck2, FilePenLine,
   Copy, Download, ExternalLink, FileText, Inbox, KeyRound, LayoutDashboard, Link2, LogOut, Mail, Menu, MessageSquareText, MoreHorizontal,
-  PenLine, Plus, RefreshCw, Save, Search, Send, Settings, ShieldCheck, Sparkles, Star, Target, Trash2, Upload, UserPlus, X, XCircle, MailCheck, MessageCircleMore,
+  PenLine, Plus, RefreshCw, Save, Search, Send, ShieldCheck, Sparkles, Star, Target, Trash2, Upload, UserPlus, X, XCircle, MailCheck, MessageCircleMore,
 } from "lucide-react";
 import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -18,9 +18,10 @@ import { allowedConfirmationLinks, forwardingConfirmationProvider, forwardingVer
 import type { JobAnalysis, StructuredResume } from "@/lib/ai/provider";
 import type { InterviewReview, Job, Resume, Suggestion } from "@/lib/types";
 import type { RecruitingCalendarEvent } from "@/lib/mail/calendar";
+import { DEFAULT_DAILY_APPLICATION_TARGET } from "@/lib/account/preferences";
 
 type PageKey = "home" | "jobs" | "resumes" | "progress" | "prep" | "reviews";
-type AccountProfile = { displayName: string | null; email: string; isAdmin: boolean };
+type AccountProfile = { displayName: string | null; email: string; isAdmin: boolean; dailyApplicationTarget: number };
 type NotificationItem = {
   id: string;
   kind: string;
@@ -33,7 +34,6 @@ type NotificationItem = {
   action_status: "pending" | "accepted" | "rejected" | null;
 };
 const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE !== "false";
-const DAILY_APPLICATION_TARGET = 20;
 
 const navItems = [
   { key: "home" as const, label: "首页", icon: LayoutDashboard },
@@ -57,8 +57,12 @@ export function TrackerApp() {
   const [accountOpen, setAccountOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [profile, setProfile] = useState<AccountProfile | null>(isDemoMode ? { displayName: "测试用户", email: "", isAdmin: false } : null);
+  const [profile, setProfile] = useState<AccountProfile | null>(isDemoMode ? { displayName: "测试用户", email: "", isAdmin: false, dailyApplicationTarget: DEFAULT_DAILY_APPLICATION_TARGET } : null);
   const [progressClock, setProgressClock] = useState<Date | null>(null);
+  const [dailyApplicationTarget, setDailyApplicationTarget] = useState(DEFAULT_DAILY_APPLICATION_TARGET);
+  const [dailyTargetDraft, setDailyTargetDraft] = useState(String(DEFAULT_DAILY_APPLICATION_TARGET));
+  const [editingDailyTarget, setEditingDailyTarget] = useState(false);
+  const [savingDailyTarget, setSavingDailyTarget] = useState(false);
 
   const notify = useCallback((message: string) => {
     setToast(message);
@@ -86,7 +90,10 @@ export function TrackerApp() {
       const response = await fetch("/api/account", { cache: "no-store" });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "账号资料加载失败");
-      setProfile(payload.profile as AccountProfile);
+      const nextProfile = payload.profile as AccountProfile;
+      setProfile(nextProfile);
+      setDailyApplicationTarget(nextProfile.dailyApplicationTarget || DEFAULT_DAILY_APPLICATION_TARGET);
+      setDailyTargetDraft(String(nextProfile.dailyApplicationTarget || DEFAULT_DAILY_APPLICATION_TARGET));
     } catch (profileError) {
       notify(profileError instanceof Error ? profileError.message : "账号资料加载失败");
     }
@@ -116,8 +123,34 @@ export function TrackerApp() {
 
   const title = navItems.find((item) => item.key === page)?.label ?? "首页";
   const dailyApplicationCount = progressClock ? confirmedApplicationCountOnDate(jobs, progressClock) : 0;
-  const dailyApplicationProgress = Math.min(100, Math.round(dailyApplicationCount / DAILY_APPLICATION_TARGET * 100));
-  const dailyApplicationsRemaining = Math.max(0, DAILY_APPLICATION_TARGET - dailyApplicationCount);
+  const dailyApplicationProgress = Math.min(100, Math.round(dailyApplicationCount / dailyApplicationTarget * 100));
+  const dailyApplicationsRemaining = Math.max(0, dailyApplicationTarget - dailyApplicationCount);
+
+  async function saveDailyApplicationTarget(event: FormEvent) {
+    event.preventDefault();
+    const target = Number(dailyTargetDraft);
+    if (!Number.isInteger(target) || target < 1 || target > 200) return notify("投递目标需要是 1—200 的整数");
+    if (isDemoMode) {
+      setDailyApplicationTarget(target);
+      setEditingDailyTarget(false);
+      notify("今日投递目标已更新");
+      return;
+    }
+    setSavingDailyTarget(true);
+    try {
+      const response = await fetch("/api/account", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ dailyApplicationTarget: target }) });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "投递目标保存失败");
+      setDailyApplicationTarget(payload.dailyApplicationTarget);
+      setProfile((current) => current ? { ...current, dailyApplicationTarget: payload.dailyApplicationTarget } : current);
+      setEditingDailyTarget(false);
+      notify("今日投递目标已保存");
+    } catch (targetError) {
+      notify(targetError instanceof Error ? targetError.message : "投递目标保存失败");
+    } finally {
+      setSavingDailyTarget(false);
+    }
+  }
 
   return (
     <div className="app-shell">
@@ -133,10 +166,12 @@ export function TrackerApp() {
         </nav>
         <button className="feedback-entry" onClick={() => setFeedbackOpen(true)}><span><MessageCircleMore size={17} /></span><span><strong>有想法，告诉站长</strong><small>建议与 Bug 都欢迎</small></span><ArrowUpRight size={15} /></button>
         <div className="sidebar-companion">
-          <div className="companion-progress-head"><div className="companion-orbit"><Target size={18} /></div><span>今日目标</span></div>
-          <div className="companion-progress-value"><p>确认投递</p><strong><b>{dailyApplicationCount}</b><span>/ {DAILY_APPLICATION_TARGET}</span></strong></div>
-          <div className="companion-progress-track" role="progressbar" aria-label="今日确认投递进度" aria-valuemin={0} aria-valuemax={DAILY_APPLICATION_TARGET} aria-valuenow={Math.min(dailyApplicationCount, DAILY_APPLICATION_TARGET)}><i style={{ width: `${dailyApplicationProgress}%` }} /></div>
+          <div className="companion-progress-head"><div className="companion-orbit"><Target size={18} /></div><span>今日目标</span><button type="button" onClick={() => { setDailyTargetDraft(String(dailyApplicationTarget)); setEditingDailyTarget(true); }} aria-label="自定义今日投递目标" title="自定义今日投递目标"><PenLine size={12} />调整</button></div>
+          {editingDailyTarget ? <form className="companion-target-form" onSubmit={saveDailyApplicationTarget}><label htmlFor="daily-application-target">目标份数</label><input id="daily-application-target" autoFocus type="number" min={1} max={200} step={1} value={dailyTargetDraft} onChange={(event) => setDailyTargetDraft(event.target.value)} /><span><button type="button" onClick={() => setEditingDailyTarget(false)}>取消</button><button type="submit" disabled={savingDailyTarget}>{savingDailyTarget ? "保存中" : "保存"}</button></span></form> : <>
+          <div className="companion-progress-value"><p>确认投递</p><strong><b>{dailyApplicationCount}</b><span>/ {dailyApplicationTarget}</span></strong></div>
+          <div className="companion-progress-track" role="progressbar" aria-label="今日确认投递进度" aria-valuemin={0} aria-valuemax={dailyApplicationTarget} aria-valuenow={Math.min(dailyApplicationCount, dailyApplicationTarget)}><i style={{ width: `${dailyApplicationProgress}%` }} /></div>
           <footer className="companion-progress-footer"><span>{dailyApplicationsRemaining > 0 ? `还差 ${dailyApplicationsRemaining} 份` : "今日目标已达成"}</span><em>{dailyApplicationProgress}%</em></footer>
+          </>}
         </div>
         <button className="profile-chip" onClick={() => setAccountOpen(true)}><span>{profile?.displayName?.trim().slice(0, 1) || "我"}</span><span><strong>{profile?.displayName || "未设置用户 ID"}</strong><small>账号与管理</small></span><MoreHorizontal size={18} /></button>
       </aside>
@@ -153,7 +188,7 @@ export function TrackerApp() {
               <button className="icon-button has-dot" aria-label="通知" onClick={() => setNotificationsOpen(!notificationsOpen)}><Bell size={19} /></button>
               {notificationsOpen && <Notifications onClose={() => setNotificationsOpen(false)} notify={notify} onChanged={loadJobs} />}
             </div>
-            <button className="icon-button" aria-label="设置" onClick={() => setSettingsOpen(true)}><Settings size={19} /></button>
+            <button className="icon-button" aria-label="面试邮件自动转发设置" title="面试邮件自动转发设置" onClick={() => setSettingsOpen(true)}><Mail size={19} /></button>
           </div>
         </header>
 
@@ -1045,13 +1080,13 @@ function AccountSettings({ profile, onClose, notify, onUpdated, onOpenAdmin }: {
         <div className="password-mode-toggle" role="group" aria-label="密码设置方式"><button type="button" className={firstPasswordSetup ? "active" : ""} onClick={() => { setFirstPasswordSetup(true); setCurrentPassword(""); }}>首次设置</button><button type="button" className={!firstPasswordSetup ? "active" : ""} onClick={() => setFirstPasswordSetup(false)}>修改已有密码</button></div>
         <form className="account-form password-form" onSubmit={changePassword}>{!firstPasswordSetup && <><label htmlFor="current-password">当前密码</label><input id="current-password" type="password" required autoComplete="current-password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} /></>}<label htmlFor="new-password">{firstPasswordSetup ? "设置密码" : "新密码"}</label><input id="new-password" type="password" required minLength={8} maxLength={72} autoComplete="new-password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} placeholder="至少 8 位，包含字母和数字" /><label htmlFor="confirm-new-password">再次输入新密码</label><input id="confirm-new-password" type="password" required minLength={8} maxLength={72} autoComplete="new-password" value={passwordConfirmation} onChange={(event) => setPasswordConfirmation(event.target.value)} /><button className="primary-button" disabled={savingPassword}><KeyRound size={15} />{savingPassword ? "保存中…" : firstPasswordSetup ? "设置密码" : "确认修改密码"}</button></form>
       </section>
-      {profile?.isAdmin && <button className="admin-entry-button" onClick={onOpenAdmin}><ShieldCheck size={17} /><span><strong>管理员控制台</strong><small>邀请管理、用户配额和采集来源状态</small></span><ArrowUpRight size={16} /></button>}
+      {profile?.isAdmin && <button className="admin-entry-button" onClick={onOpenAdmin}><ShieldCheck size={17} /><span><strong>管理员控制台</strong><small>邀请、配额、来源状态与用户反馈</small></span><ArrowUpRight size={16} /></button>}
       <footer><button className="account-signout" disabled={signingOut} onClick={() => void signOut()}><LogOut size={15} />{signingOut ? "退出中…" : "退出登录"}</button><button className="primary-button" onClick={onClose}>完成</button></footer>
     </section>
   </div>;
 }
 
-type MailProvider = "gmail" | "outlook" | "qq" | "163";
+type MailProvider = "gmail" | "outlook" | "qq";
 type VerificationProvider = "gmail" | "qq";
 type EmailRecord = { id: string; sender: string | null; subject: string | null; category: string; received_at: string };
 type EmailDetail = EmailRecord & { body_text: string | null; confirmation_links?: string[] };
@@ -1089,17 +1124,6 @@ const mailProviderGuides: Record<MailProvider, { label: string; note: string; st
       "回到职途，在下方已接收邮件中打开 QQ 发来的转发验证邮件，并按邮件提示确认；企业邮箱如提示微信验证，也需要先完成。",
       "验证成功后返回 QQ 邮箱刷新设置页，再创建仅匹配招聘关键词的转发规则并保存。",
       "从另一邮箱发送主题为“面试通知测试”的邮件，确认关键词规则已经生效。",
-    ],
-    filterLabel: "建议筛选关键词",
-    filterText: forwardingKeywords,
-  },
-  "163": {
-    label: "163 邮箱",
-    note: "优先使用来信分类或过滤规则，避免把私人邮件全部转发。",
-    steps: [
-      "进入 163 邮箱设置，找到来信分类、过滤规则或自动转发。",
-      "创建仅匹配招聘关键词的规则，并将匹配邮件转发到专属地址。",
-      "保存并发送“面试通知测试”邮件，再回到本页检测接收结果。",
     ],
     filterLabel: "建议筛选关键词",
     filterText: forwardingKeywords,
@@ -1287,7 +1311,7 @@ function MailSettings({ onClose, notify }: { onClose: () => void; notify: (text:
 
   return <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <section className="mail-settings" role="dialog" aria-modal="true" aria-labelledby="mail-settings-title">
-      <header><div><p className="eyebrow">邮件求职跟踪</p><h3 id="mail-settings-title">设置招聘邮件自动转发</h3></div><button onClick={onClose} aria-label="关闭设置"><X /></button></header>
+      <header><div><p className="eyebrow">邮件求职跟踪</p><h3 id="mail-settings-title">面试邮件自动转发设置</h3></div><button onClick={onClose} aria-label="关闭设置"><X /></button></header>
       <p className="mail-settings-lead">只需在你的邮箱中设置一次规则，以后的投递、测评、面试和 Offer 邮件会自动进入职途。我们不会获取或保存你的邮箱密码。</p>
       <div className="inbound-address">
         <span>你的专属收件地址</span>
@@ -1428,7 +1452,7 @@ function AdminPanel({ onClose, notify }: { onClose: () => void; notify: (text: s
   return <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <section className="admin-panel" role="dialog" aria-modal="true" aria-labelledby="admin-panel-title">
       <header><div><p className="eyebrow">受限后台</p><h3 id="admin-panel-title"><ShieldCheck size={20} />管理员控制台</h3></div><button onClick={onClose} aria-label="关闭管理员后台"><X /></button></header>
-      {error && <div className="admin-error"><strong>{error}</strong><span>{error.includes("密钥") ? "请在 Vercel 生产环境配置 SUPABASE_SERVICE_ROLE_KEY。" : "普通用户无法查看其他用户、邀请或采集运行信息。"}</span></div>}
+      {error && <div className="admin-error"><strong>{error}</strong><span>{error.includes("密钥") ? "本地整改环境尚未填写管理员只读密钥。请仅写入本机 .env.local，切勿发送到聊天或提交 Git。" : "普通用户无法查看其他用户、邀请、反馈或采集运行信息。"}</span></div>}
       {!error && !overview && <p className="notice-empty">正在读取管理员数据…</p>}
       {overview && <>
         <section className="admin-invite">

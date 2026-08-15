@@ -145,6 +145,74 @@
   letter-spacing: .08em;
 }
 
+.sidebar-companion .companion-progress-head > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: auto;
+  padding: 4px 6px;
+  border-radius: 7px;
+  color: #65756d;
+  font-size: 8px;
+  font-weight: 700;
+  transition: color .18s ease, background .18s ease;
+}
+
+.sidebar-companion .companion-progress-head > button:hover {
+  color: var(--ink);
+  background: rgba(127, 163, 141, .12);
+}
+
+.companion-target-form {
+  display: grid;
+  grid-template-columns: 1fr 58px;
+  gap: 7px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.companion-target-form label {
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.companion-target-form input {
+  width: 58px;
+  height: 30px;
+  padding: 0 7px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  font: 600 10px "IBM Plex Mono", monospace;
+}
+
+.companion-target-form > span {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.companion-target-form button {
+  height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.companion-target-form button[type="submit"] {
+  border-color: transparent;
+  background: var(--coral);
+  color: #fff;
+}
+
+.companion-target-form button:disabled {
+  opacity: .55;
+}
+
 .sidebar-companion .companion-progress-value {
   display: flex;
   align-items: end;
