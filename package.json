@@ -15,7 +15,8 @@
     "worker:probe": "node dist-worker/probe.js",
     "worker:verify": "node dist-worker/verify.js",
     "worker:repair-runs": "node dist-worker/repair-runs.js",
-    "worker:verify-inbound": "node dist-worker/verify-inbound.js"
+    "worker:verify-inbound": "node dist-worker/verify-inbound.js",
+    "audit:mail-isolation": "node scripts/audit-mail-isolation.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "latest",

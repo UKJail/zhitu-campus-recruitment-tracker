@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { z } from "zod";
 import { classifyMail, extractRecruitingDetails, plainTextFromHtml, reminderSchedule, suggestedStatus } from "@/lib/mail/classifier";
 import { allowedConfirmationLinks, forwardingConfirmationProvider } from "@/lib/mail/forwarding";
+import { assertSameMailOwner, resolveInboundOwner, uniqueInboundAliases } from "@/lib/mail/ownership";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -19,11 +20,6 @@ const receivedEventSchema = z.object({
     message_id: z.string().optional(),
   }),
 });
-
-function localPart(address: string) {
-  const bare = address.match(/<([^>]+)>/)?.[1] ?? address;
-  return bare.trim().toLowerCase().split("@")[0]?.split("+")[0] ?? "";
-}
 
 function notificationCopy(category: ReturnType<typeof classifyMail>, subject: string) {
   const labels = {
@@ -67,13 +63,17 @@ export async function POST(request: Request) {
   const { data: duplicate } = await admin.from("inbound_emails").select("id").eq("provider_id", providerId).maybeSingle();
   if (duplicate) return NextResponse.json({ accepted: true, duplicate: true });
 
-  const aliases = [...new Set(parsed.data.data.to.map(localPart).filter(Boolean))];
-  const { data: profile, error: profileError } = await admin
+  const aliases = uniqueInboundAliases(parsed.data.data.to);
+  if (aliases.length === 0) return NextResponse.json({ accepted: true, isolatedRecipient: true, reason: "unmatched" });
+  const { data: profiles, error: profileError } = await admin
     .from("profiles")
     .select("id,inbound_alias")
     .in("inbound_alias", aliases)
-    .maybeSingle();
-  if (profileError || !profile) return NextResponse.json({ accepted: true, unmatchedRecipient: true });
+    .limit(2);
+  if (profileError) return NextResponse.json({ error: "收件人归属查询失败" }, { status: 503 });
+  const ownership = resolveInboundOwner(profiles || [], parsed.data.data.to);
+  if (!ownership.ok) return NextResponse.json({ accepted: true, isolatedRecipient: true, reason: ownership.reason });
+  const owner = ownership.owner;
 
   const { data: received, error: receiveError } = await verified.resend.emails.receiving.get(providerId);
   if (receiveError || !received) return NextResponse.json({ error: "邮件正文暂时无法读取" }, { status: 503 });
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
   const { data: applicationRows } = await admin
     .from("applications")
     .select("id,status,jobs(company,title)")
-    .eq("user_id", profile.id)
+    .eq("user_id", owner.userId)
     .not("status", "in", "(closed,rejected)");
   const haystack = `${subject}\n${bodyText}`.toLowerCase();
   const candidates = (applicationRows || [])
@@ -111,8 +111,8 @@ export async function POST(request: Request) {
   const extractedData = {
     ...details,
     messageId: parsed.data.data.message_id ?? null,
-    recipient:
-      parsed.data.data.to.find((item) => localPart(item) === profile.inbound_alias) ?? parsed.data.data.to[0],
+    recipient: owner.recipient,
+    recipientAlias: owner.inboundAlias,
     matchedApplicationId: matched?.id ?? null,
     company: matched?.company || null,
     role: matched?.title || null,
@@ -126,7 +126,7 @@ export async function POST(request: Request) {
   const { data: stored, error: storeError } = await admin
     .from("inbound_emails")
     .insert({
-      user_id: profile.id,
+      user_id: owner.userId,
       provider_id: providerId,
       sender: parsed.data.data.from,
       subject,
@@ -135,17 +135,23 @@ export async function POST(request: Request) {
       extracted_data: extractedData,
       received_at: parsed.data.data.created_at || parsed.data.created_at,
     })
-    .select("id")
+    .select("id,user_id")
     .single();
   if (storeError) {
     if (storeError.code === "23505") return NextResponse.json({ accepted: true, duplicate: true });
     return NextResponse.json({ error: "邮件记录失败" }, { status: 500 });
   }
 
+  try {
+    assertSameMailOwner(stored.user_id, owner.userId);
+  } catch {
+    return NextResponse.json({ error: "邮件与通知归属不一致，已停止创建通知" }, { status: 500 });
+  }
+
   const copy = notificationCopy(category, subject);
   const scheduledReminder = category === "assessment" || category === "interview" ? reminderSchedule(details.eventTimeText) : null;
   const { error: notificationError } = await admin.from("notifications").insert({
-    user_id: profile.id,
+    user_id: owner.userId,
     kind: `email_${category}`,
     title: copy.title,
     body: copy.body,
@@ -167,7 +173,7 @@ export async function POST(request: Request) {
   if (scheduledReminder) {
     const reminderTitle = category === "interview" ? "面试将在 24 小时后开始" : "测评将在 24 小时后截止";
     const { error: reminderError } = await admin.from("notifications").insert({
-      user_id: profile.id,
+      user_id: owner.userId,
       kind: `email_${category}_reminder`,
       title: reminderTitle,
       body: [matched?.company, matched?.title, details.eventTimeText].filter(Boolean).join(" · "),
