@@ -73,6 +73,7 @@ Move-Item -LiteralPath ".vercel\project.json.disabled" -Destination ".vercel\pro
 - `npm run lint`：通过。
 - `npm test`：24 个测试文件、91 项测试全部通过。
 - `http://localhost:3000/app`：端口监听正常并返回 200。
+- 双账号真实邮件验收：发往 Testing 的邮件仅 Testing 收到，管理员未收到；发往管理员的邮件仅管理员收到，Testing 未收到。双向隔离通过。
 
 ## 已知边界与后续处理
 
