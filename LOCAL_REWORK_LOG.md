@@ -60,6 +60,18 @@ Move-Item -LiteralPath ".vercel\project.json.disabled" -Destination ".vercel\pro
 - `http://localhost:3000/app`：开发服务已重新启动并返回 200。
 - GitHub `origin` 仍为空；`.vercel/project.json` 仍禁用；未推送、未部署、未执行 Supabase 迁移或历史清理。
 
+### 2026-08-16：简化用户侧专属收件地址
+
+1. 自动转发设置页仅展示当前用户可直接使用的完整专属收件地址和“复制地址”按钮。
+2. 隐藏唯一前缀、共享域名及地址组成说明，避免向普通用户暴露无须理解的实现细节。
+3. 仅修改前端展示；地址生成、Webhook 精确归属、通知所有权校验和数据库隔离逻辑均未改变。
+
+验证结果：
+
+- `npm run lint`：通过。
+- `npm test`：24 个测试文件、91 项测试全部通过。
+- `http://localhost:3000/app`：端口监听正常并返回 200。
+
 ## 已知边界与后续处理
 
 - 本地环境未配置 `RESEND_API_KEY`，因此旧的、只保存纯文本且没有保存官方链接的 QQ 验证邮件无法再次从 Resend 拉取原始 HTML；新邮件仍会由线上 Webhook 保存安全链接。需要本地复现完整验证入口时，再由用户提供本地专用 Resend 密钥。

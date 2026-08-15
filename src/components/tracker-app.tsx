@@ -1128,8 +1128,6 @@ function MailSettings({ onClose, notify }: { onClose: () => void; notify: (text:
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [address, setAddress] = useState<string | null>(null);
-  const [inboundAlias, setInboundAlias] = useState("");
-  const [inboundDomain, setInboundDomain] = useState("");
   const [configured, setConfigured] = useState(false);
   const [emails, setEmails] = useState<EmailRecord[]>([]);
   const [provider, setProvider] = useState<MailProvider>("gmail");
@@ -1152,8 +1150,6 @@ function MailSettings({ onClose, notify }: { onClose: () => void; notify: (text:
         if (!emailResponse.ok) throw new Error(emailPayload.error || "邮件记录加载失败");
         if (active) {
           setAddress(typeof payload.address === "string" ? payload.address : null);
-          setInboundAlias(typeof payload.alias === "string" ? payload.alias : "");
-          setInboundDomain(typeof payload.domain === "string" ? payload.domain : "");
           setConfigured(Boolean(payload.configured));
           setEmails(Array.isArray(emailPayload.emails) ? emailPayload.emails : []);
         }
@@ -1294,14 +1290,9 @@ function MailSettings({ onClose, notify }: { onClose: () => void; notify: (text:
       <header><div><p className="eyebrow">邮件求职跟踪</p><h3 id="mail-settings-title">设置招聘邮件自动转发</h3></div><button onClick={onClose} aria-label="关闭设置"><X /></button></header>
       <p className="mail-settings-lead">只需在你的邮箱中设置一次规则，以后的投递、测评、面试和 Offer 邮件会自动进入职途。我们不会获取或保存你的邮箱密码。</p>
       <div className="inbound-address">
-        <span>你的完整专属收件地址</span>
+        <span>你的专属收件地址</span>
         <strong>{loading ? "正在生成…" : address || "等待管理员完成 Resend 收件域名配置"}</strong>
         {address && <button onClick={copyAddress}>复制地址</button>}
-        {(inboundAlias || inboundDomain) && <div className="inbound-address-parts" aria-label="专属收件地址组成">
-          <span><small>当前账号唯一前缀</small><b>{inboundAlias || "—"}</b></span>
-          <span><small>所有账号共享域名</small><b>{inboundDomain || "—"}</b></span>
-        </div>}
-        {address && <p>虽然 @ 后的域名由所有用户共享，但这段完整地址只属于当前登录账号。</p>}
       </div>
       {!loading && !configured && <p className="settings-warning">网页功能已经接通；管理员还需要在部署环境填写 Resend 收件域名后，地址才会正式可用。</p>}
       <section className="forwarding-setup" aria-labelledby="forwarding-setup-title">
