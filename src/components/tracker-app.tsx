@@ -14,7 +14,7 @@ import { formatLocalChineseDate, greetingWithId } from "@/lib/local-time";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { InterviewPrepPage } from "@/components/interview-prep-page";
 import { BrandMascot } from "@/components/brand-mascot";
-import { allowedConfirmationLinks, forwardingConfirmationProvider, gmailForwardingConfirmationCode, gmailRecruitmentFilterQuery, hasRecentInboundEmail, isGmailForwardingConfirmation, recruitmentFilterKeywords } from "@/lib/mail/forwarding";
+import { allowedConfirmationLinks, forwardingConfirmationProvider, forwardingVerificationState, gmailForwardingConfirmationCode, gmailRecruitmentFilterQuery, hasRecentInboundEmail, isGmailForwardingConfirmation, isQqForwardingConfirmation, recruitmentFilterKeywords } from "@/lib/mail/forwarding";
 import type { JobAnalysis, StructuredResume } from "@/lib/ai/provider";
 import type { InterviewReview, Job, Resume, Suggestion } from "@/lib/types";
 import type { RecruitingCalendarEvent } from "@/lib/mail/calendar";
@@ -1052,6 +1052,7 @@ function AccountSettings({ profile, onClose, notify, onUpdated, onOpenAdmin }: {
 }
 
 type MailProvider = "gmail" | "outlook" | "qq" | "163";
+type VerificationProvider = "gmail" | "qq";
 type EmailRecord = { id: string; sender: string | null; subject: string | null; category: string; received_at: string };
 type EmailDetail = EmailRecord & { body_text: string | null; confirmation_links?: string[] };
 
@@ -1105,10 +1106,30 @@ const mailProviderGuides: Record<MailProvider, { label: string; note: string; st
   },
 };
 
+function MailVerificationStatus({ provider, email, opened, opening, onOpen }: {
+  provider: VerificationProvider;
+  email: EmailRecord | null;
+  opened: boolean;
+  opening: boolean;
+  onOpen: () => void;
+}) {
+  const state = forwardingVerificationState(provider, email ? [email] : [], opened);
+  return <div className={`mail-verification-status ${email ? "received" : "waiting"}`} aria-live="polite">
+    <span className="mail-verification-icon" aria-hidden="true">{email ? <MailCheck /> : <Clock3 />}</span>
+    <span>
+      <strong>{state.title}</strong>
+      <small>{state.description}</small>
+    </span>
+    {email && <button type="button" onClick={onOpen} disabled={opening}>{opening ? "读取中…" : "打开验证邮件"}</button>}
+  </div>;
+}
+
 function MailSettings({ onClose, notify }: { onClose: () => void; notify: (text: string) => void }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [address, setAddress] = useState<string | null>(null);
+  const [inboundAlias, setInboundAlias] = useState("");
+  const [inboundDomain, setInboundDomain] = useState("");
   const [configured, setConfigured] = useState(false);
   const [emails, setEmails] = useState<EmailRecord[]>([]);
   const [provider, setProvider] = useState<MailProvider>("gmail");
@@ -1119,7 +1140,7 @@ function MailSettings({ onClose, notify }: { onClose: () => void; notify: (text:
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
-  const [gmailVerificationOpened, setGmailVerificationOpened] = useState(false);
+  const [verificationOpened, setVerificationOpened] = useState<Record<VerificationProvider, boolean>>({ gmail: false, qq: false });
 
   useEffect(() => {
     let active = true;
@@ -1131,6 +1152,8 @@ function MailSettings({ onClose, notify }: { onClose: () => void; notify: (text:
         if (!emailResponse.ok) throw new Error(emailPayload.error || "邮件记录加载失败");
         if (active) {
           setAddress(typeof payload.address === "string" ? payload.address : null);
+          setInboundAlias(typeof payload.alias === "string" ? payload.alias : "");
+          setInboundDomain(typeof payload.domain === "string" ? payload.domain : "");
           setConfigured(Boolean(payload.configured));
           setEmails(Array.isArray(emailPayload.emails) ? emailPayload.emails : []);
         }
@@ -1241,7 +1264,11 @@ function MailSettings({ onClose, notify }: { onClose: () => void; notify: (text:
   }
 
   const providerGuide = mailProviderGuides[provider];
-  const gmailConfirmationEmail = emails.find(isGmailForwardingConfirmation) || null;
+  const providerConfirmationEmail = provider === "gmail"
+    ? emails.find(isGmailForwardingConfirmation) || null
+    : provider === "qq"
+      ? emails.find(isQqForwardingConfirmation) || null
+      : null;
   const emailConfirmationProvider = emailDetail ? forwardingConfirmationProvider(emailDetail) : null;
   const emailIsGmailConfirmation = emailConfirmationProvider === "gmail";
   const emailIsQqConfirmation = emailConfirmationProvider === "qq";
@@ -1266,18 +1293,29 @@ function MailSettings({ onClose, notify }: { onClose: () => void; notify: (text:
     <section className="mail-settings" role="dialog" aria-modal="true" aria-labelledby="mail-settings-title">
       <header><div><p className="eyebrow">邮件求职跟踪</p><h3 id="mail-settings-title">设置招聘邮件自动转发</h3></div><button onClick={onClose} aria-label="关闭设置"><X /></button></header>
       <p className="mail-settings-lead">只需在你的邮箱中设置一次规则，以后的投递、测评、面试和 Offer 邮件会自动进入职途。我们不会获取或保存你的邮箱密码。</p>
-      <div className="inbound-address"><span>你的专属收件地址</span><strong>{loading ? "正在生成…" : address || "等待管理员完成 Resend 收件域名配置"}</strong>{address && <button onClick={copyAddress}>复制地址</button>}</div>
+      <div className="inbound-address">
+        <span>你的完整专属收件地址</span>
+        <strong>{loading ? "正在生成…" : address || "等待管理员完成 Resend 收件域名配置"}</strong>
+        {address && <button onClick={copyAddress}>复制地址</button>}
+        {(inboundAlias || inboundDomain) && <div className="inbound-address-parts" aria-label="专属收件地址组成">
+          <span><small>当前账号唯一前缀</small><b>{inboundAlias || "—"}</b></span>
+          <span><small>所有账号共享域名</small><b>{inboundDomain || "—"}</b></span>
+        </div>}
+        {address && <p>虽然 @ 后的域名由所有用户共享，但这段完整地址只属于当前登录账号。</p>}
+      </div>
       {!loading && !configured && <p className="settings-warning">网页功能已经接通；管理员还需要在部署环境填写 Resend 收件域名后，地址才会正式可用。</p>}
       <section className="forwarding-setup" aria-labelledby="forwarding-setup-title">
         <header><div><h4 id="forwarding-setup-title">选择你的邮箱</h4><span>按照对应步骤设置，不需要把账号密码交给职途。</span></div><em className={emails.length ? "working" : ""}>{emails.length ? "收件链路正常" : "等待测试"}</em></header>
         <div className="provider-tabs" role="tablist" aria-label="邮箱类型">{(Object.keys(mailProviderGuides) as MailProvider[]).map((key) => <button key={key} type="button" role="tab" aria-selected={provider === key} className={provider === key ? "active" : ""} onClick={() => setProvider(key)}>{mailProviderGuides[key].label}</button>)}</div>
         <p className="provider-note">{providerGuide.note}</p>
         <ol>{providerGuide.steps.map((step) => <li key={step}><strong>{step}</strong></li>)}</ol>
-        {provider === "gmail" && <div className={`gmail-verification-status ${gmailConfirmationEmail ? "received" : "waiting"}`}>
-          <span className="gmail-verification-icon">{gmailConfirmationEmail ? <MailCheck /> : <Clock3 />}</span>
-          <span><strong>{gmailConfirmationEmail ? "已收到 Gmail 验证邮件" : "正在等待 Gmail 验证邮件"}</strong><small>{gmailConfirmationEmail ? (gmailVerificationOpened ? "请回到 Gmail 刷新设置页，确认地址已验证。" : "验证邮件只对当前账号可见，请打开并完成 Google 官方验证。") : "添加地址后通常等待 1–3 分钟；无需把验证邮件手动转发给我们。"}</small></span>
-          {gmailConfirmationEmail && <button type="button" onClick={() => void openEmail(gmailConfirmationEmail.id)} disabled={openingEmailId === gmailConfirmationEmail.id}>{openingEmailId === gmailConfirmationEmail.id ? "读取中…" : "打开验证邮件"}</button>}
-        </div>}
+        {(provider === "gmail" || provider === "qq") && <MailVerificationStatus
+          provider={provider}
+          email={providerConfirmationEmail}
+          opened={verificationOpened[provider]}
+          opening={Boolean(providerConfirmationEmail && openingEmailId === providerConfirmationEmail.id)}
+          onOpen={() => { if (providerConfirmationEmail) void openEmail(providerConfirmationEmail.id); }}
+        />}
         <div className="forward-keywords"><span><strong>{providerGuide.filterLabel}</strong><small>{providerGuide.filterText}</small></span><button type="button" onClick={copyKeywords}><Copy size={14} />复制筛选条件</button></div>
         <div className="forward-test"><span><strong>最后一步：测试收件</strong><small>从另一个邮箱向你的私人邮箱发送主题为“面试通知测试”的邮件，等待约一分钟后检测。</small></span><button className="secondary-button" type="button" disabled={checkingForwarding || !configured} onClick={() => void checkForwarding()}><RefreshCw size={14} />{checkingForwarding ? "检测中…" : "检测是否收到"}</button></div>
       </section>
@@ -1289,7 +1327,7 @@ function MailSettings({ onClose, notify }: { onClose: () => void; notify: (text:
       </section>
       <footer><span>邮件正文仅用于你的求职跟踪，可在设置中删除。</span><button className="primary-button" onClick={onClose}>完成</button></footer>
     </section>
-    {emailDetail && <section className="email-detail" role="dialog" aria-modal="true" aria-labelledby="email-detail-title"><header><div><p className="eyebrow">{emailIsGmailConfirmation ? "Gmail 转发地址验证" : emailIsQqConfirmation ? "QQ 邮箱转发地址验证" : "邮件内容"}</p><h3 id="email-detail-title">{emailDetail.subject || "无主题邮件"}</h3><span>{emailDetail.sender || "未知发件人"} · {new Date(emailDetail.received_at).toLocaleString("zh-CN")}</span></div><button onClick={() => setEmailDetail(null)} aria-label="关闭邮件内容"><X /></button></header>{emailConfirmationProvider && <div className="verification-safety"><ShieldCheck size={16} /><span><strong>这是 {emailIsGmailConfirmation ? "Gmail" : "QQ 邮箱"}发往你专属地址的验证邮件</strong><small>职途不会代替你授权，只会展示经过官方域名校验的链接。点击下方按钮完成后，请返回原邮箱刷新设置页。</small></span></div>}<pre>{emailDetail.body_text || "这封邮件没有可显示的纯文本内容。"}</pre>{emailConfirmationProvider && confirmationLinks.length === 0 && !gmailConfirmationCode && <p className="verification-missing">没有从邮件原始内容中识别到可安全打开的{emailIsGmailConfirmation ? " Google 官方验证链接或 8 位确认码" : " QQ 邮箱官方验证链接"}。请删除原转发地址后重新添加；如果仍然如此，请联系管理员检查邮件解析。</p>}{(confirmationLinks.length > 0 || gmailConfirmationCode) && <footer><span>仅展示通过官方域名校验的验证入口。</span>{gmailConfirmationCode && <button type="button" className="secondary-button" onClick={() => void copyGmailConfirmationCode()}><Copy size={14} />复制确认码 {gmailConfirmationCode}</button>}{confirmationLinks.map((link) => <span className="confirmation-actions" key={link}><button type="button" className="secondary-button" onClick={() => void copyConfirmationLink(link)}><Copy size={14} />复制验证链接</button><a className="primary-button" href={link} target="_blank" rel="noopener noreferrer" onClick={() => { if (emailIsGmailConfirmation) setGmailVerificationOpened(true); }}>{emailIsQqConfirmation ? "接受 QQ 邮箱转发" : "完成 Gmail 验证"}<ExternalLink size={14} /></a></span>)}</footer>}</section>}
+    {emailDetail && <section className="email-detail" role="dialog" aria-modal="true" aria-labelledby="email-detail-title"><header><div><p className="eyebrow">{emailIsGmailConfirmation ? "Gmail 转发地址验证" : emailIsQqConfirmation ? "QQ 邮箱转发地址验证" : "邮件内容"}</p><h3 id="email-detail-title">{emailDetail.subject || "无主题邮件"}</h3><span>{emailDetail.sender || "未知发件人"} · {new Date(emailDetail.received_at).toLocaleString("zh-CN")}</span></div><button onClick={() => setEmailDetail(null)} aria-label="关闭邮件内容"><X /></button></header>{emailConfirmationProvider && <div className="verification-safety"><ShieldCheck size={16} /><span><strong>这是 {emailIsGmailConfirmation ? "Gmail" : "QQ 邮箱"}发往你专属地址的验证邮件</strong><small>职途不会代替你授权，只会展示经过官方域名校验的链接。点击下方按钮完成后，请返回原邮箱刷新设置页。</small></span></div>}<pre>{emailDetail.body_text || "这封邮件没有可显示的纯文本内容。"}</pre>{emailConfirmationProvider && confirmationLinks.length === 0 && !gmailConfirmationCode && <p className="verification-missing">未识别到安全验证入口。没有从邮件原始内容中找到可安全打开的{emailIsGmailConfirmation ? " Google 官方验证链接或 8 位确认码" : " QQ 邮箱官方验证链接"}。请在原邮箱重新生成验证邮件后再试。</p>}{(confirmationLinks.length > 0 || gmailConfirmationCode) && <footer><span>仅展示通过官方域名校验的验证入口。</span>{gmailConfirmationCode && <button type="button" className="secondary-button" onClick={() => void copyGmailConfirmationCode()}><Copy size={14} />复制确认码 {gmailConfirmationCode}</button>}{confirmationLinks.map((link) => <span className="confirmation-actions" key={link}><button type="button" className="secondary-button" onClick={() => void copyConfirmationLink(link)}><Copy size={14} />复制验证入口</button><a className="primary-button" href={link} target="_blank" rel="noopener noreferrer" onClick={() => { if (emailConfirmationProvider) setVerificationOpened((current) => ({ ...current, [emailConfirmationProvider]: true })); }}>{emailIsQqConfirmation ? "打开 QQ 官方验证入口" : "打开 Google 官方验证入口"}<ExternalLink size={14} /></a></span>)}</footer>}</section>}
   </div>;
 }
 

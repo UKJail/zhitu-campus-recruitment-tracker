@@ -13,5 +13,9 @@ export async function GET() {
     configured: Boolean(domain),
     address: domain ? `${data.inbound_alias}@${domain}` : null,
     alias: data.inbound_alias,
+    domain,
+    ownership: "current-user",
+  }, {
+    headers: { "Cache-Control": "private, no-store, max-age=0" },
   });
 }

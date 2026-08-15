@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { allowedConfirmationLinks, forwardingConfirmationProvider, gmailForwardingConfirmationCode, gmailRecruitmentFilterQuery, hasRecentInboundEmail, isGmailForwardingConfirmation, isQqForwardingConfirmation } from "./forwarding";
+import { allowedConfirmationLinks, forwardingConfirmationProvider, forwardingVerificationState, gmailForwardingConfirmationCode, gmailRecruitmentFilterQuery, hasRecentInboundEmail, isGmailForwardingConfirmation, isQqForwardingConfirmation } from "./forwarding";
 
 describe("mail forwarding helpers", () => {
   it("only exposes confirmation links from trusted mailbox providers", () => {
@@ -22,6 +22,15 @@ describe("mail forwarding helpers", () => {
     expect(isQqForwardingConfirmation(email)).toBe(true);
     expect(forwardingConfirmationProvider(email)).toBe("qq");
     expect(isQqForwardingConfirmation({ sender: "attacker@example.com", subject: "QQ邮箱自动转发验证邮件" })).toBe(false);
+  });
+
+  it("uses the same waiting, received and opened state model for Gmail and QQ", () => {
+    const gmail = { sender: "forwarding-noreply@google.com", subject: "Gmail Forwarding Confirmation" };
+    const qq = { sender: "service@qq.com", subject: "QQ邮箱自动转发验证邮件" };
+    expect(forwardingVerificationState("gmail", [])).toMatchObject({ phase: "waiting", title: "正在等待 Gmail 验证邮件" });
+    expect(forwardingVerificationState("qq", [])).toMatchObject({ phase: "waiting", title: "正在等待 QQ 邮箱验证邮件" });
+    expect(forwardingVerificationState("gmail", [gmail])).toMatchObject({ phase: "received", title: "已收到 Gmail 验证邮件" });
+    expect(forwardingVerificationState("qq", [qq], true)).toMatchObject({ phase: "opened", title: "已打开 QQ 邮箱验证邮件" });
   });
 
   it("extracts an eight digit Gmail confirmation code", () => {

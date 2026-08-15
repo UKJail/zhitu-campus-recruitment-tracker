@@ -10,6 +10,12 @@ type EmailIdentity = {
   subject?: string | null;
 };
 
+export type ForwardingVerificationState = {
+  phase: "waiting" | "received" | "opened";
+  title: string;
+  description: string;
+};
+
 export const recruitmentFilterKeywords = [
   "面试",
   "笔试",
@@ -52,6 +58,31 @@ export function forwardingConfirmationProvider(email: EmailIdentity): Forwarding
   if (isGmailForwardingConfirmation(email)) return "gmail";
   if (isQqForwardingConfirmation(email)) return "qq";
   return null;
+}
+
+export function forwardingVerificationState(
+  provider: ForwardingConfirmationProvider,
+  emails: EmailIdentity[],
+  opened = false,
+): ForwardingVerificationState {
+  const label = provider === "gmail" ? "Gmail" : "QQ 邮箱";
+  const verificationLabel = provider === "gmail" ? "Gmail 验证邮件" : "QQ 邮箱验证邮件";
+  const received = emails.some((email) => forwardingConfirmationProvider(email) === provider);
+  if (!received) return {
+    phase: "waiting",
+    title: `正在等待 ${verificationLabel}`,
+    description: "添加地址后通常等待 1—3 分钟；无需把验证邮件手动转发给我们。",
+  };
+  if (opened) return {
+    phase: "opened",
+    title: `已打开 ${verificationLabel}`,
+    description: "验证入口已打开，请回到原邮箱设置页刷新并确认转发地址已生效。",
+  };
+  return {
+    phase: "received",
+    title: `已收到 ${verificationLabel}`,
+    description: `验证邮件只对当前账号可见，请打开并通过${label}提供的官方入口完成验证。`,
+  };
 }
 
 function decodeHtmlUrl(value: string) {
