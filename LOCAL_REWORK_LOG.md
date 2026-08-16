@@ -343,3 +343,13 @@ Move-Item -LiteralPath ".vercel\project.json.disabled" -Destination ".vercel\pro
 - 新 Preview 为 `https://zhitu-tracker-7pp6qvtmt-zhitu-tracker.vercel.app`，部署 ID 为 `dpl_EphwYEaPfBqQXFwbf2v8pmLvAUZY`，状态为 Ready。Vercel 生产构建、TypeScript 和 33 个页面/接口路由全部通过。
 - 基础验收：首页 HTTP 200；`/api/health` 正常；`/api/health/auth` 真实连接 Supabase Auth 成功；`/api/career-portals` 返回 690 条企业入口。
 - 本次未修改 Resend Webhook，未执行 Supabase 迁移，未合并 `main`，未提升或覆盖正式部署。下一步仍是由用户在新 Preview 中完成管理员和 Testing 真实登录及数据隔离验收。
+
+# 2026-08-17 Preview 简历分析结构纠错
+
+- 用户确认管理员登录、Testing 登录、账号隔离和密码功能均正常；本阶段只修复简历中心的 DeepSeek 岗位匹配分析，不改密码流程。
+- 使用不含简历或个人信息的最小请求确认 Preview 所用 DeepSeek 模型、关闭思考参数和 JSON 输出参数均可正常返回；问题不在密钥、模型或 API 参数。
+- 根因是 DeepSeek 返回可解析但字段结构不符合 Zod schema 时，分析路由把模型输出校验错误误报成“请求参数无效”。
+- DeepSeek JSON 调用现会在每次响应后立即执行目标 schema 校验；字段缺失或类型错误时，最多重试三次，并只向模型提供错误字段路径，要求不得新增或改写简历事实。
+- 分析接口先独立校验客户端请求；只有简历 ID、岗位 JD、目标公司或岗位名称本身不合法时才返回 `INVALID_ANALYSIS_INPUT` 和对应中文字段提示，模型输出错误不再冒充前端参数错误。
+- 新增模型字段结构纠错测试与分析接口参数分流测试。最终验证：36 个测试文件、133 项测试全部通过；ESLint 与 Next.js 16.3.0 生产构建通过。
+- 本阶段尚未合并 `main`、未覆盖正式站、未执行 Supabase 迁移、未修改 Resend Webhook；修复只准备发布到 Preview 供用户复验。

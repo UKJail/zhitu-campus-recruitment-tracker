@@ -24,8 +24,25 @@ export async function POST(request: Request) {
   const { supabase, userId } = await getAuthenticatedUserId();
   if (!userId) return NextResponse.json({ error: "请先登录" }, { status: 401 });
 
+  const body = await request.json().catch(() => null);
+  const parsedInput = requestSchema.safeParse(body);
+  if (!parsedInput.success) {
+    const invalidFields = [...new Set(parsedInput.error.issues.map((issue) => String(issue.path[0] || "request")))];
+    const fieldLabels: Record<string, string> = {
+      resumeId: "简历",
+      jobDescription: "岗位 JD",
+      targetCompany: "目标公司",
+      targetRole: "岗位名称",
+      request: "请求内容",
+    };
+    return NextResponse.json({
+      error: `${invalidFields.map((field) => fieldLabels[field] || field).join("、")}信息不完整或格式不正确`,
+      code: "INVALID_ANALYSIS_INPUT",
+    }, { status: 400 });
+  }
+
   try {
-    const input = requestSchema.parse(await request.json());
+    const input = parsedInput.data;
     const [{ data: resume, error: resumeError }, { data: profile }, { count }] = await Promise.all([
       supabase.from("resumes").select("id,parsed_text,parse_status").eq("id", input.resumeId).eq("user_id", userId).single(),
       supabase.from("profiles").select("ai_daily_limit").eq("id", userId).single(),
@@ -70,7 +87,7 @@ export async function POST(request: Request) {
       throw error;
     }
   } catch (error) {
-    const message = error instanceof z.ZodError ? "请求参数无效" : error instanceof Error ? error.message : "分析失败";
+    const message = error instanceof Error ? error.message : "分析失败";
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }
