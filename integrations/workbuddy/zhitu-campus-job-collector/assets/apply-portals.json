@@ -1,0 +1,3843 @@
+{
+  "version": "1.1.0",
+  "source": "企业招聘库.md",
+  "count": 541,
+  "raw_entries": 552,
+  "deduped": 11,
+  "positioning": "国内500强企业官方招聘入口（持续扩充）",
+  "usage": "投递导航按 name/industry 检索；对外称国内500强企业库；每次对用户只返回 3～5 条；status=未找到 勿硬推；不代投",
+  "statuses": {
+    "有效": 133,
+    "已修正": 408,
+    "未找到": 0
+  },
+  "industries": [
+    "AI/大模型与互联网新势力",
+    "互联网/科技/游戏",
+    "互联网垂直 / 电商 / 内容",
+    "光伏/新能源/电力设备",
+    "农商行 / 信托 / 保险资管补充",
+    "农牧 / 饲料 / 养殖",
+    "化工/材料与医药（补充）",
+    "医疗器械 / IVD",
+    "医药/生物/医疗",
+    "半导体/电子/硬科技",
+    "半导体设计与制造（补充）",
+    "商贸/供应链/综合央企",
+    "地产/建筑/物业",
+    "地方基建工程国企",
+    "城商行",
+    "外资跨国企业",
+    "家电 / 消费电子补充",
+    "家电/轻工制造",
+    "建筑/工程/冶金央企",
+    "文旅/教育/媒体/科研",
+    "新消费 / 茶饮 / 餐饮",
+    "新能源/电力装备",
+    "检验检测 / 科研服务",
+    "汽车/新能源整车及零部件",
+    "汽车产业链（补充）与地产补漏",
+    "消费/服装/食品",
+    "烟草/邮政/铁路/交通",
+    "物流/快递/供应链",
+    "电池 / 汽车零部件补充",
+    "能源/电网/石油石化央企",
+    "航空航天/军工/电子央企",
+    "装备/机械/工业",
+    "通信/ICT设备与基础设施",
+    "通信运营商",
+    "金融/银行/证券/保险",
+    "金融（补充：资管/证券/基金）",
+    "钢铁/有色/材料龙头",
+    "食品饮料/消费零售"
+  ],
+  "portals": [
+    {
+      "name": "腾讯",
+      "url": "https://careers.tencent.com/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "阿里巴巴集团",
+      "url": "https://talent.alibaba.com/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "阿里云",
+      "url": "https://careers.aliyun.com/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "字节跳动",
+      "url": "https://jobs.bytedance.com/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "百度",
+      "url": "https://talent.baidu.com/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "京东集团",
+      "url": "https://zhaopin.jd.com/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "美团",
+      "url": "https://zhaopin.meituan.com/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "小米集团",
+      "url": "https://hr.xiaomi.com/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "快手",
+      "url": "https://zhaopin.kuaishou.cn/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "网易",
+      "url": "https://hr.163.com/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "拼多多",
+      "url": "https://careers.pinduoduo.com/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "哔哩哔哩",
+      "url": "https://www.bilibili.com/blackboard/join-list.html#/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "携程",
+      "url": "https://job.ctrip.com/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "爱奇艺",
+      "url": "http://zhaopin.iqiyi.com/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "新浪微博",
+      "url": "https://career.sina.com.cn/",
+      "status": "已修正",
+      "industry": "互联网/科技/游戏",
+      "note": "原社招子路径404，改新浪集团招聘官网"
+    },
+    {
+      "name": "豆瓣",
+      "url": "https://jobs.douban.com/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "滴滴出行",
+      "url": "https://talent.didiglobal.com/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "贝壳找房",
+      "url": "https://campus.ke.com/",
+      "status": "已修正",
+      "industry": "互联网/科技/游戏",
+      "note": "原飞书链接404，改贝壳校招官网"
+    },
+    {
+      "name": "小红书",
+      "url": "https://job.xiaohongshu.com/",
+      "status": "已修正",
+      "industry": "互联网/科技/游戏",
+      "note": "原域名打不开，改小红书招聘官网"
+    },
+    {
+      "name": "理想汽车",
+      "url": "https://li-autojobs.feishu.cn/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "小鹏汽车",
+      "url": "https://xiaopeng.jobs.feishu.cn/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "蔚来汽车",
+      "url": "https://www.nio.cn/careers",
+      "status": "已修正",
+      "industry": "互联网/科技/游戏",
+      "note": "原域名打不开，改蔚来加入我们页"
+    },
+    {
+      "name": "途牛",
+      "url": "https://job.tuniu.com/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "阅文集团",
+      "url": "https://join.yuewen.com/",
+      "status": "已修正",
+      "industry": "互联网/科技/游戏",
+      "note": "原域名打不开，改阅文招聘官网"
+    },
+    {
+      "name": "华为",
+      "url": "https://career.huawei.com/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "大疆创新DJI",
+      "url": "https://we.dji.com/zh-CN/",
+      "status": "已修正",
+      "industry": "互联网/科技/游戏",
+      "note": "原域名打不开，改大疆招聘官网"
+    },
+    {
+      "name": "联想集团",
+      "url": "https://talent.lenovo.com.cn/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "超聚变",
+      "url": "https://career.xfusion.com/",
+      "status": "已修正",
+      "industry": "互联网/科技/游戏",
+      "note": "原浪潮域名错误，改超聚变招聘官网"
+    },
+    {
+      "name": "三七互娱",
+      "url": "https://37wan.zhiye.com/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "完美世界",
+      "url": "https://jobs.games.wanmei.com/",
+      "status": "已修正",
+      "industry": "互联网/科技/游戏",
+      "note": "原域名打不开，改完美世界招聘官网"
+    },
+    {
+      "name": "金山软件",
+      "url": "https://www.kingsoft.com/iksnet/recruit",
+      "status": "已修正",
+      "industry": "互联网/科技/游戏",
+      "note": "原域名打不开，改金山招聘页"
+    },
+    {
+      "name": "搜狐",
+      "url": "https://hr.sohu.com",
+      "status": "已修正",
+      "industry": "互联网/科技/游戏",
+      "note": "原域名打不开，改搜狐招聘官网"
+    },
+    {
+      "name": "智己汽车",
+      "url": "https://www.immotors.com/website/join_us",
+      "status": "已修正",
+      "industry": "互联网/科技/游戏",
+      "note": "原飞书链接404，改智己加入我们页"
+    },
+    {
+      "name": "极氪汽车",
+      "url": "https://www.zeekrgroup.com/join-us",
+      "status": "已修正",
+      "industry": "互联网/科技/游戏",
+      "note": "原域名打不开，改极氪加入我们页"
+    },
+    {
+      "name": "米哈游",
+      "url": "https://mihooyo.zhiye.com/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "鹰角网络",
+      "url": "https://hypergryph.zhiye.com/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "莉莉丝游戏",
+      "url": "https://lilith.zhiye.com/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "FunPlus",
+      "url": "https://funplus.zhiye.com/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "猿辅导",
+      "url": "https://yuanfudao.zhiye.com/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "作业帮",
+      "url": "https://job.zuoyebang.com/",
+      "status": "已修正",
+      "industry": "互联网/科技/游戏",
+      "note": "原zhiye链接Not Found，改作业帮招聘官网"
+    },
+    {
+      "name": "360集团",
+      "url": "https://hr.360.cn/",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "奇安信",
+      "url": "https://campus.qianxin.com/",
+      "status": "已修正",
+      "industry": "互联网/科技/游戏",
+      "note": "原社招域名打不开，改奇安信校招官网"
+    },
+    {
+      "name": "安恒信息",
+      "url": "https://ahzp.dbappsecurity.com.cn/",
+      "status": "已修正",
+      "industry": "互联网/科技/游戏",
+      "note": "原dbaplus链接404，改安恒校招官网"
+    },
+    {
+      "name": "知乎",
+      "url": "https://www.zhihu.com/careers",
+      "status": "有效",
+      "industry": "互联网/科技/游戏",
+      "note": ""
+    },
+    {
+      "name": "BOSS直聘",
+      "url": "https://www.zhipin.com/campus/",
+      "status": "已修正",
+      "industry": "互联网/科技/游戏",
+      "note": "原飞书链接404，改BOSS直聘校招官网"
+    },
+    {
+      "name": "京东方",
+      "url": "https://campus.boe.com/",
+      "status": "已修正",
+      "industry": "半导体/电子/硬科技",
+      "note": "原hr子域不可达，改京东方校招官网"
+    },
+    {
+      "name": "中芯国际",
+      "url": "https://smics.zhiye.com/",
+      "status": "有效",
+      "industry": "半导体/电子/硬科技",
+      "note": ""
+    },
+    {
+      "name": "深南电路",
+      "url": "https://www.scc.com.cn/scc/jrsn/index.html",
+      "status": "已修正",
+      "industry": "半导体/电子/硬科技",
+      "note": "原域名404，改加入深南页"
+    },
+    {
+      "name": "TCL",
+      "url": "https://zhaopin.tcl.com/",
+      "status": "已修正",
+      "industry": "半导体/电子/硬科技",
+      "note": "原hr.tcl.com返回502，改TCL招聘站"
+    },
+    {
+      "name": "海信",
+      "url": "https://jobs.hisense.com/",
+      "status": "已修正",
+      "industry": "半导体/电子/硬科技",
+      "note": "原域名不可达，改海信招聘官网"
+    },
+    {
+      "name": "海康威视",
+      "url": "https://talent.hikvision.com",
+      "status": "已修正",
+      "industry": "半导体/电子/硬科技",
+      "note": "原hr子域不可达，改海康招聘官网"
+    },
+    {
+      "name": "大华股份",
+      "url": "https://job.dahuatech.com/",
+      "status": "已修正",
+      "industry": "半导体/电子/硬科技",
+      "note": "原hr子域不可达，改大华招聘官网"
+    },
+    {
+      "name": "汇川技术",
+      "url": "https://recruit.inovance.com/",
+      "status": "已修正",
+      "industry": "半导体/电子/硬科技",
+      "note": "原hr子域不可达，改汇川招聘站"
+    },
+    {
+      "name": "蓝思科技",
+      "url": "https://lens.zhiye.com/",
+      "status": "有效",
+      "industry": "半导体/电子/硬科技",
+      "note": ""
+    },
+    {
+      "name": "立讯精密",
+      "url": "https://luxshare.zhiye.com/",
+      "status": "有效",
+      "industry": "半导体/电子/硬科技",
+      "note": ""
+    },
+    {
+      "name": "拓普集团",
+      "url": "https://tuopu.zhiye.com/",
+      "status": "有效",
+      "industry": "半导体/电子/硬科技",
+      "note": ""
+    },
+    {
+      "name": "欣旺达",
+      "url": "https://sunwoda.zhiye.com/",
+      "status": "有效",
+      "industry": "半导体/电子/硬科技",
+      "note": ""
+    },
+    {
+      "name": "韦尔股份",
+      "url": "https://www.omnivision-group.com/",
+      "status": "已修正",
+      "industry": "半导体/电子/硬科技",
+      "note": "原域名不可达，改韦尔集团加入我们页"
+    },
+    {
+      "name": "兆易创新",
+      "url": "https://app.mokahr.com/campus-recruitment/gigadevice/92215",
+      "status": "已修正",
+      "industry": "半导体/电子/硬科技",
+      "note": "原careers路径404，改兆易校招官网"
+    },
+    {
+      "name": "卓胜微",
+      "url": "https://maxscend.zhiye.com/",
+      "status": "已修正",
+      "industry": "半导体/电子/硬科技",
+      "note": "原路径404，改卓胜微招聘站"
+    },
+    {
+      "name": "中微公司",
+      "url": "https://www.amec-inc.com/index/Lists/index/catid/100.html",
+      "status": "有效",
+      "industry": "半导体/电子/硬科技",
+      "note": ""
+    },
+    {
+      "name": "北方华创",
+      "url": "https://career.naura.com/jobs",
+      "status": "已修正",
+      "industry": "半导体/电子/硬科技",
+      "note": "原域名不可达，改北方华创招聘站"
+    },
+    {
+      "name": "长电科技",
+      "url": "https://jcetglobal.com/en/site/join",
+      "status": "已修正",
+      "industry": "半导体/电子/硬科技",
+      "note": "原careers路径404，改长电Careers页"
+    },
+    {
+      "name": "通富微电",
+      "url": "https://www.tfme.com",
+      "status": "已修正",
+      "industry": "半导体/电子/硬科技",
+      "note": "原域名非官方，改通富微电集团站"
+    },
+    {
+      "name": "华天科技",
+      "url": "https://www.ht-tech.com/",
+      "status": "已修正",
+      "industry": "半导体/电子/硬科技",
+      "note": "原careers路径403，改官网(招聘走邮箱/公众号"
+    },
+    {
+      "name": "隆基绿能",
+      "url": "https://www.longi.com/cn/career/",
+      "status": "已修正",
+      "industry": "光伏/新能源/电力设备",
+      "note": "原careers复数404，改career单数"
+    },
+    {
+      "name": "晶科能源",
+      "url": "https://app.mokahr.com/campus-recruitment/jinkosolar/41896",
+      "status": "已修正",
+      "industry": "光伏/新能源/电力设备",
+      "note": "原路径404，改晶科校招官网"
+    },
+    {
+      "name": "天合光能",
+      "url": "https://www.trinasolar.com/cn/careers",
+      "status": "有效",
+      "industry": "光伏/新能源/电力设备",
+      "note": ""
+    },
+    {
+      "name": "阿特斯阳光电力",
+      "url": "https://recruit.csisolar.com/campus",
+      "status": "已修正",
+      "industry": "光伏/新能源/电力设备",
+      "note": "根路径仅品牌页，改校招职位页"
+    },
+    {
+      "name": "派能科技",
+      "url": "https://www.pylontech.com.cn/careers",
+      "status": "有效",
+      "industry": "光伏/新能源/电力设备",
+      "note": ""
+    },
+    {
+      "name": "固德威",
+      "url": "https://careers.goodwe.com",
+      "status": "已修正",
+      "industry": "光伏/新能源/电力设备",
+      "note": "原goodwe.com.cn/careers 404，改固德威招聘站"
+    },
+    {
+      "name": "阳光电源",
+      "url": "https://sungrow.zhiye.com/",
+      "status": "有效",
+      "industry": "光伏/新能源/电力设备",
+      "note": ""
+    },
+    {
+      "name": "东阳光集团",
+      "url": "https://hec.zhiye.com/",
+      "status": "有效",
+      "industry": "光伏/新能源/电力设备",
+      "note": ""
+    },
+    {
+      "name": "长飞光纤",
+      "url": "https://yofc.zhiye.com/",
+      "status": "有效",
+      "industry": "光伏/新能源/电力设备",
+      "note": ""
+    },
+    {
+      "name": "博众精工",
+      "url": "https://bozhon3.zhiye.com/",
+      "status": "有效",
+      "industry": "光伏/新能源/电力设备",
+      "note": ""
+    },
+    {
+      "name": "英威腾",
+      "url": "https://www.invt.com.cn/campus-recruitment-c-56-1",
+      "status": "有效",
+      "industry": "光伏/新能源/电力设备",
+      "note": ""
+    },
+    {
+      "name": "比亚迪",
+      "url": "http://job.byd.com",
+      "status": "已修正",
+      "industry": "电池 / 汽车零部件补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "上汽集团",
+      "url": "http://saic-recruit.saicmotor.com/",
+      "status": "已修正",
+      "industry": "电池 / 汽车零部件补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "一汽集团",
+      "url": "https://faw-zhaopin.hotjob.cn/",
+      "status": "有效",
+      "industry": "汽车/新能源整车及零部件",
+      "note": ""
+    },
+    {
+      "name": "东风汽车",
+      "url": "https://www.dfmc.com.cn/zhaopin/xiaoyuanzhaopin.html",
+      "status": "已修正",
+      "industry": "电池 / 汽车零部件补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "广汽集团",
+      "url": "https://www.gacgroup.com/cn/talent",
+      "status": "已修正",
+      "industry": "电池 / 汽车零部件补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "长城汽车",
+      "url": "https://zhaopin.gwm.cn",
+      "status": "已修正",
+      "industry": "电池 / 汽车零部件补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "吉利集团",
+      "url": "http://campus.geely.com",
+      "status": "已修正",
+      "industry": "汽车/新能源整车及零部件",
+      "note": "原域不可达，改吉利校招域名"
+    },
+    {
+      "name": "宁德时代",
+      "url": "https://talent.catl.com/",
+      "status": "已修正",
+      "industry": "电池 / 汽车零部件补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "亿纬锂能",
+      "url": "https://www.evebattery.com/join-us",
+      "status": "已修正",
+      "industry": "汽车/新能源整车及零部件",
+      "note": "原域不可达，改亿纬加入我们页"
+    },
+    {
+      "name": "长安汽车",
+      "url": "https://changan.zhiye.com/campus",
+      "status": "已修正",
+      "industry": "电池 / 汽车零部件补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "奇瑞汽车",
+      "url": "https://chery.zhiye.com/campus",
+      "status": "已修正",
+      "industry": "电池 / 汽车零部件补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "江淮汽车",
+      "url": "https://www.jac.com.cn/rczp/",
+      "status": "已修正",
+      "industry": "汽车/新能源整车及零部件",
+      "note": "原链404，改江淮人才招聘页"
+    },
+    {
+      "name": "江铃汽车",
+      "url": "http://jmc.zhiye.com/campus",
+      "status": "已修正",
+      "industry": "汽车/新能源整车及零部件",
+      "note": "原链404，改江铃校招网申"
+    },
+    {
+      "name": "福田汽车",
+      "url": "https://futurefoton.zhiye.com/campus",
+      "status": "已修正",
+      "industry": "汽车/新能源整车及零部件",
+      "note": "原链404，改福田校招"
+    },
+    {
+      "name": "宇通客车",
+      "url": "http://join.yutong.com/",
+      "status": "已修正",
+      "industry": "汽车/新能源整车及零部件",
+      "note": "原链404，改宇通招聘join.yutong.com"
+    },
+    {
+      "name": "金龙汽车",
+      "url": "https://www.king-long.com.cn/col44/",
+      "status": "已修正",
+      "industry": "汽车/新能源整车及零部件",
+      "note": "原链404，改厦门金龙招聘页"
+    },
+    {
+      "name": "蜂巢能源",
+      "url": "https://svolt.zhiye.com/campus/jobs",
+      "status": "已修正",
+      "industry": "汽车/新能源整车及零部件",
+      "note": "原链404，改蜂巢校招"
+    },
+    {
+      "name": "国轩高科",
+      "url": "https://gotion.com.cn/join",
+      "status": "已修正",
+      "industry": "电池 / 汽车零部件补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "德赛西威",
+      "url": "https://yesv-desaysv.jobs.feishu.cn/campus/",
+      "status": "已修正",
+      "industry": "汽车/新能源整车及零部件",
+      "note": "原链域名错误，改德赛西威飞书校招"
+    },
+    {
+      "name": "华阳集团",
+      "url": "http://www.foryougroup.com/",
+      "status": "已修正",
+      "industry": "汽车/新能源整车及零部件",
+      "note": "原域错误，改华阳集团官网招聘"
+    },
+    {
+      "name": "均胜电子",
+      "url": "https://www.joyson.com/index.php/join.html?md=0",
+      "status": "已修正",
+      "industry": "汽车/新能源整车及零部件",
+      "note": "原域错误，改均胜加入页"
+    },
+    {
+      "name": "美的集团",
+      "url": "https://careers.midea.com/",
+      "status": "有效",
+      "industry": "家电/轻工制造",
+      "note": ""
+    },
+    {
+      "name": "海尔集团",
+      "url": "https://maker.haier.net/",
+      "status": "已修正",
+      "industry": "家电/轻工制造",
+      "note": "原域名停用，改海尔官方招聘网"
+    },
+    {
+      "name": "格力电器",
+      "url": "https://www.gree.cn/list/22.html",
+      "status": "已修正",
+      "industry": "家电/轻工制造",
+      "note": "原hr.gree.com失效，改格力加入格力栏目"
+    },
+    {
+      "name": "方太集团",
+      "url": "https://fotile.zhiye.com/campus",
+      "status": "已修正",
+      "industry": "家电/轻工制造",
+      "note": "原career子域失效，改方太招聘官网"
+    },
+    {
+      "name": "老板电器",
+      "url": "https://campus.robam.com/",
+      "status": "已修正",
+      "industry": "家电/轻工制造",
+      "note": "原hr.robam.com失效，改老板电器校招官网"
+    },
+    {
+      "name": "国家电网",
+      "url": "https://zhaopin.sgcc.com.cn/",
+      "status": "有效",
+      "industry": "能源/电网/石油石化央企",
+      "note": ""
+    },
+    {
+      "name": "南方电网",
+      "url": "https://zhaopin.csg.cn/",
+      "status": "有效",
+      "industry": "能源/电网/石油石化央企",
+      "note": ""
+    },
+    {
+      "name": "中国石油",
+      "url": "https://zhaopin.cnpc.com.cn/",
+      "status": "已修正",
+      "industry": "能源/电网/石油石化央企",
+      "note": "原job子域失效，改中石油招聘平台"
+    },
+    {
+      "name": "中国石化",
+      "url": "https://job.sinopec.com/",
+      "status": "有效",
+      "industry": "能源/电网/石油石化央企",
+      "note": ""
+    },
+    {
+      "name": "国家能源集团",
+      "url": "https://zhaopin.chnenergy.com.cn/",
+      "status": "有效",
+      "industry": "能源/电网/石油石化央企",
+      "note": ""
+    },
+    {
+      "name": "中国海油",
+      "url": "https://cnooc.zhiye.com/",
+      "status": "有效",
+      "industry": "能源/电网/石油石化央企",
+      "note": ""
+    },
+    {
+      "name": "中国华能",
+      "url": "https://zhaopin.chng.com.cn/",
+      "status": "有效",
+      "industry": "能源/电网/石油石化央企",
+      "note": ""
+    },
+    {
+      "name": "中国大唐",
+      "url": "https://zhaopin.china-cdt.com/",
+      "status": "已修正",
+      "industry": "能源/电网/石油石化央企",
+      "note": "原.com.cn失效，改大唐人力资源平台"
+    },
+    {
+      "name": "中国华电",
+      "url": "https://rencaishichang.chd.com.cn/",
+      "status": "已修正",
+      "industry": "能源/电网/石油石化央企",
+      "note": "原zhaopin.chd失效，改华电人才招聘市场"
+    },
+    {
+      "name": "中广核",
+      "url": "https://cgn.hotjob.cn/",
+      "status": "有效",
+      "industry": "能源/电网/石油石化央企",
+      "note": ""
+    },
+    {
+      "name": "中国核工业集团",
+      "url": "https://hr.cnnc.com.cn/",
+      "status": "已修正",
+      "industry": "能源/电网/石油石化央企",
+      "note": "原zhaopin子域失效，改中核人才招聘网"
+    },
+    {
+      "name": "中国南水北调集团",
+      "url": "https://www.csnwd.com.cn/",
+      "status": "已修正",
+      "industry": "能源/电网/石油石化央企",
+      "note": "原zhaopin.nsbd不存在，改集团官网发公告"
+    },
+    {
+      "name": "中国储备粮管理集团",
+      "url": "https://sinograin.iguopin.com/",
+      "status": "已修正",
+      "industry": "能源/电网/石油石化央企",
+      "note": "原zhaopin子域失效，改国聘承载"
+    },
+    {
+      "name": "中国供销集团",
+      "url": "https://zggxjt.iguopin.com/",
+      "status": "已修正",
+      "industry": "能源/电网/石油石化央企",
+      "note": "原域名错误，改国聘承载"
+    },
+    {
+      "name": "中国盐业集团",
+      "url": "https://www.chinasalt.com.cn/",
+      "status": "有效",
+      "industry": "能源/电网/石油石化央企",
+      "note": ""
+    },
+    {
+      "name": "山东能源集团",
+      "url": "https://zhaopin.shandong-energy.com/recruit",
+      "status": "已修正",
+      "industry": "能源/电网/石油石化央企",
+      "note": "原sd-energ错误，改山东能源招聘网"
+    },
+    {
+      "name": "兖矿能源",
+      "url": "https://zhaopin.shandong-energy.com/recruit",
+      "status": "已修正",
+      "industry": "能源/电网/石油石化央企",
+      "note": "原/careers失效，兖矿隶属山东能源统一招聘"
+    },
+    {
+      "name": "山西焦煤",
+      "url": "https://www.sxcc.com.cn/",
+      "status": "已修正",
+      "industry": "能源/电网/石油石化央企",
+      "note": "原/careers 404，改官网招聘栏目"
+    },
+    {
+      "name": "陕西煤业",
+      "url": "https://webhr.shccig.com/webhrN2-zp",
+      "status": "已修正",
+      "industry": "能源/电网/石油石化央企",
+      "note": "原sxcoal错误，改陕煤人才招聘网"
+    },
+    {
+      "name": "中国建筑",
+      "url": "https://cscec.zhiye.com/",
+      "status": "有效",
+      "industry": "建筑/工程/冶金央企",
+      "note": ""
+    },
+    {
+      "name": "中国中铁",
+      "url": "https://zhr.crec.cn/zhaopin/",
+      "status": "已修正",
+      "industry": "建筑/工程/冶金央企",
+      "note": "原域不可达，改中铁全球人才招引平台"
+    },
+    {
+      "name": "中国铁建",
+      "url": "https://crcci.zhiye.com/",
+      "status": "已修正",
+      "industry": "建筑/工程/冶金央企",
+      "note": "原域不可达，改铁建校招官网"
+    },
+    {
+      "name": "中国交建",
+      "url": "https://zhaopin.ccccltd.cn/",
+      "status": "有效",
+      "industry": "建筑/工程/冶金央企",
+      "note": ""
+    },
+    {
+      "name": "中国电建",
+      "url": "https://zhaopin.powerchina.cn/",
+      "status": "有效",
+      "industry": "建筑/工程/冶金央企",
+      "note": ""
+    },
+    {
+      "name": "中国能建",
+      "url": "https://zhaopin.ceec.net.cn/",
+      "status": "有效",
+      "industry": "建筑/工程/冶金央企",
+      "note": ""
+    },
+    {
+      "name": "中国中冶",
+      "url": "https://zhaopin.minmetals.com.cn/",
+      "status": "已修正",
+      "industry": "建筑/工程/冶金央企",
+      "note": "原域不可达，中冶隶属五矿统一招聘"
+    },
+    {
+      "name": "中国化学",
+      "url": "https://cncec.iguopin.com/",
+      "status": "已修正",
+      "industry": "建筑/工程/冶金央企",
+      "note": "原域不可达，改国聘中国化学招聘平台"
+    },
+    {
+      "name": "中国建材",
+      "url": "https://zhaopin.cnbm.com.cn/",
+      "status": "已修正",
+      "industry": "建筑/工程/冶金央企",
+      "note": "原/careers 404，改中国建材招聘系统"
+    },
+    {
+      "name": "中国宝武钢铁",
+      "url": "http://campus.51job.com/baowugroup/",
+      "status": "已修正",
+      "industry": "建筑/工程/冶金央企",
+      "note": "原域不可达，改51job宝武校招平台"
+    },
+    {
+      "name": "中国五矿",
+      "url": "https://zhaopin.minmetals.com.cn/",
+      "status": "有效",
+      "industry": "建筑/工程/冶金央企",
+      "note": ""
+    },
+    {
+      "name": "中国铝业",
+      "url": "https://www.chinalco.com.cn/",
+      "status": "已修正",
+      "industry": "建筑/工程/冶金央企",
+      "note": "原域不可达，改集团官网人力资源专区"
+    },
+    {
+      "name": "北京城建",
+      "url": "https://si.bucg.com/e/zp/",
+      "status": "已修正",
+      "industry": "建筑/工程/冶金央企",
+      "note": "原域不可达，改北京城建招聘系统"
+    },
+    {
+      "name": "航天科技集团",
+      "url": "https://www.spacetalent.com.cn/",
+      "status": "已修正",
+      "industry": "航空航天/军工/电子央企",
+      "note": "原域不可达，改中国航天人才网"
+    },
+    {
+      "name": "航天科工集团",
+      "url": "https://cas.ic.zhiye.com/",
+      "status": "已修正",
+      "industry": "航空航天/军工/电子央企",
+      "note": "原域404，改航天科工招聘官网"
+    },
+    {
+      "name": "航空工业集团",
+      "url": "https://www.avic.com.cn/",
+      "status": "已修正",
+      "industry": "航空航天/军工/电子央企",
+      "note": "原域不可达，改集团官网人力资源专区"
+    },
+    {
+      "name": "中国船舶",
+      "url": "https://cssc.zhaopin.com/",
+      "status": "已修正",
+      "industry": "航空航天/军工/电子央企",
+      "note": "原域不可达，改中船集团招聘网站"
+    },
+    {
+      "name": "中国兵器工业",
+      "url": "https://zhaopin.nhrdc.cn/",
+      "status": "已修正",
+      "industry": "航空航天/军工/电子央企",
+      "note": "原域不可达，改兵器人才网"
+    },
+    {
+      "name": "中国兵器装备",
+      "url": "https://csgczhaopin.zhiye.com/",
+      "status": "已修正",
+      "industry": "航空航天/军工/电子央企",
+      "note": "原域不可达，改兵器装备招聘平台"
+    },
+    {
+      "name": "中国电科",
+      "url": "https://cetc.iguopin.com/",
+      "status": "已修正",
+      "industry": "航空航天/军工/电子央企",
+      "note": "原域502，改国聘中国电科招聘官网"
+    },
+    {
+      "name": "国投集团",
+      "url": "https://sdic.zhiye.com/",
+      "status": "有效",
+      "industry": "航空航天/军工/电子央企",
+      "note": ""
+    },
+    {
+      "name": "中国有色集团",
+      "url": "https://hrcnmc.iguopin.com/",
+      "status": "已修正",
+      "industry": "航空航天/军工/电子央企",
+      "note": "原域不可达，改国聘有色人才招聘"
+    },
+    {
+      "name": "中国物流集团",
+      "url": "https://clg.zhiye.com/",
+      "status": "有效",
+      "industry": "航空航天/军工/电子央企",
+      "note": ""
+    },
+    {
+      "name": "中国广电",
+      "url": "https://www.cbn.cn/col/col80/index.html",
+      "status": "已修正",
+      "industry": "航空航天/军工/电子央企",
+      "note": "原域不可达，改集团官网人才招聘栏目"
+    },
+    {
+      "name": "中国黄金集团",
+      "url": "https://hjzp.chinagoldgroup.com/recruit",
+      "status": "已修正",
+      "industry": "航空航天/军工/电子央企",
+      "note": "原域不可达，改中国黄金HRM招聘系统"
+    },
+    {
+      "name": "北京国资公司",
+      "url": "https://zhaopin.bsam.com.cn/base/bsam",
+      "status": "有效",
+      "industry": "航空航天/军工/电子央企",
+      "note": ""
+    },
+    {
+      "name": "中国移动",
+      "url": "https://job.10086.cn/",
+      "status": "有效",
+      "industry": "通信运营商",
+      "note": ""
+    },
+    {
+      "name": "中国电信",
+      "url": "https://job.chinatelecom.com.cn/",
+      "status": "有效",
+      "industry": "通信运营商",
+      "note": ""
+    },
+    {
+      "name": "中国联通",
+      "url": "https://zglt.zhaopin.com/",
+      "status": "已修正",
+      "industry": "通信运营商",
+      "note": "原域是合作方门户非招聘，改联通校招"
+    },
+    {
+      "name": "工商银行",
+      "url": "https://job.icbc.com.cn/",
+      "status": "有效",
+      "industry": "金融/银行/证券/保险",
+      "note": ""
+    },
+    {
+      "name": "农业银行",
+      "url": "https://career.abchina.com.cn/",
+      "status": "有效",
+      "industry": "金融/银行/证券/保险",
+      "note": ""
+    },
+    {
+      "name": "中国银行",
+      "url": "https://www.boc.cn/aboutboc/bi4/",
+      "status": "有效",
+      "industry": "金融/银行/证券/保险",
+      "note": ""
+    },
+    {
+      "name": "建设银行",
+      "url": "https://job.ccb.com/",
+      "status": "有效",
+      "industry": "金融/银行/证券/保险",
+      "note": ""
+    },
+    {
+      "name": "交通银行",
+      "url": "https://job.bankcomm.com/",
+      "status": "有效",
+      "industry": "金融/银行/证券/保险",
+      "note": ""
+    },
+    {
+      "name": "邮储银行",
+      "url": "https://www.psbc.com/cn/gyyc/rczp/xyzp/",
+      "status": "有效",
+      "industry": "金融/银行/证券/保险",
+      "note": ""
+    },
+    {
+      "name": "招商银行",
+      "url": "https://career.cmbchina.com/",
+      "status": "有效",
+      "industry": "金融/银行/证券/保险",
+      "note": ""
+    },
+    {
+      "name": "中信银行",
+      "url": "https://job.citicbank.com/",
+      "status": "有效",
+      "industry": "金融/银行/证券/保险",
+      "note": ""
+    },
+    {
+      "name": "浦发银行",
+      "url": "https://job.spdb.com.cn/",
+      "status": "已修正",
+      "industry": "金融/银行/证券/保险",
+      "note": "原域名不可达，改浦发招聘站"
+    },
+    {
+      "name": "民生银行",
+      "url": "https://career.cmbc.com.cn/",
+      "status": "有效",
+      "industry": "金融/银行/证券/保险",
+      "note": ""
+    },
+    {
+      "name": "兴业银行",
+      "url": "https://job.cib.com.cn/",
+      "status": "已修正",
+      "industry": "金融/银行/证券/保险",
+      "note": "原hr域名不可达，改兴业招聘官网"
+    },
+    {
+      "name": "平安银行",
+      "url": "https://campus.pingan.com/pab4",
+      "status": "有效",
+      "industry": "金融/银行/证券/保险",
+      "note": ""
+    },
+    {
+      "name": "广发银行",
+      "url": "https://www.cgbchina.com.cn/Channel/11581868",
+      "status": "已修正",
+      "industry": "金融/银行/证券/保险",
+      "note": "原/careers 404，改官网人才招聘频道"
+    },
+    {
+      "name": "光大银行",
+      "url": "https://eoap.cebbank.com/uiap/wt/CEB/zpzh/campus",
+      "status": "已修正",
+      "industry": "金融/银行/证券/保险",
+      "note": "原job域名不可达，改光大招聘报名平台"
+    },
+    {
+      "name": "华夏银行",
+      "url": "https://hxb.hotjob.cn/",
+      "status": "已修正",
+      "industry": "金融/银行/证券/保险",
+      "note": "原hr域名不可达，改华夏招聘网站"
+    },
+    {
+      "name": "浙商银行",
+      "url": "https://zp.czbank.com.cn/",
+      "status": "已修正",
+      "industry": "金融/银行/证券/保险",
+      "note": "原job域名不可达，改浙商招聘管理系统"
+    },
+    {
+      "name": "国家开发银行",
+      "url": "https://cdb2026.zhaopin.com",
+      "status": "已修正",
+      "industry": "金融/银行/证券/保险",
+      "note": "原/careers 404，改国开行校招平台"
+    },
+    {
+      "name": "中国进出口银行",
+      "url": "https://zhaopin.eximbank.gov.cn/",
+      "status": "已修正",
+      "industry": "金融/银行/证券/保险",
+      "note": "原/careers超时，改进出口行招聘系统"
+    },
+    {
+      "name": "中国农业发展银行",
+      "url": "https://campus.chinahr.com/pages/adbc2026",
+      "status": "已修正",
+      "industry": "金融/银行/证券/保险",
+      "note": "原/careers 404，改农发行校招合作平台"
+    },
+    {
+      "name": "平安集团",
+      "url": "https://talent.pingan.com/",
+      "status": "有效",
+      "industry": "金融/银行/证券/保险",
+      "note": ""
+    },
+    {
+      "name": "中国人寿",
+      "url": "https://www.chinalife.com.cn/hr/",
+      "status": "有效",
+      "industry": "金融/银行/证券/保险",
+      "note": ""
+    },
+    {
+      "name": "中国人保",
+      "url": "http://picc.zhiye.com/",
+      "status": "已修正",
+      "industry": "金融/银行/证券/保险",
+      "note": "原链接不可达，改人保招聘网申系统"
+    },
+    {
+      "name": "太平洋保险",
+      "url": "https://www.cpic.com.cn/jkx/gytbal/rczp/",
+      "status": "已修正",
+      "industry": "金融/银行/证券/保险",
+      "note": "原链接不可达，改CPIC官网人才招聘页"
+    },
+    {
+      "name": "新华保险",
+      "url": "http://nci.zhiye.com/",
+      "status": "已修正",
+      "industry": "金融/银行/证券/保险",
+      "note": "原链接不可达，改新华保险网申系统"
+    },
+    {
+      "name": "泰康保险",
+      "url": "https://jobtaikang.zhiye.com/",
+      "status": "已修正",
+      "industry": "金融/银行/证券/保险",
+      "note": "原链404，改泰康招聘门户"
+    },
+    {
+      "name": "大家保险",
+      "url": "https://djbx.zhiye.com/",
+      "status": "已修正",
+      "industry": "金融/银行/证券/保险",
+      "note": "原链接不可达，改大家保险招聘站"
+    },
+    {
+      "name": "中国出口信用保险",
+      "url": "https://sinosure.zhaopin.com/",
+      "status": "已修正",
+      "industry": "金融/银行/证券/保险",
+      "note": "原链接不可达，改信保招聘官网"
+    },
+    {
+      "name": "中信证券",
+      "url": "http://careers.citics.com/",
+      "status": "已修正",
+      "industry": "金融/银行/证券/保险",
+      "note": "原链502，正确官方域careers.citics.com"
+    },
+    {
+      "name": "中金公司",
+      "url": "https://cicc.zhiye.com/",
+      "status": "已修正",
+      "industry": "金融/银行/证券/保险",
+      "note": "原链404，改中金招聘官网"
+    },
+    {
+      "name": "华泰证券",
+      "url": "http://job.htsc.com.cn/",
+      "status": "已修正",
+      "industry": "金融/银行/证券/保险",
+      "note": "原链404，改华泰招聘站"
+    },
+    {
+      "name": "东方财富",
+      "url": "https://zhaopin.eastmoney.com/",
+      "status": "已修正",
+      "industry": "金融/银行/证券/保险",
+      "note": "原链404，改东方财富招聘站"
+    },
+    {
+      "name": "招商证券",
+      "url": "https://www.newone.com.cn/careers",
+      "status": "有效",
+      "industry": "金融/银行/证券/保险",
+      "note": ""
+    },
+    {
+      "name": "广发证券",
+      "url": "https://www.gf.com.cn/careers",
+      "status": "有效",
+      "industry": "金融/银行/证券/保险",
+      "note": ""
+    },
+    {
+      "name": "国家烟草专卖局",
+      "url": "http://www.tobacco.gov.cn/gjyc/zpxx/list.shtml",
+      "status": "有效",
+      "industry": "烟草/邮政/铁路/交通",
+      "note": ""
+    },
+    {
+      "name": "中国邮政",
+      "url": "https://chinapost2026.zhaopin.com/",
+      "status": "有效",
+      "industry": "烟草/邮政/铁路/交通",
+      "note": ""
+    },
+    {
+      "name": "中国铁路",
+      "url": "https://rczp.china-railway.com.cn/",
+      "status": "有效",
+      "industry": "烟草/邮政/铁路/交通",
+      "note": ""
+    },
+    {
+      "name": "招商局集团",
+      "url": "http://cmhk.zhiye.com/index",
+      "status": "有效",
+      "industry": "烟草/邮政/铁路/交通",
+      "note": ""
+    },
+    {
+      "name": "中远海运",
+      "url": "https://coscoshipping.iguopin.com",
+      "status": "已修正",
+      "industry": "烟草/邮政/铁路/交通",
+      "note": "原zhaopin.coscoshipping不可达，改中远海运人才招聘平台"
+    },
+    {
+      "name": "东方航空",
+      "url": "https://job.ceair.com/",
+      "status": "有效",
+      "industry": "烟草/邮政/铁路/交通",
+      "note": ""
+    },
+    {
+      "name": "南方航空",
+      "url": "https://job.csair.com/",
+      "status": "有效",
+      "industry": "烟草/邮政/铁路/交通",
+      "note": ""
+    },
+    {
+      "name": "中国国航",
+      "url": "https://zhaopin.airchina.com.cn/",
+      "status": "有效",
+      "industry": "烟草/邮政/铁路/交通",
+      "note": ""
+    },
+    {
+      "name": "春秋航空",
+      "url": "https://job.ch.com/",
+      "status": "有效",
+      "industry": "烟草/邮政/铁路/交通",
+      "note": ""
+    },
+    {
+      "name": "海航集团",
+      "url": "https://hna.zhiye.com/",
+      "status": "有效",
+      "industry": "烟草/邮政/铁路/交通",
+      "note": ""
+    },
+    {
+      "name": "华润集团",
+      "url": "https://careers.crc.com.cn/",
+      "status": "有效",
+      "industry": "商贸/供应链/综合央企",
+      "note": ""
+    },
+    {
+      "name": "中粮集团",
+      "url": "https://cofco.zhiye.com/",
+      "status": "有效",
+      "industry": "商贸/供应链/综合央企",
+      "note": ""
+    },
+    {
+      "name": "国药集团",
+      "url": "https://sinopharm.zhiye.com/",
+      "status": "有效",
+      "industry": "商贸/供应链/综合央企",
+      "note": ""
+    },
+    {
+      "name": "厦门建发",
+      "url": "http://chinacdc.zhiye.com/campus",
+      "status": "有效",
+      "industry": "商贸/供应链/综合央企",
+      "note": ""
+    },
+    {
+      "name": "物产中大",
+      "url": "https://campus.wzgroup.cn/",
+      "status": "有效",
+      "industry": "商贸/供应链/综合央企",
+      "note": ""
+    },
+    {
+      "name": "国贸控股",
+      "url": "https://itg.zhiye.com/",
+      "status": "有效",
+      "industry": "商贸/供应链/综合央企",
+      "note": ""
+    },
+    {
+      "name": "华发集团",
+      "url": "https://campus.51job.com/huafa",
+      "status": "已修正",
+      "industry": "商贸/供应链/综合央企",
+      "note": "原zhiye链接Not Found，改华发51job校招页"
+    },
+    {
+      "name": "绿地集团",
+      "url": "http://ldjt.51job.com/",
+      "status": "已修正",
+      "industry": "商贸/供应链/综合央企",
+      "note": "原greenland.com不可达，改绿地控股招聘站"
+    },
+    {
+      "name": "建发股份",
+      "url": "https://campus.chinacnd.com/",
+      "status": "有效",
+      "industry": "商贸/供应链/综合央企",
+      "note": ""
+    },
+    {
+      "name": "象屿集团",
+      "url": "https://xygroup.zhiye.com/",
+      "status": "有效",
+      "industry": "商贸/供应链/综合央企",
+      "note": ""
+    },
+    {
+      "name": "伊利集团",
+      "url": "https://yili.hotjob.cn/wt/yili/web/index/CompyiliPageindex",
+      "status": "有效",
+      "industry": "食品饮料/消费零售",
+      "note": ""
+    },
+    {
+      "name": "蒙牛集团",
+      "url": "https://mengniu.zhiye.com/",
+      "status": "已修正",
+      "industry": "食品饮料/消费零售",
+      "note": "原域名不可用，改蒙牛招聘官网"
+    },
+    {
+      "name": "农夫山泉",
+      "url": "https://jobs.yst.com.cn/campus",
+      "status": "已修正",
+      "industry": "食品饮料/消费零售",
+      "note": "原域名不可用，改养生堂/农夫山泉校招官网"
+    },
+    {
+      "name": "娃哈哈",
+      "url": "https://apply.wahaha.com.cn/",
+      "status": "已修正",
+      "industry": "食品饮料/消费零售",
+      "note": "原/hr 404，改娃哈哈招聘站"
+    },
+    {
+      "name": "统一企业",
+      "url": "https://uni-president.zhiye.com/",
+      "status": "有效",
+      "industry": "食品饮料/消费零售",
+      "note": ""
+    },
+    {
+      "name": "永辉超市",
+      "url": "https://yhchaoshi.zhiye.com/",
+      "status": "已修正",
+      "industry": "食品饮料/消费零售",
+      "note": "原域名不可用，改永辉招聘官网"
+    },
+    {
+      "name": "苏宁易购",
+      "url": "https://campus.suning.cn/rps-campus/",
+      "status": "有效",
+      "industry": "食品饮料/消费零售",
+      "note": ""
+    },
+    {
+      "name": "瑞幸咖啡",
+      "url": "https://luckin.jobs.feishu.cn/",
+      "status": "有效",
+      "industry": "食品饮料/消费零售",
+      "note": ""
+    },
+    {
+      "name": "星巴克中国",
+      "url": "https://starbucks.m.zhiye.com/all.html",
+      "status": "有效",
+      "industry": "食品饮料/消费零售",
+      "note": ""
+    },
+    {
+      "name": "海天味业",
+      "url": "https://haitian.zhiye.com/",
+      "status": "有效",
+      "industry": "食品饮料/消费零售",
+      "note": ""
+    },
+    {
+      "name": "洽洽食品",
+      "url": "https://qiaqia.zhiye.com/",
+      "status": "有效",
+      "industry": "食品饮料/消费零售",
+      "note": ""
+    },
+    {
+      "name": "珀莱雅",
+      "url": "https://proya.zhiye.com/",
+      "status": "有效",
+      "industry": "食品饮料/消费零售",
+      "note": ""
+    },
+    {
+      "name": "光明乳业",
+      "url": "https://brightdairy.zhiye.com/",
+      "status": "有效",
+      "industry": "食品饮料/消费零售",
+      "note": ""
+    },
+    {
+      "name": "三只松鼠",
+      "url": "https://www.3songshu.com/jobs/",
+      "status": "已修正",
+      "industry": "食品饮料/消费零售",
+      "note": "原/careers 404，改松鼠窝招聘页"
+    },
+    {
+      "name": "良品铺子",
+      "url": "http://lppz.zhiye.com/",
+      "status": "已修正",
+      "industry": "食品饮料/消费零售",
+      "note": "原域名路径不可用，改良品铺子招聘"
+    },
+    {
+      "name": "盐津铺子",
+      "url": "https://www.yanjinpuzi.com/job.aspx?TypeId=1",
+      "status": "已修正",
+      "industry": "食品饮料/消费零售",
+      "note": "原/careers返回首页，改人才招聘页"
+    },
+    {
+      "name": "上海家化",
+      "url": "https://shjahwa.zhiye.com/",
+      "status": "已修正",
+      "industry": "食品饮料/消费零售",
+      "note": "原/careers 404，改上海家化招聘系统"
+    },
+    {
+      "name": "丸美股份",
+      "url": "https://marubi.zhiye.com/Campus",
+      "status": "已修正",
+      "industry": "食品饮料/消费零售",
+      "note": "原/careers 404，改丸美校招"
+    },
+    {
+      "name": "贝泰妮",
+      "url": "https://app.mokahr.com/campus-recruitment/botanee/95426",
+      "status": "已修正",
+      "industry": "食品饮料/消费零售",
+      "note": "原winona.zhiye停用，改贝泰妮摩卡校招"
+    },
+    {
+      "name": "华熙生物",
+      "url": "https://www.bloomagebioactive.com/Job/List/1",
+      "status": "已修正",
+      "industry": "食品饮料/消费零售",
+      "note": "原域名不可用，改华熙加入我们列表"
+    },
+    {
+      "name": "泸州老窖",
+      "url": "https://job.lzlj.com/",
+      "status": "已修正",
+      "industry": "食品饮料/消费零售",
+      "note": "原/careers不可用，改泸州老窖招聘站"
+    },
+    {
+      "name": "贵州茅台",
+      "url": "https://zp.moutai.com.cn/",
+      "status": "已修正",
+      "industry": "食品饮料/消费零售",
+      "note": "原/careers 404，改茅台招聘系统"
+    },
+    {
+      "name": "五粮液",
+      "url": "https://www.wuliangye.com.cn/zhaopin/home",
+      "status": "已修正",
+      "industry": "食品饮料/消费零售",
+      "note": "原/careers 404，改五粮液招聘平台"
+    },
+    {
+      "name": "洋河股份",
+      "url": "https://chinayanghe.zhiye.com/campus",
+      "status": "已修正",
+      "industry": "食品饮料/消费零售",
+      "note": "原/careers不可用，改洋河校招"
+    },
+    {
+      "name": "山西汾酒",
+      "url": "https://www.fenjiu.com.cn/",
+      "status": "已修正",
+      "industry": "食品饮料/消费零售",
+      "note": "原/careers 404，改官网招聘公告+国聘"
+    },
+    {
+      "name": "古井贡酒",
+      "url": "https://www.gujing.com/",
+      "status": "已修正",
+      "industry": "食品饮料/消费零售",
+      "note": "原.com.cn错误，改gujing.com官网公告"
+    },
+    {
+      "name": "今世缘",
+      "url": "https://www.jinshiyuan.com.cn/info.php?class_id=107104",
+      "status": "已修正",
+      "industry": "食品饮料/消费零售",
+      "note": "原域名为旧站，改今世缘招聘启事页"
+    },
+    {
+      "name": "青岛啤酒",
+      "url": "https://tsingtao.zhiye.com/",
+      "status": "已修正",
+      "industry": "食品饮料/消费零售",
+      "note": "原/careers为官网首页，改青岛啤酒招聘门户"
+    },
+    {
+      "name": "燕京啤酒",
+      "url": "https://zhaopin.yanjing.com.cn/",
+      "status": "已修正",
+      "industry": "食品饮料/消费零售",
+      "note": "原/careers 404，改燕京啤酒招聘官网"
+    },
+    {
+      "name": "华润啤酒",
+      "url": "https://career.snowbeer.com.cn",
+      "status": "已修正",
+      "industry": "食品饮料/消费零售",
+      "note": "原域名不可用，改华润啤酒招聘"
+    },
+    {
+      "name": "恒瑞医药",
+      "url": "https://job.hsrpharma.com/apply",
+      "status": "已修正",
+      "industry": "医药/生物/医疗",
+      "note": "原域不可达，改恒瑞医药网申通道"
+    },
+    {
+      "name": "复星医药",
+      "url": "https://career.fosunpharma.com",
+      "status": "已修正",
+      "industry": "医药/生物/医疗",
+      "note": "原careers复数不可达，改career.fosunpharma.com"
+    },
+    {
+      "name": "云南白药",
+      "url": "https://zhaopin.ynby.cn",
+      "status": "已修正",
+      "industry": "医药/生物/医疗",
+      "note": "原域不可达，改云南白药招聘入口"
+    },
+    {
+      "name": "迈瑞医疗",
+      "url": "https://career.mindray.com",
+      "status": "已修正",
+      "industry": "医药/生物/医疗",
+      "note": "原hr域不可达，改迈瑞career"
+    },
+    {
+      "name": "药明康德",
+      "url": "https://wuxiapptec.zhiye.com/",
+      "status": "有效",
+      "industry": "医药/生物/医疗",
+      "note": ""
+    },
+    {
+      "name": "爱尔眼科",
+      "url": "https://aier.zhiye.com/",
+      "status": "有效",
+      "industry": "医药/生物/医疗",
+      "note": ""
+    },
+    {
+      "name": "片仔癀",
+      "url": "https://pzh.zhiye.com/",
+      "status": "有效",
+      "industry": "医药/生物/医疗",
+      "note": ""
+    },
+    {
+      "name": "齐鲁制药",
+      "url": "https://qilupharma.zhiye.com/",
+      "status": "有效",
+      "industry": "医药/生物/医疗",
+      "note": ""
+    },
+    {
+      "name": "百济神州",
+      "url": "https://www.beigene.com/careers",
+      "status": "有效",
+      "industry": "医药/生物/医疗",
+      "note": ""
+    },
+    {
+      "name": "信达生物",
+      "url": "https://campus.51job.com/Innovent2026",
+      "status": "已修正",
+      "industry": "医药/生物/医疗",
+      "note": "原/careers返回首页，改信达51job校招站"
+    },
+    {
+      "name": "君实生物",
+      "url": "https://junshibiosciences.zhiye.com/campus/jobs",
+      "status": "已修正",
+      "industry": "医药/生物/医疗",
+      "note": "原/careers 404，改君实校招门户"
+    },
+    {
+      "name": "再鼎医药",
+      "url": "https://cn.zailaboratory.com/careers",
+      "status": "已修正",
+      "industry": "医药/生物/医疗",
+      "note": "原zai-lab为停放域，改zailaboratory.com"
+    },
+    {
+      "name": "海正药业",
+      "url": "https://hisunpharm.zhiye.com/campus",
+      "status": "已修正",
+      "industry": "医药/生物/医疗",
+      "note": "原/careers 404，改海正校招门户"
+    },
+    {
+      "name": "华东医药",
+      "url": "https://www.huadongmedicine.com/careers",
+      "status": "有效",
+      "industry": "医药/生物/医疗",
+      "note": ""
+    },
+    {
+      "name": "华润医药",
+      "url": "https://crpharm.zhaopin.com",
+      "status": "已修正",
+      "industry": "医药/生物/医疗",
+      "note": "原域不可达，改华润医药校招"
+    },
+    {
+      "name": "健康元",
+      "url": "https://campus.51job.com/joincare/",
+      "status": "已修正",
+      "industry": "医药/生物/医疗",
+      "note": "原jiankangyuan非企业域，改健康元51job校招"
+    },
+    {
+      "name": "丽珠集团",
+      "url": "https://www.livzon.com.cn/Recruitment_list/p-42-6.html",
+      "status": "已修正",
+      "industry": "医药/生物/医疗",
+      "note": "原lizhu.com待售，改丽珠官网招聘列表"
+    },
+    {
+      "name": "科伦药业",
+      "url": "https://kelun.zhiye.com",
+      "status": "已修正",
+      "industry": "医药/生物/医疗",
+      "note": "原域不可达，改科伦招聘系统"
+    },
+    {
+      "name": "人福医药",
+      "url": "https://ihrs.mobi/renfuhr",
+      "status": "已修正",
+      "industry": "医药/生物/医疗",
+      "note": "原/careers 404，改人福招聘官网"
+    },
+    {
+      "name": "上海医药",
+      "url": "https://www.shph.com.cn/recruit/graduates",
+      "status": "已修正",
+      "industry": "医药/生物/医疗",
+      "note": "原/careers不可达，改上药校招路径"
+    },
+    {
+      "name": "万科",
+      "url": "https://rc.vanke.com/",
+      "status": "已修正",
+      "industry": "地产/建筑/物业",
+      "note": "原hr.vanke.com不可达，改万科校招网申"
+    },
+    {
+      "name": "保利发展",
+      "url": "https://polycn.zhiye.com/",
+      "status": "有效",
+      "industry": "地产/建筑/物业",
+      "note": ""
+    },
+    {
+      "name": "中海地产",
+      "url": "https://colhr.zhiye.com/",
+      "status": "有效",
+      "industry": "地产/建筑/物业",
+      "note": ""
+    },
+    {
+      "name": "龙湖集团",
+      "url": "https://longfor.zhaopin.com/",
+      "status": "已修正",
+      "industry": "地产/建筑/物业",
+      "note": "原careers不可达，改龙湖招聘页"
+    },
+    {
+      "name": "新城控股",
+      "url": "https://www.seazen.com.cn/",
+      "status": "已修正",
+      "industry": "地产/建筑/物业",
+      "note": "原hr.xincheng不可达，改新城seazen官网"
+    },
+    {
+      "name": "华润置地",
+      "url": "https://www.crland.com.cn/",
+      "status": "已修正",
+      "industry": "地产/建筑/物业",
+      "note": "原/careers 404，改官网加入我们栏目"
+    },
+    {
+      "name": "融创中国",
+      "url": "https://www.sunac.com.cn/campus",
+      "status": "已修正",
+      "industry": "地产/建筑/物业",
+      "note": "原/careers落根页，改融创校招页"
+    },
+    {
+      "name": "碧桂园",
+      "url": "https://zhaopin.bgy.com.cn/",
+      "status": "已修正",
+      "industry": "地产/建筑/物业",
+      "note": "原/careers 404，改碧桂园招聘官网"
+    },
+    {
+      "name": "美的置业",
+      "url": "https://www.midea.com.cn/careers",
+      "status": "有效",
+      "industry": "地产/建筑/物业",
+      "note": ""
+    },
+    {
+      "name": "旭辉集团",
+      "url": "https://cifixz.hotjob.cn",
+      "status": "已修正",
+      "industry": "地产/建筑/物业",
+      "note": "原/careers 404，改旭辉招聘官网"
+    },
+    {
+      "name": "正荣集团",
+      "url": "https://www.zhenro.com/join/campus.html",
+      "status": "已修正",
+      "industry": "地产/建筑/物业",
+      "note": "原careers不可达，改正荣校招页"
+    },
+    {
+      "name": "阳光城",
+      "url": "https://www.yango.com.cn/",
+      "status": "已修正",
+      "industry": "地产/建筑/物业",
+      "note": "原yangchen非官方域，改yango.com.cn"
+    },
+    {
+      "name": "中南建设",
+      "url": "http://campus.51job.com/zoina",
+      "status": "已修正",
+      "industry": "汽车产业链（补充）与地产补漏",
+      "note": "原/careers 404，改中南建设校招51job官方页"
+    },
+    {
+      "name": "金科股份",
+      "url": "https://www.jinke.com/join/campus",
+      "status": "已修正",
+      "industry": "地产/建筑/物业",
+      "note": "原/careers 404，改金科官网加入我们-校园招聘页"
+    },
+    {
+      "name": "越秀集团",
+      "url": "https://yuexiu.zhiye.com/",
+      "status": "有效",
+      "industry": "地产/建筑/物业",
+      "note": ""
+    },
+    {
+      "name": "远洋集团",
+      "url": "https://sinoocean.zhiye.com/",
+      "status": "有效",
+      "industry": "地产/建筑/物业",
+      "note": ""
+    },
+    {
+      "name": "金地集团",
+      "url": "https://hr.gemdale.com/",
+      "status": "有效",
+      "industry": "地产/建筑/物业",
+      "note": ""
+    },
+    {
+      "name": "顺丰控股",
+      "url": "https://hr.sf-express.com/",
+      "status": "有效",
+      "industry": "物流/快递/供应链",
+      "note": ""
+    },
+    {
+      "name": "中通快递",
+      "url": "https://hr.zto.com/",
+      "status": "有效",
+      "industry": "物流/快递/供应链",
+      "note": ""
+    },
+    {
+      "name": "京东物流",
+      "url": "https://zhaopin.jd.com/",
+      "status": "已修正",
+      "industry": "物流/快递/供应链",
+      "note": "原zhaopin.jdl.com为404错误页，改京东招聘官网"
+    },
+    {
+      "name": "圆通速递",
+      "url": "https://www.yto.net.cn/",
+      "status": "已修正",
+      "industry": "物流/快递/供应链",
+      "note": "原hr.yto不可达，改圆通官网招聘"
+    },
+    {
+      "name": "德邦物流",
+      "url": "https://deppon.zhiye.com/",
+      "status": "有效",
+      "industry": "物流/快递/供应链",
+      "note": ""
+    },
+    {
+      "name": "极兔速递",
+      "url": "https://www.jtexpress.com/",
+      "status": "已修正",
+      "industry": "物流/快递/供应链",
+      "note": "原/careers 404，改极兔官方站加入我们"
+    },
+    {
+      "name": "跨越速运",
+      "url": "https://www.ky-express.com/",
+      "status": "已修正",
+      "industry": "物流/快递/供应链",
+      "note": "原/careers重定向首页，改官网加入我们"
+    },
+    {
+      "name": "韵达速递",
+      "url": "https://www.yundaex.com/",
+      "status": "已修正",
+      "industry": "物流/快递/供应链",
+      "note": "原/careers 404，改韵达官网人才招聘"
+    },
+    {
+      "name": "申通快递",
+      "url": "https://www.sto.cn/",
+      "status": "已修正",
+      "industry": "物流/快递/供应链",
+      "note": "原/careers无内容，改申通官网人才招聘"
+    },
+    {
+      "name": "安能物流",
+      "url": "https://www.ane56.com/",
+      "status": "已修正",
+      "industry": "物流/快递/供应链",
+      "note": "原ane-express非官方域，改ane56.com"
+    },
+    {
+      "name": "壹米滴答",
+      "url": "https://zhaopin.yimidida.com/",
+      "status": "已修正",
+      "industry": "物流/快递/供应链",
+      "note": "原/careers重定向首页，改壹米滴答招聘官网"
+    },
+    {
+      "name": "三一重工",
+      "url": "https://sany.zhiye.com/",
+      "status": "有效",
+      "industry": "装备/机械/工业",
+      "note": ""
+    },
+    {
+      "name": "徐工集团",
+      "url": "https://xcmg.zhiye.com/",
+      "status": "有效",
+      "industry": "装备/机械/工业",
+      "note": ""
+    },
+    {
+      "name": "中联重科",
+      "url": "https://zoomlion.zhiye.com/",
+      "status": "有效",
+      "industry": "装备/机械/工业",
+      "note": ""
+    },
+    {
+      "name": "柳工集团",
+      "url": "https://liugong.zhiye.com/",
+      "status": "有效",
+      "industry": "装备/机械/工业",
+      "note": ""
+    },
+    {
+      "name": "微软中国",
+      "url": "https://www.microsoft.com/zh-cn/aprd/recruitment",
+      "status": "有效",
+      "industry": "外资跨国企业",
+      "note": ""
+    },
+    {
+      "name": "苹果中国",
+      "url": "https://www.apple.com/careers/cn",
+      "status": "有效",
+      "industry": "外资跨国企业",
+      "note": ""
+    },
+    {
+      "name": "宝洁中国",
+      "url": "https://careers.pg.com.cn/",
+      "status": "有效",
+      "industry": "外资跨国企业",
+      "note": ""
+    },
+    {
+      "name": "可口可乐中国",
+      "url": "https://coca-cola.zhiye.com/",
+      "status": "有效",
+      "industry": "外资跨国企业",
+      "note": ""
+    },
+    {
+      "name": "谷歌中国",
+      "url": "https://careers.google.com/intl/zh-CN/",
+      "status": "有效",
+      "industry": "外资跨国企业",
+      "note": ""
+    },
+    {
+      "name": "亚马逊中国",
+      "url": "https://www.amazon.jobs/zh/",
+      "status": "已修正",
+      "industry": "外资跨国企业",
+      "note": "原zh_cn报404，改amazon.jobs中文站"
+    },
+    {
+      "name": "特斯拉中国",
+      "url": "https://www.tesla.cn/careers",
+      "status": "已修正",
+      "industry": "外资跨国企业",
+      "note": "原china页反爬拦截，改tesla.cn/careers"
+    },
+    {
+      "name": "通用汽车中国",
+      "url": "https://search-careers.gm.com/en/jobs/?location=Shanghai",
+      "status": "已修正",
+      "industry": "外资跨国企业",
+      "note": "原gm.com.cn/careers 404，改GM全球招聘上海岗位"
+    },
+    {
+      "name": "福特汽车中国",
+      "url": "https://www.ford.com.cn/careers",
+      "status": "有效",
+      "industry": "外资跨国企业",
+      "note": ""
+    },
+    {
+      "name": "大众汽车中国",
+      "url": "https://jobs.volkswagen-group.com/Volkswagen-Group",
+      "status": "已修正",
+      "industry": "外资跨国企业",
+      "note": "原volkswagen.com.cn/careers不可达，改大众集团招聘门户"
+    },
+    {
+      "name": "宝马中国",
+      "url": "https://www.bmwgroup.jobs/cn/en.html",
+      "status": "已修正",
+      "industry": "外资跨国企业",
+      "note": "原bmw.com.cn/careers不可达，改BMW Group中国招聘页"
+    },
+    {
+      "name": "奔驰中国",
+      "url": "https://group.mercedes-benz.com/careers/job-search/",
+      "status": "已修正",
+      "industry": "外资跨国企业",
+      "note": "原mercedes-benz.com.cn/careers 404，改奔驰集团招聘"
+    },
+    {
+      "name": "雀巢中国",
+      "url": "https://www.nestle.com.cn/jobs",
+      "status": "已修正",
+      "industry": "外资跨国企业",
+      "note": "原careers 404，改雀巢中国招聘频道"
+    },
+    {
+      "name": "达能中国",
+      "url": "https://careers.danone.com.cn/",
+      "status": "已修正",
+      "industry": "外资跨国企业",
+      "note": "原careers 404，改达能中国招聘网"
+    },
+    {
+      "name": "百事可乐中国",
+      "url": "https://careers.pepsico.com/china?lang=zh-CN",
+      "status": "有效",
+      "industry": "外资跨国企业",
+      "note": ""
+    },
+    {
+      "name": "麦当劳中国",
+      "url": "https://www.mcdonalds.com.cn/index/McD/join-us/job-vacancy",
+      "status": "已修正",
+      "industry": "新消费 / 茶饮 / 餐饮",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "肯德基中国",
+      "url": "https://careers.kfc.com.cn/",
+      "status": "已修正",
+      "industry": "外资跨国企业",
+      "note": "原careers 404，改肯德基中国招聘官网"
+    },
+    {
+      "name": "三星中国",
+      "url": "https://samsung.zhiye.com/",
+      "status": "有效",
+      "industry": "外资跨国企业",
+      "note": ""
+    },
+    {
+      "name": "索尼中国",
+      "url": "https://sony.zhiye.com/",
+      "status": "有效",
+      "industry": "外资跨国企业",
+      "note": ""
+    },
+    {
+      "name": "联合利华",
+      "url": "https://unilever.zhiye.com/",
+      "status": "有效",
+      "industry": "外资跨国企业",
+      "note": ""
+    },
+    {
+      "name": "欧莱雅中国",
+      "url": "https://loreal.zhiye.com/",
+      "status": "有效",
+      "industry": "外资跨国企业",
+      "note": ""
+    },
+    {
+      "name": "中青旅",
+      "url": "https://www.cyts.com/hr/campus/",
+      "status": "已修正",
+      "industry": "文旅/教育/媒体/科研",
+      "note": "原careers 404，改中青旅校园招聘页"
+    },
+    {
+      "name": "中国国旅集团",
+      "url": "https://www.ctg.cn/careers-t46",
+      "status": "已修正",
+      "industry": "文旅/教育/媒体/科研",
+      "note": "原citsgroup域名已出售，改中国旅游集团招聘公告页"
+    },
+    {
+      "name": "宋城演艺",
+      "url": "https://www.songcn.com",
+      "status": "已修正",
+      "industry": "文旅/教育/媒体/科研",
+      "note": "原songcheng旧SSL失败，改songcn.com官网"
+    },
+    {
+      "name": "新东方",
+      "url": "https://zhaopin.xdf.cn/",
+      "status": "已修正",
+      "industry": "文旅/教育/媒体/科研",
+      "note": "原neworiental/careers返回企业网首页，改新东方招聘官网"
+    },
+    {
+      "name": "好未来",
+      "url": "https://job.100tal.com/",
+      "status": "已修正",
+      "industry": "文旅/教育/媒体/科研",
+      "note": "原tal.com/careers 404，改好未来招聘官网"
+    },
+    {
+      "name": "新华社",
+      "url": "https://www.news.cn/xhs/hr/index.htm",
+      "status": "已修正",
+      "industry": "文旅/教育/媒体/科研",
+      "note": "原xinhuanet/careers不存在，改新华社人才招聘页"
+    },
+    {
+      "name": "人民日报",
+      "url": "http://hr.peopledaily.com.cn/",
+      "status": "已修正",
+      "industry": "文旅/教育/媒体/科研",
+      "note": "原people.com.cn/careers 404，改人民日报社公开招聘系统"
+    },
+    {
+      "name": "中央广播电视总台",
+      "url": "http://campus.51job.com/CMG2025",
+      "status": "已修正",
+      "industry": "文旅/教育/媒体/科研",
+      "note": "原cctv.com/careers报错，改总台51job校招平台"
+    },
+    {
+      "name": "中国科学院",
+      "url": "http://job.cas.cn",
+      "status": "已修正",
+      "industry": "文旅/教育/媒体/科研",
+      "note": "原cas.cn/careers不存在，改中国科学院招聘网"
+    },
+    {
+      "name": "中国社会科学院",
+      "url": "https://www.sydwgkzp.cn/cass",
+      "status": "已修正",
+      "industry": "文旅/教育/媒体/科研",
+      "note": "原cssn.cn/careers 404，改社科院公开招聘平台"
+    },
+    {
+      "name": "中兴通讯",
+      "url": "https://job.zte.com.cn/",
+      "status": "已修正",
+      "industry": "通信/ICT设备与基础设施",
+      "note": "原careers子域失效，改中兴招聘站"
+    },
+    {
+      "name": "中国电子(CEC)",
+      "url": "https://campus.cec.com.cn/",
+      "status": "已修正",
+      "industry": "通信/ICT设备与基础设施",
+      "note": "原官网首页，改CEC校招官网"
+    },
+    {
+      "name": "中国信科",
+      "url": "https://campus.51job.com/cict2026/",
+      "status": "已修正",
+      "industry": "通信/ICT设备与基础设施",
+      "note": "原官网打不开，改集团校招51job页"
+    },
+    {
+      "name": "中国铁塔",
+      "url": "https://zhaopin.chinatowercom.cn/",
+      "status": "已修正",
+      "industry": "通信/ICT设备与基础设施",
+      "note": "原官网首页，改铁塔唯一官方招聘站"
+    },
+    {
+      "name": "中国商飞(COMAC)",
+      "url": "https://zhaopin.comac.cc",
+      "status": "已修正",
+      "industry": "通信/ICT设备与基础设施",
+      "note": "原官网首页，改商飞招聘平台"
+    },
+    {
+      "name": "中国航信",
+      "url": "https://travelsky.hotjob.cn",
+      "status": "已修正",
+      "industry": "通信/ICT设备与基础设施",
+      "note": "原链接为机票验真页，改航信招聘官网"
+    },
+    {
+      "name": "烽火通信",
+      "url": "https://www.fiberhome.com/joinus.html",
+      "status": "已修正",
+      "industry": "通信/ICT设备与基础设施",
+      "note": "原官网首页，改加入我们频道"
+    },
+    {
+      "name": "亨通光电",
+      "url": "https://hr.hengtonggroup.com/recruit/",
+      "status": "已修正",
+      "industry": "通信/ICT设备与基础设施",
+      "note": "原官网首页，改亨通校招系统"
+    },
+    {
+      "name": "中天科技",
+      "url": "https://www.ztt.cn/job.html",
+      "status": "已修正",
+      "industry": "通信/ICT设备与基础设施",
+      "note": "原候选域解析失败，改中天科技招聘页"
+    },
+    {
+      "name": "锐捷网络",
+      "url": "https://www.ruijie.com.cn/campus-recruiting/",
+      "status": "已修正",
+      "industry": "通信/ICT设备与基础设施",
+      "note": "原官网首页，改锐捷校招页"
+    },
+    {
+      "name": "紫光股份/新华三",
+      "url": "https://career.h3c.com/",
+      "status": "已修正",
+      "industry": "通信/ICT设备与基础设施",
+      "note": "原官网首页，改H3C招聘站"
+    },
+    {
+      "name": "中科曙光",
+      "url": "https://go.sugon.com/campus",
+      "status": "已修正",
+      "industry": "通信/ICT设备与基础设施",
+      "note": "原官网首页，改曙光招聘官网"
+    },
+    {
+      "name": "浪潮集团",
+      "url": "https://career.inspur.com/",
+      "status": "已修正",
+      "industry": "通信/ICT设备与基础设施",
+      "note": "原官网首页，改浪潮招聘官网"
+    },
+    {
+      "name": "东软集团",
+      "url": "https://neusoft-campus.zhiye.com/",
+      "status": "已修正",
+      "industry": "通信/ICT设备与基础设施",
+      "note": "原官网首页，改东软校招站"
+    },
+    {
+      "name": "长江存储(YMTC)",
+      "url": "https://ymtc.zhiye.com/",
+      "status": "已修正",
+      "industry": "半导体设计与制造（补充）",
+      "note": "原首页，改长江存储zhiye招聘门户"
+    },
+    {
+      "name": "长鑫存储(CXMT)",
+      "url": "https://cxmt.zhiye.com/",
+      "status": "已修正",
+      "industry": "半导体设计与制造（补充）",
+      "note": "原首页，改长鑫zhiye招聘门户"
+    },
+    {
+      "name": "紫光国微",
+      "url": "https://www.gosinoic.com/index.php?f=lists&catid=76",
+      "status": "已修正",
+      "industry": "半导体设计与制造（补充）",
+      "note": "原首页，改加入我们招聘频道"
+    },
+    {
+      "name": "士兰微",
+      "url": "https://www.silan.com.cn/index.php/about/join.html",
+      "status": "已修正",
+      "industry": "半导体设计与制造（补充）",
+      "note": "原首页，改招贤纳士频道"
+    },
+    {
+      "name": "华润微",
+      "url": "https://runjob.crc.com.cn/",
+      "status": "已修正",
+      "industry": "半导体设计与制造（补充）",
+      "note": "原首页，改华润集团北森runjob平台"
+    },
+    {
+      "name": "圣邦股份",
+      "url": "https://www.sg-micro.com/recruitment",
+      "status": "已修正",
+      "industry": "半导体设计与制造（补充）",
+      "note": "原首页，改Careers频道"
+    },
+    {
+      "name": "斯达半导",
+      "url": "https://www.powersemi.com/join.html",
+      "status": "已修正",
+      "industry": "半导体设计与制造（补充）",
+      "note": "原域名非官方，改powersemi.com官方招聘页"
+    },
+    {
+      "name": "闻泰科技",
+      "url": "https://jobs.wingtech.com/",
+      "status": "已修正",
+      "industry": "半导体设计与制造（补充）",
+      "note": "原首页，改闻泰招聘系统"
+    },
+    {
+      "name": "三安光电",
+      "url": "https://sanan-e.zhiye.com/",
+      "status": "已修正",
+      "industry": "半导体设计与制造（补充）",
+      "note": "原首页，改三安zhiye招聘门户"
+    },
+    {
+      "name": "歌尔股份",
+      "url": "https://goertek.hotjob.cn/",
+      "status": "已修正",
+      "industry": "半导体设计与制造（补充）",
+      "note": "原首页，改歌尔hotjob招聘官网"
+    },
+    {
+      "name": "沪硅产业",
+      "url": "https://www.nsig.com/job",
+      "status": "已修正",
+      "industry": "半导体设计与制造（补充）",
+      "note": "原首页，改站内招聘页"
+    },
+    {
+      "name": "瑞芯微",
+      "url": "https://hr.rock-chips.com/campus-recruitment",
+      "status": "已修正",
+      "industry": "半导体设计与制造（补充）",
+      "note": "原首页，改瑞芯微校招站"
+    },
+    {
+      "name": "澜起科技",
+      "url": "https://www.montage-tech.com/cn/Open_Positions",
+      "status": "已修正",
+      "industry": "半导体设计与制造（补充）",
+      "note": "原首页，改社会招聘页"
+    },
+    {
+      "name": "北京君正",
+      "url": "https://www.ingenic.com.cn/join",
+      "status": "已修正",
+      "industry": "半导体设计与制造（补充）",
+      "note": "原首页，改招聘职位页"
+    },
+    {
+      "name": "蚂蚁集团",
+      "url": "https://talent.antgroup.com/",
+      "status": "有效",
+      "industry": "AI/大模型与互联网新势力",
+      "note": ""
+    },
+    {
+      "name": "商汤科技",
+      "url": "http://hr.sensetime.com/",
+      "status": "已修正",
+      "industry": "AI/大模型与互联网新势力",
+      "note": "原产品首页，改商汤招聘站"
+    },
+    {
+      "name": "科大讯飞",
+      "url": "https://iflytek.zhiye.com/",
+      "status": "已修正",
+      "industry": "AI/大模型与互联网新势力",
+      "note": "原产品首页，改讯飞zhiye招聘系统"
+    },
+    {
+      "name": "寒武纪",
+      "url": "https://www.cambricon.com/",
+      "status": "已修正",
+      "industry": "AI/大模型与互联网新势力",
+      "note": "原joinus站迁移，改主站加入我们"
+    },
+    {
+      "name": "地平线",
+      "url": "https://horizon-campus.hotjob.cn/",
+      "status": "已修正",
+      "industry": "AI/大模型与互联网新势力",
+      "note": "原站网络受限，改地平线校招hotjob站"
+    },
+    {
+      "name": "旷视科技",
+      "url": "http://zhaopin.megvii.com/",
+      "status": "已修正",
+      "industry": "AI/大模型与互联网新势力",
+      "note": "原产品首页，改旷视社招站"
+    },
+    {
+      "name": "云从科技",
+      "url": "https://cloudwalk.com/Join",
+      "status": "已修正",
+      "industry": "AI/大模型与互联网新势力",
+      "note": "原产品首页，改加入我们频道"
+    },
+    {
+      "name": "智谱AI",
+      "url": "https://zhipu-ai.jobs.feishu.cn/",
+      "status": "已修正",
+      "industry": "AI/大模型与互联网新势力",
+      "note": "原产品站，改智谱飞书招聘"
+    },
+    {
+      "name": "月之暗面(Kimi)",
+      "url": "https://careers.kimi.com/",
+      "status": "已修正",
+      "industry": "AI/大模型与互联网新势力",
+      "note": "原产品站，改Kimi招聘官网"
+    },
+    {
+      "name": "百川智能",
+      "url": "https://campus.baichuan-inc.com/",
+      "status": "已修正",
+      "industry": "AI/大模型与互联网新势力",
+      "note": "原产品站，改百川校招官网"
+    },
+    {
+      "name": "MiniMax",
+      "url": "https://www.minimax.io/careers",
+      "status": "已修正",
+      "industry": "AI/大模型与互联网新势力",
+      "note": "原产品站，改MiniMax招聘页"
+    },
+    {
+      "name": "阶跃星辰",
+      "url": "https://app.mokahr.com/campus-recruitment/step/141903",
+      "status": "已修正",
+      "industry": "AI/大模型与互联网新势力",
+      "note": "原/company跳回首页，改阶跃mokahr校招站"
+    },
+    {
+      "name": "通威股份",
+      "url": "https://tongwei.zhiye.com",
+      "status": "已修正",
+      "industry": "新能源/电力装备",
+      "note": "原首页，改通威zhiye招聘门户"
+    },
+    {
+      "name": "协鑫集团",
+      "url": "https://campus.51job.com/gcl-power/",
+      "status": "已修正",
+      "industry": "新能源/电力装备",
+      "note": "原链打不开，改协鑫校招51job页"
+    },
+    {
+      "name": "东方电气",
+      "url": "https://dec2026.iguopin.com/",
+      "status": "已修正",
+      "industry": "新能源/电力装备",
+      "note": "原首页，改东方电气国聘校招"
+    },
+    {
+      "name": "哈尔滨电气",
+      "url": "https://www.harbin-electric.com/zxns/xyzp.htm",
+      "status": "已修正",
+      "industry": "新能源/电力装备",
+      "note": "原首页，改哈电招贤纳士校园招聘"
+    },
+    {
+      "name": "上海电气",
+      "url": "https://sec.hotjob.cn/SU60de8350bef57c519874bd36/pb/school.html",
+      "status": "已修正",
+      "industry": "新能源/电力装备",
+      "note": "原首页，改上海电气hotjob校招官网"
+    },
+    {
+      "name": "特变电工",
+      "url": "https://tbea.hotjob.cn/",
+      "status": "已修正",
+      "industry": "新能源/电力装备",
+      "note": "原首页，改特变hotjob招聘官网"
+    },
+    {
+      "name": "正泰电器",
+      "url": "https://app.mokahr.com/campus-recruitment/chint/40745",
+      "status": "已修正",
+      "industry": "新能源/电力装备",
+      "note": "原403，改正泰mokahr校招"
+    },
+    {
+      "name": "德力西",
+      "url": "https://delixi-electric3.zhiye.com/campus/jobs",
+      "status": "已修正",
+      "industry": "新能源/电力装备",
+      "note": "原首页，改德力西zhiye校招"
+    },
+    {
+      "name": "中国西电",
+      "url": "https://campus.51job.com/m/zgxdjt/",
+      "status": "已修正",
+      "industry": "新能源/电力装备",
+      "note": "原首页，改西电校招51job页"
+    },
+    {
+      "name": "许继电气",
+      "url": "https://xjec.com/contact/campus",
+      "status": "已修正",
+      "industry": "新能源/电力装备",
+      "note": "原链打不开，改许继校招页"
+    },
+    {
+      "name": "平高电气",
+      "url": "https://campus.51job.com/pgjt2026/",
+      "status": "已修正",
+      "industry": "新能源/电力装备",
+      "note": "原首页，改平高校招51job页"
+    },
+    {
+      "name": "金风科技",
+      "url": "https://goldwind.zhiye.com/campus",
+      "status": "已修正",
+      "industry": "新能源/电力装备",
+      "note": "原首页，改金风zhiye校招"
+    },
+    {
+      "name": "明阳智能",
+      "url": "https://mywind.zhiye.com/campus",
+      "status": "已修正",
+      "industry": "新能源/电力装备",
+      "note": "原首页，改明阳zhiye校招"
+    },
+    {
+      "name": "运达股份",
+      "url": "https://hr.chinawindey.com",
+      "status": "已修正",
+      "industry": "新能源/电力装备",
+      "note": "原404，改运达招聘门户"
+    },
+    {
+      "name": "沙钢集团",
+      "url": "https://www.shasteel.com.cn/",
+      "status": "已修正",
+      "industry": "钢铁/有色/材料龙头",
+      "note": "原首页，招聘走站内人才招聘栏目/官方公众号"
+    },
+    {
+      "name": "魏桥创业",
+      "url": "https://www.weiqiaocy.com/",
+      "status": "已修正",
+      "industry": "钢铁/有色/材料龙头",
+      "note": "原首页，招聘走官方公众号/邮箱"
+    },
+    {
+      "name": "南山集团",
+      "url": "https://www.nanshan.com.cn/talent-development-society.html?loc=1",
+      "status": "已修正",
+      "industry": "钢铁/有色/材料龙头",
+      "note": "原首页，改社会招聘频道"
+    },
+    {
+      "name": "中天钢铁",
+      "url": "http://www.zt.net.cn/index.php?a=lists&c=index&catid=36&m=content",
+      "status": "已修正",
+      "industry": "钢铁/有色/材料龙头",
+      "note": "原候选域为钢板交易平台，改中天钢铁人才招聘栏目"
+    },
+    {
+      "name": "海亮集团",
+      "url": "https://job.hailiang.com/",
+      "status": "已修正",
+      "industry": "钢铁/有色/材料龙头",
+      "note": "原首页，改海亮官方招聘站"
+    },
+    {
+      "name": "青山控股",
+      "url": "https://www.tssgroup.com.cn/",
+      "status": "已修正",
+      "industry": "钢铁/有色/材料龙头",
+      "note": "原候选域为无关公司，改青山官方站加入我们"
+    },
+    {
+      "name": "恒力集团",
+      "url": "https://jobs.hengli.com",
+      "status": "已修正",
+      "industry": "钢铁/有色/材料龙头",
+      "note": "原首页，改恒力云招聘"
+    },
+    {
+      "name": "鞍钢集团",
+      "url": "http://campus.51job.com/ansteel2026",
+      "status": "已修正",
+      "industry": "钢铁/有色/材料龙头",
+      "note": "原首页，改鞍钢校招51job平台"
+    },
+    {
+      "name": "河钢集团",
+      "url": "https://www.hbisco.com/joinus",
+      "status": "已修正",
+      "industry": "钢铁/有色/材料龙头",
+      "note": "原首页，改河钢加入我们频道"
+    },
+    {
+      "name": "首钢集团",
+      "url": "https://www.shougang.com.cn/",
+      "status": "已修正",
+      "industry": "钢铁/有色/材料龙头",
+      "note": "原首页，招聘走站内应聘者平台/官方公众号"
+    },
+    {
+      "name": "江西铜业",
+      "url": "https://www.jxcc.com/recruitmentAnnouncement",
+      "status": "已修正",
+      "industry": "钢铁/有色/材料龙头",
+      "note": "原首页，改江铜人才招聘栏目"
+    },
+    {
+      "name": "紫金矿业",
+      "url": "https://www.zijinmining.com/join/join-us.htm",
+      "status": "已修正",
+      "industry": "钢铁/有色/材料龙头",
+      "note": "原首页，改紫金Careers频道"
+    },
+    {
+      "name": "北方稀土",
+      "url": "https://www.reht.com/",
+      "status": "已修正",
+      "industry": "钢铁/有色/材料龙头",
+      "note": "原首页，招聘走官方公众号/邮箱"
+    },
+    {
+      "name": "金川集团",
+      "url": "https://www.jnmc.com",
+      "status": "已修正",
+      "industry": "钢铁/有色/材料龙头",
+      "note": "原域名已出售，改金川官方站jnmc.com"
+    },
+    {
+      "name": "万华化学",
+      "url": "https://www.whchem.com/column/164/",
+      "status": "已修正",
+      "industry": "化工/材料与医药（补充）",
+      "note": "原首页，改校招频道"
+    },
+    {
+      "name": "荣盛石化",
+      "url": "https://talent.rong-sheng.com",
+      "status": "已修正",
+      "industry": "化工/材料与医药（补充）",
+      "note": "原rongsheng.com为容声电器，改荣盛官方网申平台"
+    },
+    {
+      "name": "恒力石化",
+      "url": "https://jobs.hengli.com",
+      "status": "已修正",
+      "industry": "化工/材料与医药（补充）",
+      "note": "原/petrochemical无效，改恒力云招聘"
+    },
+    {
+      "name": "卫星化学",
+      "url": "https://www.stl-chem.com/index.php/career.html",
+      "status": "已修正",
+      "industry": "化工/材料与医药（补充）",
+      "note": "原首页，改卫星化学加入我们"
+    },
+    {
+      "name": "宝丰能源",
+      "url": "https://baofengzp.zhiye.com",
+      "status": "已修正",
+      "industry": "化工/材料与医药（补充）",
+      "note": "原域名非官方，改宝丰zhiye招聘"
+    },
+    {
+      "name": "龙佰集团",
+      "url": "http://www.lomonbillions.cn/",
+      "status": "已修正",
+      "industry": "化工/材料与医药（补充）",
+      "note": "原lomon.com非官方，改龙佰官网招聘"
+    },
+    {
+      "name": "金发科技",
+      "url": "https://career.kingfa.com/",
+      "status": "已修正",
+      "industry": "化工/材料与医药（补充）",
+      "note": "原首页，改加入金发招聘站"
+    },
+    {
+      "name": "中国中化",
+      "url": "https://www.sinochem.com/sinochem/jrwm/rc11/A031008001Gone1.html",
+      "status": "已修正",
+      "industry": "化工/材料与医药（补充）",
+      "note": "原首页，改中化加入我们频道"
+    },
+    {
+      "name": "先正达",
+      "url": "https://jobs.syngenta.com",
+      "status": "已修正",
+      "industry": "化工/材料与医药（补充）",
+      "note": "原首页，改先正达招聘站"
+    },
+    {
+      "name": "智飞生物",
+      "url": "https://zp.zifibio.com",
+      "status": "已修正",
+      "industry": "化工/材料与医药（补充）",
+      "note": "原首页无入口，改智飞官方招聘系统"
+    },
+    {
+      "name": "沃森生物",
+      "url": "https://wecruit.hotjob.cn/SU65dedb821c240e4b11c7832d/mc/index",
+      "status": "已修正",
+      "industry": "化工/材料与医药（补充）",
+      "note": "原首页，改沃森hotjob网申"
+    },
+    {
+      "name": "康希诺",
+      "url": "http://cansinotech.zhiye.com/",
+      "status": "已修正",
+      "industry": "化工/材料与医药（补充）",
+      "note": "原首页，改康希诺zhiye招聘"
+    },
+    {
+      "name": "万泰生物",
+      "url": "https://www.ystwt.com/career",
+      "status": "已修正",
+      "industry": "化工/材料与医药（补充）",
+      "note": "原wantai.com为卫浴商，改万泰ystwt.com招聘页"
+    },
+    {
+      "name": "长春高新",
+      "url": "https://app.mokahr.com/m/campus-recruitment/gensci/144127",
+      "status": "已修正",
+      "industry": "化工/材料与医药（补充）",
+      "note": "原cchd.com为哈雷经销，改金赛mokahr校招"
+    },
+    {
+      "name": "安踏体育",
+      "url": "https://jobs.anta.com/",
+      "status": "已修正",
+      "industry": "消费/服装/食品",
+      "note": "原商城首页，改安踏招聘官网"
+    },
+    {
+      "name": "李宁",
+      "url": "https://lining.hotjob.cn/",
+      "status": "已修正",
+      "industry": "消费/服装/食品",
+      "note": "原电商首页，改李宁hotjob招聘官网"
+    },
+    {
+      "name": "特步",
+      "url": "https://app.mokahr.com/campus-recruitment/xtep/148871",
+      "status": "已修正",
+      "industry": "消费/服装/食品",
+      "note": "原首页，改特步mokahr校招"
+    },
+    {
+      "name": "361度",
+      "url": "https://app.mokahr.com/recommendation-recruitment/361sport/92205",
+      "status": "已修正",
+      "industry": "消费/服装/食品",
+      "note": "原361.com非官方主站，改361官方mokahr招聘"
+    },
+    {
+      "name": "波司登",
+      "url": "https://campus.51job.com/BSD2026/",
+      "status": "已修正",
+      "industry": "消费/服装/食品",
+      "note": "原品牌首页，改波司登校招51job"
+    },
+    {
+      "name": "海澜之家",
+      "url": "http://campus.51job.com/heilan/",
+      "status": "已修正",
+      "industry": "消费/服装/食品",
+      "note": "原hla.com不存在，改海澜校招51job"
+    },
+    {
+      "name": "雅戈尔",
+      "url": "https://mq.51job.com/i1794/co2167269/xiaozhao",
+      "status": "已修正",
+      "industry": "消费/服装/食品",
+      "note": "原首页，改雅戈尔51job名企招聘"
+    },
+    {
+      "name": "森马服饰",
+      "url": "https://app.mokahr.com/campus-recruitment/senma/142913",
+      "status": "已修正",
+      "industry": "消费/服装/食品",
+      "note": "原首页，改森马mokahr校招"
+    },
+    {
+      "name": "太平鸟",
+      "url": "https://app.mokahr.com/su/yoiynx",
+      "status": "已修正",
+      "industry": "消费/服装/食品",
+      "note": "原品牌首页，改太平鸟mokahr校招"
+    },
+    {
+      "name": "东鹏饮料",
+      "url": "https://dongpeng.zhiye.com/campus",
+      "status": "已修正",
+      "industry": "消费/服装/食品",
+      "note": "原dongpeng.com为东鹏瓷砖，改东鹏饮料zhiye校招"
+    },
+    {
+      "name": "双汇发展",
+      "url": "https://www.shuanghui.net/job-50.html",
+      "status": "已修正",
+      "industry": "消费/服装/食品",
+      "note": "原首页，改双汇诚聘英才社招页"
+    },
+    {
+      "name": "牧原股份",
+      "url": "https://www.muyuanfoods.com/#/recruitConsulting",
+      "status": "已修正",
+      "industry": "消费/服装/食品",
+      "note": "原首页，改牧原招聘频道"
+    },
+    {
+      "name": "温氏股份",
+      "url": "https://www.wens.com.cn/",
+      "status": "已修正",
+      "industry": "消费/服装/食品",
+      "note": "原首页，招聘走站内人才招聘/官方公众号"
+    },
+    {
+      "name": "安井食品",
+      "url": "https://www.anjoyfood.com/",
+      "status": "已修正",
+      "industry": "消费/服装/食品",
+      "note": "原anjoy.com非官方主站，改安井官方站anjoyfood.com，招聘经官方公众号/邮箱"
+    },
+    {
+      "name": "中国银联",
+      "url": "https://join.unionpay.com",
+      "status": "已修正",
+      "industry": "金融（补充：资管/证券/基金）",
+      "note": "原首页无招聘，改银联招聘入口"
+    },
+    {
+      "name": "中国再保险",
+      "url": "https://chinare.zhiye.com/",
+      "status": "已修正",
+      "industry": "金融（补充：资管/证券/基金）",
+      "note": "原首页无入口，改中再zhiye招聘平台"
+    },
+    {
+      "name": "中国华融",
+      "url": "https://www.famc.citic/rczp/zpxx/index.shtml",
+      "status": "已修正",
+      "industry": "金融（补充：资管/证券/基金）",
+      "note": "原域名并入中信金融资产，改famc.citic招聘频道"
+    },
+    {
+      "name": "中国信达",
+      "url": "https://www.cinda.com.cn/home/pc/cn/xdjt/xdjtpd/rczp/",
+      "status": "已修正",
+      "industry": "金融（补充：资管/证券/基金）",
+      "note": "原首页，改信达人才招聘频道"
+    },
+    {
+      "name": "中国东方资产",
+      "url": "https://coamc.zhiye.com/",
+      "status": "已修正",
+      "industry": "金融（补充：资管/证券/基金）",
+      "note": "原首页无入口，改东方资产zhiye招聘"
+    },
+    {
+      "name": "中国长城资产",
+      "url": "http://gwamcc.zhiye.com",
+      "status": "已修正",
+      "industry": "金融（补充：资管/证券/基金）",
+      "note": "原首页，改长城资产zhiye招聘"
+    },
+    {
+      "name": "国泰君安",
+      "url": "https://hr.gtht.com",
+      "status": "已修正",
+      "industry": "金融（补充：资管/证券/基金）",
+      "note": "与海通合并为国泰海通，改hr.gtht.com"
+    },
+    {
+      "name": "海通证券",
+      "url": "https://hr.gtht.com",
+      "status": "已修正",
+      "industry": "金融（补充：资管/证券/基金）",
+      "note": "与国君合并为国泰海通，改hr.gtht.com"
+    },
+    {
+      "name": "中信建投",
+      "url": "https://www.csc108.com/joinus/joinus",
+      "status": "已修正",
+      "industry": "金融（补充：资管/证券/基金）",
+      "note": "原首页，改中信建投诚聘英才频道"
+    },
+    {
+      "name": "易方达基金",
+      "url": "http://job.efunds.com.cn",
+      "status": "已修正",
+      "industry": "金融（补充：资管/证券/基金）",
+      "note": "原产品页，改易方达招聘官网"
+    },
+    {
+      "name": "华夏基金",
+      "url": "http://chinaamc.zhiye.com/",
+      "status": "已修正",
+      "industry": "金融（补充：资管/证券/基金）",
+      "note": "原产品页，改华夏基金zhiye招聘"
+    },
+    {
+      "name": "嘉实基金",
+      "url": "https://www.jsfund.cn/jobs",
+      "status": "已修正",
+      "industry": "金融（补充：资管/证券/基金）",
+      "note": "原harvestwm为嘉实财富，改嘉实基金jsfund.cn/jobs"
+    },
+    {
+      "name": "赛力斯(问界)",
+      "url": "https://sokon.zhiye.com/",
+      "status": "已修正",
+      "industry": "汽车产业链（补充）与地产补漏",
+      "note": "原首页，改赛力斯招聘门户"
+    },
+    {
+      "name": "广汽埃安",
+      "url": "https://www.gacne.com.cn/show/join",
+      "status": "已修正",
+      "industry": "汽车产业链（补充）与地产补漏",
+      "note": "原gac-aion为销售站，改广汽埃安人才页"
+    },
+    {
+      "name": "北汽集团",
+      "url": "https://baicgroup.zhiye.com/",
+      "status": "已修正",
+      "industry": "汽车产业链（补充）与地产补漏",
+      "note": "原首页无频道，改北汽招聘门户"
+    },
+    {
+      "name": "中创新航",
+      "url": "http://calbjs.zhiye.com/",
+      "status": "已修正",
+      "industry": "汽车产业链（补充）与地产补漏",
+      "note": "原首页，改中创新航招聘门户"
+    },
+    {
+      "name": "天齐锂业",
+      "url": "https://tianqilithium-hr.zhiye.com/jobs",
+      "status": "已修正",
+      "industry": "汽车产业链（补充）与地产补漏",
+      "note": "原zhiye失效，改天齐现行招聘门户"
+    },
+    {
+      "name": "赣锋锂业",
+      "url": "https://www.ganfenglithium.com/career1.html",
+      "status": "已修正",
+      "industry": "汽车产业链（补充）与地产补漏",
+      "note": "原首页，改赣锋招聘页"
+    },
+    {
+      "name": "恩捷股份",
+      "url": "https://jobs.51job.com/jianzhizp/co2568971.html",
+      "status": "已修正",
+      "industry": "汽车产业链（补充）与地产补漏",
+      "note": "原无独立网申，改恩捷前程无忧招聘"
+    },
+    {
+      "name": "华友钴业",
+      "url": "http://campus.huayou.com/index.html",
+      "status": "已修正",
+      "industry": "汽车产业链（补充）与地产补漏",
+      "note": "原首页，改华友校招官网"
+    },
+    {
+      "name": "贝特瑞",
+      "url": "https://btrchina.zhiye.com/campus",
+      "status": "已修正",
+      "industry": "汽车产业链（补充）与地产补漏",
+      "note": "原btr.com.cn非官网，改贝特瑞zhiye校招"
+    },
+    {
+      "name": "北京银行",
+      "url": "https://bankofbeijing.zhiye.com",
+      "status": "已修正",
+      "industry": "城商行",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "上海银行",
+      "url": "https://bosc.zhiye.com",
+      "status": "已修正",
+      "industry": "城商行",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "江苏银行",
+      "url": "https://hr.jsbchina.cn/zp",
+      "status": "已修正",
+      "industry": "城商行",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "宁波银行",
+      "url": "https://zhaopin.nbcb.com.cn/",
+      "status": "已修正",
+      "industry": "城商行",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "南京银行",
+      "url": "https://job.njcb.com.cn/",
+      "status": "已修正",
+      "industry": "城商行",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "杭州银行",
+      "url": "https://myjob.hzbank.com.cn/",
+      "status": "已修正",
+      "industry": "城商行",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "苏州银行",
+      "url": "https://suzhoubank.zhiye.com/",
+      "status": "已修正",
+      "industry": "城商行",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "厦门银行",
+      "url": "http://xmccb.zhaopin.com/",
+      "status": "已修正",
+      "industry": "城商行",
+      "note": "新增，经联网检索定位官方招聘入口：官方校招网申门户 xmccb.zhaopin.com，智联承载，多所高校就业网佐证为官方入口；站点反爬拦截自动化抓取"
+    },
+    {
+      "name": "长沙银行",
+      "url": "http://cscb.zhiye.com/",
+      "status": "已修正",
+      "industry": "城商行",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "成都银行",
+      "url": "https://bocd.zhiye.com/",
+      "status": "已修正",
+      "industry": "城商行",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "重庆银行",
+      "url": "https://cqcbank2026.zhaopin.com/",
+      "status": "已修正",
+      "industry": "城商行",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "青岛银行",
+      "url": "http://qdccb2026.zhaopin.com",
+      "status": "已修正",
+      "industry": "城商行",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "上海农商银行",
+      "url": "https://heros.shrcb.com/recruit/talent/official.html#/shrcb",
+      "status": "已修正",
+      "industry": "农商行 / 信托 / 保险资管补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "重庆农村商业银行",
+      "url": "https://www.cqrcb.com/cqrcb/aboutus/job/index.html",
+      "status": "已修正",
+      "industry": "农商行 / 信托 / 保险资管补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "广州农村商业银行",
+      "url": "https://cdms.grcbank.com:8080/yp/school",
+      "status": "已修正",
+      "industry": "农商行 / 信托 / 保险资管补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "常熟农村商业银行",
+      "url": "https://www.csrcbank.com/tb/rczp/xyzp_360/",
+      "status": "已修正",
+      "industry": "农商行 / 信托 / 保险资管补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "张家港农村商业银行",
+      "url": "https://zrcbank.zhiye.com",
+      "status": "已修正",
+      "industry": "农商行 / 信托 / 保险资管补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "中信信托",
+      "url": "https://citictrust.zhaopin.com",
+      "status": "已修正",
+      "industry": "农商行 / 信托 / 保险资管补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "平安信托",
+      "url": "https://talent.pingan.com/position.html",
+      "status": "已修正",
+      "industry": "农商行 / 信托 / 保险资管补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "建信信托",
+      "url": "https://job2.ccb.com/cn/job/announcement.html",
+      "status": "已修正",
+      "industry": "农商行 / 信托 / 保险资管补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "华润信托",
+      "url": "http://careers.crctrust.com/index.html",
+      "status": "已修正",
+      "industry": "农商行 / 信托 / 保险资管补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "中国对外经济贸易信托(外贸信托)",
+      "url": "https://sinochem.hotjob.cn",
+      "status": "已修正",
+      "industry": "农商行 / 信托 / 保险资管补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "中航信托",
+      "url": "https://www.avictc.com/sycd/sy/db/cpjy/",
+      "status": "已修正",
+      "industry": "农商行 / 信托 / 保险资管补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "上海国际信托",
+      "url": "https://job.spdb.com.cn/campusJob",
+      "status": "已修正",
+      "industry": "农商行 / 信托 / 保险资管补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "蜜雪冰城",
+      "url": "https://careers.mxbc.com/campus",
+      "status": "已修正",
+      "industry": "新消费 / 茶饮 / 餐饮",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "泡泡玛特",
+      "url": "https://popmart.zhiye.com/campus",
+      "status": "已修正",
+      "industry": "新消费 / 茶饮 / 餐饮",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "名创优品",
+      "url": "https://miniso.zhiye.com/",
+      "status": "已修正",
+      "industry": "新消费 / 茶饮 / 餐饮",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "海底捞",
+      "url": "https://www.haidilao.com/join/",
+      "status": "已修正",
+      "industry": "新消费 / 茶饮 / 餐饮",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "百胜中国(肯德基/必胜客)",
+      "url": "http://campus.51job.com/yumchina",
+      "status": "已修正",
+      "industry": "新消费 / 茶饮 / 餐饮",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "喜茶",
+      "url": "https://heytea.zhiye.com/campus",
+      "status": "已修正",
+      "industry": "新消费 / 茶饮 / 餐饮",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "霸王茶姬",
+      "url": "https://jobs.chagee.com/640739/m",
+      "status": "已修正",
+      "industry": "新消费 / 茶饮 / 餐饮",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "茶百道",
+      "url": "http://campus.51job.com/chapanda",
+      "status": "已修正",
+      "industry": "新消费 / 茶饮 / 餐饮",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "绝味食品",
+      "url": "https://www.juewei.cn/page/resource/recruit.html",
+      "status": "已修正",
+      "industry": "新消费 / 茶饮 / 餐饮",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "周黑鸭",
+      "url": "https://jobs.51job.com/all/co3221662.html",
+      "status": "已修正",
+      "industry": "新消费 / 茶饮 / 餐饮",
+      "note": "新增，经联网检索定位官方招聘入口：周黑鸭官方51job招聘页，显示11个在招职位；另官网 zhouheiya.cn「在线招聘」与「周黑鸭招聘」公众号"
+    },
+    {
+      "name": "SHEIN(希音)",
+      "url": "https://careers.shein.cn/",
+      "status": "已修正",
+      "industry": "新消费 / 茶饮 / 餐饮",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "联影医疗",
+      "url": "https://global.united-imaging.com/zh-cn/careers/",
+      "status": "已修正",
+      "industry": "医疗器械 / IVD",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "鱼跃医疗",
+      "url": "https://yuwellhr.zhiye.com/",
+      "status": "已修正",
+      "industry": "医疗器械 / IVD",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "乐普医疗",
+      "url": "https://www.lepumedical.com/join_lepu.html",
+      "status": "已修正",
+      "industry": "医疗器械 / IVD",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "微创医疗",
+      "url": "https://www.microport.com.cn/join/index.html",
+      "status": "已修正",
+      "industry": "医疗器械 / IVD",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "威高股份",
+      "url": "http://weigao.zhiye.com/Campus",
+      "status": "已修正",
+      "industry": "医疗器械 / IVD",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "新华医疗",
+      "url": "https://hr.shinva.work",
+      "status": "已修正",
+      "industry": "医疗器械 / IVD",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "安图生物",
+      "url": "https://wecruit.hotjob.cn/SU62302d64bef57c4972f79a87/mc/position/campus",
+      "status": "已修正",
+      "industry": "医疗器械 / IVD",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "新产业生物",
+      "url": "http://snibe.zhiye.com/Campus",
+      "status": "已修正",
+      "industry": "医疗器械 / IVD",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "达安基因",
+      "url": "https://daangene.zhiye.com/",
+      "status": "已修正",
+      "industry": "医疗器械 / IVD",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "迪安诊断",
+      "url": "https://campus.dazd.cn/",
+      "status": "已修正",
+      "industry": "医疗器械 / IVD",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "金域医学",
+      "url": "https://kingmed.zhiye.com/",
+      "status": "已修正",
+      "industry": "医疗器械 / IVD",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "开立医疗",
+      "url": "https://campus.sonoscape.com/",
+      "status": "已修正",
+      "industry": "医疗器械 / IVD",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "华测检测",
+      "url": "https://www.cti-cert.com/join.html",
+      "status": "已修正",
+      "industry": "检验检测 / 科研服务",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "广电计量",
+      "url": "https://join.grgtest.com/",
+      "status": "已修正",
+      "industry": "检验检测 / 科研服务",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "谱尼测试",
+      "url": "https://mq.51job.com/i1484/co2114629/xiaozhao",
+      "status": "已修正",
+      "industry": "检验检测 / 科研服务",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "国检集团(中国国检测试控股)",
+      "url": "https://www.ctc.ac.cn/col/col22/index.html",
+      "status": "已修正",
+      "industry": "检验检测 / 科研服务",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "苏试试验",
+      "url": "https://www.chinasti.com/about/join",
+      "status": "已修正",
+      "industry": "检验检测 / 科研服务",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "钢研纳克",
+      "url": "https://gangyan.zhiye.com/custom/campus?hideAll=true",
+      "status": "已修正",
+      "industry": "检验检测 / 科研服务",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "苏交科",
+      "url": "https://app.mokahr.com/campus-recruitment/jsti/144121",
+      "status": "已修正",
+      "industry": "检验检测 / 科研服务",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "建科股份",
+      "url": "https://campus.51job.com/czjky2024/",
+      "status": "已修正",
+      "industry": "检验检测 / 科研服务",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "中国检验认证集团(中检)",
+      "url": "https://www.ccic.com/cpyc/index.html",
+      "status": "已修正",
+      "industry": "检验检测 / 科研服务",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "中国汽研",
+      "url": "https://wecruit.hotjob.cn/SU660948141eb8053372f53b4d/mc/index",
+      "status": "已修正",
+      "industry": "检验检测 / 科研服务",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "电科院(苏州电器科学研究院)",
+      "url": "http://www.eeti.com.cn/Resource/Recruitment.htm",
+      "status": "已修正",
+      "industry": "检验检测 / 科研服务",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "新希望",
+      "url": "http://newhope.zhiye.com",
+      "status": "已修正",
+      "industry": "农牧 / 饲料 / 养殖",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "海大集团",
+      "url": "https://www.haid.com.cn/SocialRecruitment/index.aspx",
+      "status": "已修正",
+      "industry": "农牧 / 饲料 / 养殖",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "大北农",
+      "url": "https://dbn.cn/ch/home",
+      "status": "已修正",
+      "industry": "农牧 / 饲料 / 养殖",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "正邦科技",
+      "url": "https://zbjt.zhaopin.com",
+      "status": "已修正",
+      "industry": "农牧 / 饲料 / 养殖",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "圣农发展",
+      "url": "http://www.sunnergp.com/recruitment_2.html",
+      "status": "已修正",
+      "industry": "农牧 / 饲料 / 养殖",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "益生股份",
+      "url": "https://www.yishenggufen.com/rlzy/rczp/",
+      "status": "已修正",
+      "industry": "农牧 / 饲料 / 养殖",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "禾丰股份",
+      "url": "https://wellhope-ag.com/p/jobee.html",
+      "status": "已修正",
+      "industry": "农牧 / 饲料 / 养殖",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "唐人神",
+      "url": "https://wecruit.hotjob.cn/SU658d3be11c240e6503f6c305/pb/school.html",
+      "status": "已修正",
+      "industry": "农牧 / 饲料 / 养殖",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "天邦食品",
+      "url": "https://tianbang.zhiye.com/",
+      "status": "已修正",
+      "industry": "农牧 / 饲料 / 养殖",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "立华股份",
+      "url": "https://lhgf.cheng95.cn/",
+      "status": "已修正",
+      "industry": "农牧 / 饲料 / 养殖",
+      "note": "新增，经联网检索定位官方招聘入口：立华股份官方网申通道，多所高校就业网佐证为校招投递地址"
+    },
+    {
+      "name": "粤海饲料",
+      "url": "https://www.yuehaifeed.com/jryh",
+      "status": "已修正",
+      "industry": "农牧 / 饲料 / 养殖",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "仙坛股份",
+      "url": "https://www.sdxiantan.com/index/job/index.html?cate=23",
+      "status": "已修正",
+      "industry": "农牧 / 饲料 / 养殖",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "上海建工",
+      "url": "https://ideal.51job.com/scg/",
+      "status": "已修正",
+      "industry": "地方基建工程国企",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "隧道股份(上海隧道工程)",
+      "url": "https://zhaopin.stec.net",
+      "status": "已修正",
+      "industry": "地方基建工程国企",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "四川路桥",
+      "url": "https://hr.shudaojt.com/SU6468728f0dcad45af142832e/pb/index.htm",
+      "status": "已修正",
+      "industry": "地方基建工程国企",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "安徽建工",
+      "url": "http://aceg.com.cn/list/zpxx",
+      "status": "已修正",
+      "industry": "地方基建工程国企",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "浙江建投(浙江省建设投资集团)",
+      "url": "https://www.cnzgc.com/",
+      "status": "已修正",
+      "industry": "地方基建工程国企",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "陕西建工",
+      "url": "https://sjkghr.sxjgkg.com:2081/zhaopin",
+      "status": "已修正",
+      "industry": "地方基建工程国企",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "山东路桥",
+      "url": "http://zhaopin.sdhsg.com/",
+      "status": "已修正",
+      "industry": "地方基建工程国企",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "重庆建工",
+      "url": "https://www.ccegc.cn/jjjg/zpxx/",
+      "status": "已修正",
+      "industry": "地方基建工程国企",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "山西建设投资集团",
+      "url": "https://www.sxcig.com/xxgk/rczp.htm",
+      "status": "已修正",
+      "industry": "地方基建工程国企",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "湖南建工",
+      "url": "https://www.hnceg.com/news/37/",
+      "status": "已修正",
+      "industry": "地方基建工程国企",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "中铝国际",
+      "url": "https://zlgj2026.zhaopin.com/",
+      "status": "已修正",
+      "industry": "地方基建工程国企",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "中国核建(中国核工业建设集团)",
+      "url": "https://cnecc.zhiye.com/",
+      "status": "已修正",
+      "industry": "地方基建工程国企",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "得物(毒)",
+      "url": "https://campus.dewu.com",
+      "status": "已修正",
+      "industry": "互联网垂直 / 电商 / 内容",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "唯品会",
+      "url": "https://campus.vip.com/",
+      "status": "已修正",
+      "industry": "互联网垂直 / 电商 / 内容",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "Keep(运动科技)",
+      "url": "https://hr.keep.com/campus/jobs",
+      "status": "已修正",
+      "industry": "互联网垂直 / 电商 / 内容",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "喜马拉雅",
+      "url": "https://jobs.ximalaya.com/",
+      "status": "已修正",
+      "industry": "互联网垂直 / 电商 / 内容",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "声网(Agora)",
+      "url": "https://app.mokahr.com/campus_apply/agora",
+      "status": "已修正",
+      "industry": "互联网垂直 / 电商 / 内容",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "微盟",
+      "url": "https://job.weimob.com/talent/campus",
+      "status": "已修正",
+      "industry": "互联网垂直 / 电商 / 内容",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "有赞",
+      "url": "https://youzan.zhiye.com/campus/jobs",
+      "status": "已修正",
+      "industry": "互联网垂直 / 电商 / 内容",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "同程旅行",
+      "url": "https://join.ly.com",
+      "status": "已修正",
+      "industry": "互联网垂直 / 电商 / 内容",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "58同城",
+      "url": "https://campus.58.com",
+      "status": "已修正",
+      "industry": "互联网垂直 / 电商 / 内容",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "安居客",
+      "url": "https://pages.anjukestatic.com/html/jobs/jobindex.html",
+      "status": "已修正",
+      "industry": "互联网垂直 / 电商 / 内容",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "叮咚买菜",
+      "url": "https://ddmcxz.zhiye.com/",
+      "status": "已修正",
+      "industry": "互联网垂直 / 电商 / 内容",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "盒马",
+      "url": "https://hire.freshippo.com/campus/home",
+      "status": "已修正",
+      "industry": "互联网垂直 / 电商 / 内容",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "零跑汽车",
+      "url": "https://leapmotor.zhiye.com/campus/jobs",
+      "status": "已修正",
+      "industry": "电池 / 汽车零部件补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "吉利汽车",
+      "url": "http://campus.geely.com/",
+      "status": "已修正",
+      "industry": "电池 / 汽车零部件补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "一汽集团(中国一汽)",
+      "url": "https://faw-zhaopin.hotjob.cn/",
+      "status": "已修正",
+      "industry": "电池 / 汽车零部件补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "长虹(四川长虹)",
+      "url": "https://group.changhong.com/jrzh_295/",
+      "status": "已修正",
+      "industry": "家电 / 消费电子补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "创维",
+      "url": "https://skyworth.hotjob.cn/",
+      "status": "已修正",
+      "industry": "家电 / 消费电子补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "奥克斯",
+      "url": "https://auxgroup.zhiye.com/campus",
+      "status": "已修正",
+      "industry": "家电 / 消费电子补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "苏泊尔",
+      "url": "https://xyzp.51job.com/supor",
+      "status": "已修正",
+      "industry": "家电 / 消费电子补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "九阳",
+      "url": "https://zhaopin.joyoung.com/campus",
+      "status": "已修正",
+      "industry": "家电 / 消费电子补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "石头科技",
+      "url": "https://roborock.zhiye.com/campus",
+      "status": "已修正",
+      "industry": "家电 / 消费电子补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "科沃斯",
+      "url": "https://hr.ecovacs.cn/",
+      "status": "已修正",
+      "industry": "家电 / 消费电子补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "公牛集团",
+      "url": "https://gongniu.zhiye.com/",
+      "status": "已修正",
+      "industry": "家电 / 消费电子补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "欧普照明",
+      "url": "https://www.opple.com.cn/aboutus/personnel",
+      "status": "已修正",
+      "industry": "家电 / 消费电子补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "莱克电气",
+      "url": "https://www.lexy.cn/newsinfo/2278893.html",
+      "status": "已修正",
+      "industry": "家电 / 消费电子补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    },
+    {
+      "name": "新宝股份",
+      "url": "https://xxgattbvct5.feishu.cn/share/base/form/shrcnfvJ1iHl01jIBu6Tq8y4EPb",
+      "status": "已修正",
+      "industry": "家电 / 消费电子补充",
+      "note": "新增，经联网检索定位官方招聘入口"
+    }
+  ]
+}
