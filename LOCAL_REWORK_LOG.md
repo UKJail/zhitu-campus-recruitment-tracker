@@ -321,3 +321,15 @@ Move-Item -LiteralPath ".vercel\project.json.disabled" -Destination ".vercel\pro
 - GitHub `origin` 已恢复为 `https://github.com/UKJail/zhitu-campus-recruitment-tracker.git`，但当前网络访问 GitHub 被重置，尚未读取远程历史、推送分支或创建 PR。
 - Vercel 连接器可识别团队 `zhitu-tracker`，但当前账号连接未返回项目列表；尚未修改项目设置、环境变量或生产部署。
 - 本阶段未执行 Supabase 迁移、未清理线上数据、未修改 Resend Webhook，也未暂停或删除 Railway 服务。
+
+# 2026-08-17 GitHub 与 Vercel Preview 发布记录
+
+- GitHub 远程 `main` 为 `c8ec001`，与本地发布基线一致，没有发现远程额外提交或历史分叉；未使用强制推送。
+- 发布分支 `codex/local-rework-release` 已推送到 `origin`。三个可回退提交依次为：`71fcd05`（网站、认证、邮件和用户功能）、`5510375`（OfferStar、企业入口与周同步）、`5026a46`（配置、测试和整改记录）。
+- 发布前复验：35 个测试文件、131 项测试通过；ESLint 与 Next.js 16.3.0 生产构建通过；`git diff --check` 无空白错误；密钥扫描只命中 README 中的占位说明，没有提交 `.env.local`、`.vercel`、`.next`、本地缓存或岗位回退副本。
+- Vercel 项目重新连接到 GitHub 仓库；项目 ID 为 `prj_QaxOzVLYDkdlnkf0qDFHENCRrZFS`，团队为 `ZHITU Tracker`。发布前生产回退点为 `https://zhitu-tracker-mu40pwh0j-zhitu-tracker.vercel.app`。
+- Preview 与 Production 已具备计划中的环境变量名称，并新增同一稳定值的 `AUTH_RECOVERY_GRANT_SECRET`。首次 Preview 暴露出公开变量通过标准输入复制时附带换行，导致构建成 demo 模式且 Supabase Auth 不可达；随后改用无换行输入，以本地已验证的公开 Supabase 配置修复 Preview。
+- 修复后的 Preview 为 `https://zhitu-tracker-2lwjruge6-zhitu-tracker.vercel.app`，部署检查页为 `https://vercel.com/zhitu-tracker/zhitu-tracker/8AMiR2KnsUfzQjMgRKDL68ouKSXw`。Vercel 构建、TypeScript 和 33 个页面/接口路由全部通过。
+- Preview 基础验收：`/` 返回 HTTP 200；`/api/health` 返回 production 模式；`/api/health/auth` 返回 Supabase Auth 正常；未登录访问 `/api/jobs` 返回 401；`/api/career-portals` 返回 690 条企业入口。
+- Railway 服务 `creative-essence` 当前 `deploymentStopped=true`，运行实例为 0，且 `source=null`，没有连接 GitHub 自动部署；因此无需删除服务或变量，也不会继续运行旧采集器。
+- 尚未合并 `main`、尚未覆盖正式站、尚未执行 Supabase 迁移或线上数据清理、尚未修改 Resend Webhook。下一步必须先完成人工登录、账号隔离、密码重置和核心功能 Preview 验收，再创建/确认 PR 并决定是否合并上线。
