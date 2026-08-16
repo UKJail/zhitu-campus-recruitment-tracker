@@ -333,3 +333,13 @@ Move-Item -LiteralPath ".vercel\project.json.disabled" -Destination ".vercel\pro
 - Preview 基础验收：`/` 返回 HTTP 200；`/api/health` 返回 production 模式；`/api/health/auth` 返回 Supabase Auth 正常；未登录访问 `/api/jobs` 返回 401；`/api/career-portals` 返回 690 条企业入口。
 - Railway 服务 `creative-essence` 当前 `deploymentStopped=true`，运行实例为 0，且 `source=null`，没有连接 GitHub 自动部署；因此无需删除服务或变量，也不会继续运行旧采集器。
 - 尚未合并 `main`、尚未覆盖正式站、尚未执行 Supabase 迁移或线上数据清理、尚未修改 Resend Webhook。下一步必须先完成人工登录、账号隔离、密码重置和核心功能 Preview 验收，再创建/确认 PR 并决定是否合并上线。
+
+# 2026-08-17 Vercel Preview 密钥作用域修复
+
+- 用户明确授权在系统临时目录中短暂处理 Production 密钥，但 Vercel CLI 对敏感变量的导出只返回不可解密的空占位；未将空值写入 Preview，也未在终端或日志中显示任何密钥。
+- 改用 Vercel 内部作用域编辑：精确删除无效 Preview 占位项，将 Production 中原有的 `SUPABASE_URL`、`SUPABASE_SERVICE_ROLE_KEY`、`DEEPSEEK_API_KEY`、`DEEPSEEK_MODEL`、`RESEND_API_KEY`、`RESEND_WEBHOOK_SECRET`、`RESEND_INBOUND_DOMAIN` 和 `APP_URL` 扩展为 `Production + Preview`；密钥值全程留在 Vercel 加密存储内。
+- `NEXT_PUBLIC_DEMO_MODE`、`NEXT_PUBLIC_SUPABASE_URL`、`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` 及 `AUTH_RECOVERY_GRANT_SECRET` 保留按环境独立记录；审计确认所有 12 个必需变量均覆盖 Preview。
+- 所有 `zhitu-vercel-*` 系统临时目录均已删除，审计数量为 0。
+- 新 Preview 为 `https://zhitu-tracker-7pp6qvtmt-zhitu-tracker.vercel.app`，部署 ID 为 `dpl_EphwYEaPfBqQXFwbf2v8pmLvAUZY`，状态为 Ready。Vercel 生产构建、TypeScript 和 33 个页面/接口路由全部通过。
+- 基础验收：首页 HTTP 200；`/api/health` 正常；`/api/health/auth` 真实连接 Supabase Auth 成功；`/api/career-portals` 返回 690 条企业入口。
+- 本次未修改 Resend Webhook，未执行 Supabase 迁移，未合并 `main`，未提升或覆盖正式部署。下一步仍是由用户在新 Preview 中完成管理员和 Testing 真实登录及数据隔离验收。
