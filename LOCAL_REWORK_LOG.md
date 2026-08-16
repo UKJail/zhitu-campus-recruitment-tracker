@@ -369,3 +369,6 @@ Move-Item -LiteralPath ".vercel\project.json.disabled" -Destination ".vercel\pro
 - 默认排序改为“页面日期优先”，没有显式排序参数的职位接口也采用相同默认值。
 - 开启“符合我的偏好”时仍优先按偏好匹配分排序，再用用户选择的页面日期或公司名称处理同分岗位，避免精简入口后削弱偏好功能。
 - 新增偏好排序回归测试；本阶段只修改发布分支，未合并 `main` 或覆盖正式站。
+- 完整验证结果：36 个测试文件、137 项测试通过；ESLint 与 Next.js 16.3.0 生产构建通过。
+- 本地提交为 `7900a68`。GitHub HTTPS 连续三次连接重置或超时，远程分支暂未同步；本地提交保持完整且工作区干净。
+- 为避免阻塞验收，使用同一份提交直接创建独立 Vercel Preview：`https://zhitu-tracker-97297rq4m-zhitu-tracker.vercel.app`，部署 ID `dpl_GseHcCDY4qpAYip6hEhHRjdKUmvw`，状态 `READY`；正式站未被覆盖。
