@@ -1,0 +1,32 @@
+[
+  {
+    "externalId": "campus-001",
+    "company": "示例科技",
+    "title": "产品经理校招",
+    "location": "Shenzhen, China",
+    "education": "本科及以上",
+    "experience": "2027届应届生",
+    "description": "面向校园招聘，参与产品需求分析。",
+    "publishedAt": "2026-08-16",
+    "applyUrl": "https://careers.example.com/jobs/001?utm_source=test",
+    "rawData": {}
+  },
+  {
+    "externalId": "intern-002",
+    "company": "示例科技",
+    "title": "数据分析实习生",
+    "location": "Hong Kong",
+    "description": "实习岗位，协助完成数据整理。",
+    "applyUrl": "https://careers.example.com/jobs/002",
+    "rawData": {}
+  },
+  {
+    "externalId": "social-003",
+    "company": "示例科技",
+    "title": "高级销售经理",
+    "location": "Beijing",
+    "description": "要求五年以上工作经验。",
+    "applyUrl": "https://careers.example.com/jobs/003",
+    "rawData": {}
+  }
+]

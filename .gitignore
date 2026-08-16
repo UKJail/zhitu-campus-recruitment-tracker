@@ -10,6 +10,11 @@ railway-worker-upload
 .env
 .env.local
 *.log
+*.tsbuildinfo
+
+# Local inspection and pre-sync backups
+.tmp-spreadsheet-inspect/
+imports/workbuddy/offerstar/offerstar-jobs.pre-weekly-sync-*.json
 
 .vercel
 .env*

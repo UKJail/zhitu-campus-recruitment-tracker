@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import type { Database } from "./database.types";
 
@@ -22,6 +23,18 @@ export async function createSupabaseServerClient() {
           // Server Components cannot write cookies. proxy.ts handles refreshes.
         }
       },
+    },
+  });
+}
+
+export function createSupabaseAuthClient() {
+  const { url, key } = getPublicConfig();
+  return createClient<Database>(url, key, {
+    auth: {
+      flowType: "implicit",
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+      persistSession: false,
     },
   });
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { safeAuthNextPath } from "@/lib/auth/redirect";
-import { createRecoveryGrant, RECOVERY_GRANT_COOKIE, RECOVERY_GRANT_MAX_AGE_SECONDS } from "@/lib/auth/recovery-grant";
+import { createRecoveryGrant, getRecoveryGrantSecret, RECOVERY_GRANT_COOKIE, RECOVERY_GRANT_MAX_AGE_SECONDS } from "@/lib/auth/recovery-grant";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
   const response = NextResponse.redirect(new URL(next, url.origin));
 
   if (next === "/reset-password" && data.user) {
-    const secret = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const secret = getRecoveryGrantSecret();
     if (!secret) return NextResponse.redirect(new URL(errorPath, url.origin));
     response.cookies.set(RECOVERY_GRANT_COOKIE, createRecoveryGrant(data.user.id, secret), {
       httpOnly: true,

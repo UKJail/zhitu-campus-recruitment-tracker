@@ -1,0 +1,3 @@
+json=D:\求职追踪网页\imports\workbuddy\career-portals.json
+report=D:\求职追踪网页\imports\workbuddy\career-portals-report.md
+dir=D:\求职追踪网页\imports\workbuddy

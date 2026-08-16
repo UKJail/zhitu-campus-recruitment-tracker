@@ -1,5 +1,7 @@
-import { GreenhouseAdapter } from "./adapters/greenhouse.js";
-import { RestrictedSourceAdapter } from "./adapters/restricted.js";
+import { OfficialCareerPageAdapter } from "./adapters/official-career-page.js";
+import { TencentCareersAdapter } from "./adapters/tencent-careers.js";
+import { BaiduCareersAdapter } from "./adapters/baidu-careers.js";
+import { loadCompanyCareerSources } from "./company-sources.js";
 import { JobRepository } from "./repository.js";
 import { runAdapters } from "./runner.js";
 
@@ -10,24 +12,21 @@ function intervalMs() {
   return Number.isFinite(configured) && configured >= 5 * 60 * 1000 ? configured : TWO_HOURS;
 }
 
-function adapters() {
-  const greaterChina = /China|Shanghai|Shenzhen|Beijing|Hong Kong/i;
-  return [
-    new GreenhouseAdapter("ideo", "IDEO", greaterChina),
-    new GreenhouseAdapter("adyen", "Adyen", greaterChina),
-    new GreenhouseAdapter("applovin", "AppLovin", greaterChina),
-    new GreenhouseAdapter("xendit", "Xendit", greaterChina),
-    new GreenhouseAdapter("eclipsetrading", "Eclipse Trading", greaterChina),
-    new GreenhouseAdapter("alphagrepsecurities", "AlphaGrep Securities", greaterChina),
-    new GreenhouseAdapter("rockbund", "Rock Bund Capital", greaterChina),
-    new RestrictedSourceAdapter("猎聘", "公开页面存在访问限制；MVP 不登录、不处理验证码"),
-    new RestrictedSourceAdapter("智联招聘", "公开页面存在访问限制；MVP 不登录、不处理验证码"),
-    new RestrictedSourceAdapter("前程无忧", "公开页面存在访问限制；MVP 不登录、不处理验证码"),
-  ];
+async function adapters() {
+  const sources = await loadCompanyCareerSources();
+  const ordinals = new Set((process.env.COMPANY_SOURCE_ORDINALS || "").split(",").map(Number).filter(Number.isFinite));
+  const selected = ordinals.size ? sources.filter((source) => ordinals.has(source.ordinal)) : sources;
+  const limit = Number(process.env.COMPANY_SOURCE_LIMIT || selected.length);
+  return selected.slice(0, Number.isFinite(limit) && limit > 0 ? limit : selected.length)
+    .map((source) => source.ordinal === 70
+      ? new TencentCareersAdapter(source)
+      : source.ordinal === 76
+        ? new BaiduCareersAdapter(source)
+        : new OfficialCareerPageAdapter(source));
 }
 
 async function collect() {
-  const summary = await runAdapters(adapters(), JobRepository.fromEnvironment());
+  const summary = await runAdapters(await adapters(), JobRepository.fromEnvironment());
   console.log(JSON.stringify({ event: "collection_finished", at: new Date().toISOString(), summary }));
 }
 

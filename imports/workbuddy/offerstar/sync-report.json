@@ -1,0 +1,17 @@
+{
+  "source": "offerstar",
+  "sourcePath": "C:\\Users\\k'k\\WorkBuddy\\zhitu-career-jobs\\latest\\offerstar-to-zhitu.json",
+  "syncedAt": "2026-08-16T20:11:50.770Z",
+  "dryRun": false,
+  "received": 20479,
+  "accepted": 20479,
+  "duplicates": 0,
+  "rejected": 0,
+  "wechatApplyUrls": 18475,
+  "byRecruitmentType": {
+    "其他": 9,
+    "实习": 262,
+    "应届生": 20208
+  },
+  "rejectedSamples": []
+}

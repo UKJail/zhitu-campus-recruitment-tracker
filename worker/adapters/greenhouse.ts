@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { contentHash, jobFingerprint, normalizeUrl, stripHtml } from "../normalize.js";
+import { normalizeLocationToChinese } from "../location.js";
 import type { CollectionResult, JobSourceAdapter } from "../types.js";
 
 const responseSchema = z.object({
@@ -40,13 +41,14 @@ export class GreenhouseAdapter implements JobSourceAdapter {
     if (!parsed.success) return { jobs: [], restricted: true, reason: "公开 API 数据结构发生变化，已暂停等待检查" };
 
     const jobs = parsed.data.jobs.filter((job) => this.locations.test(job.location.name)).map((job) => {
-      const description = stripHtml(job.content) || `${job.title} · ${job.location.name}`;
+      const location = normalizeLocationToChinese(job.location.name) || job.location.name.trim();
+      const description = stripHtml(job.content) || `${job.title} · ${location}`;
       const normalizedUrl = normalizeUrl(job.absolute_url);
       return {
         externalId: `${this.boardToken}:${job.id}`,
         company: this.company,
         title: job.title.trim(),
-        location: job.location.name.trim(),
+        location,
         salaryText: null,
         experience: null,
         education: null,
@@ -55,7 +57,7 @@ export class GreenhouseAdapter implements JobSourceAdapter {
         expiresAt: null,
         applyUrl: job.absolute_url,
         normalizedUrl,
-        fingerprint: jobFingerprint(this.company, job.title, job.location.name),
+        fingerprint: jobFingerprint(this.company, job.title, location),
         rawData: { adapter: this.adapterName, departments: job.departments.map((item) => item.name), contentHash: contentHash(description) },
       };
     });

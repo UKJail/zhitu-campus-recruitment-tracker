@@ -14,30 +14,49 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
+  const [authServiceError, setAuthServiceError] = useState("");
   const [screen, setScreen] = useState<"login" | "otp" | "recovery" | "recovery-sent">("login");
 
   useEffect(() => {
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) return;
-    void supabase.auth.getSession().then(({ data }) => {
-      if (data.session) router.replace("/app");
+    let active = true;
+    void fetch("/api/auth/session", { cache: "no-store", credentials: "same-origin" }).then((response) => {
+      if (active && response.ok) router.replace("/app");
+    }).catch(() => {
+      // If the server cannot verify the session, leave the user on the login page.
     });
+
+    return () => {
+      active = false;
+    };
   }, [router]);
+
+  useEffect(() => {
+    let active = true;
+    void fetch("/api/health/auth", { cache: "no-store" }).then((response) => {
+      if (!active) return;
+      setAuthServiceError(response.ok ? "" : "无法连接认证服务，请从可联网的本地终端重新启动职途。");
+    }).catch(() => {
+      if (active) setAuthServiceError("无法连接认证服务，请从可联网的本地终端重新启动职途。");
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   async function signIn(event: FormEvent) {
     event.preventDefault();
     setLoading(true);
     setError("");
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) {
-      setError("登录服务尚未配置，请联系管理员。");
-      setLoading(false);
-      return;
-    }
-
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
-    if (authError) {
-      setError("邮箱或密码错误；新用户请先使用管理员发送的激活链接设置密码。");
+    const response = await fetch("/api/auth/sign-in", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ method: "password", email, password }),
+    }).catch(() => null);
+    if (!response?.ok) {
+      const result = await response?.json().catch(() => null) as { error?: string; code?: string } | null;
+      if (result?.code === "auth_service_unreachable") setAuthServiceError(result.error || "无法连接认证服务。");
+      setError(result?.error || "登录服务暂时不可用，请稍后重试。");
       setLoading(false);
       return;
     }
@@ -70,20 +89,16 @@ export default function LoginPage() {
     event.preventDefault();
     setLoading(true);
     setError("");
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) {
-      setError("登录服务尚未配置，请联系管理员。");
-      setLoading(false);
-      return;
-    }
-
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      email: email.trim().toLowerCase(),
-      options: { shouldCreateUser: false },
-    });
+    const response = await fetch("/api/auth/sign-in", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ method: "request-otp", email: email.trim().toLowerCase() }),
+    }).catch(() => null);
     setLoading(false);
-    if (otpError) {
-      setError("验证码发送失败，请确认这是已受邀的邮箱后重试。");
+    if (!response?.ok) {
+      const result = await response?.json().catch(() => null) as { error?: string } | null;
+      setError(result?.error || "验证码发送失败，请确认这是已受邀的邮箱后重试。");
       return;
     }
     setOtpSent(true);
@@ -93,20 +108,19 @@ export default function LoginPage() {
     event.preventDefault();
     setLoading(true);
     setError("");
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) {
-      setError("登录服务尚未配置，请联系管理员。");
-      setLoading(false);
-      return;
-    }
-
-    const { error: otpError } = await supabase.auth.verifyOtp({
-      email: email.trim().toLowerCase(),
-      token: otp.trim(),
-      type: "email",
-    });
-    if (otpError) {
-      setError("验证码错误或已过期，请重新发送。");
+    const response = await fetch("/api/auth/sign-in", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({
+        method: "otp",
+        email: email.trim().toLowerCase(),
+        token: otp.trim(),
+      }),
+    }).catch(() => null);
+    if (!response?.ok) {
+      const result = await response?.json().catch(() => null) as { error?: string } | null;
+      setError(result?.error || "验证码验证失败，请重新发送。");
       setLoading(false);
       return;
     }
@@ -131,6 +145,7 @@ export default function LoginPage() {
       <p className="login-note">邀请制内测 · 你的数据只属于你</p>
     </section>
     <section className="login-panel"><div className="login-card">
+      {authServiceError && <p className="auth-service-alert" role="alert">{authServiceError}</p>}
       {screen === "login" && <>
         <span className="mini-icon"><LockKeyhole size={18} /></span><h2>欢迎回来</h2><p>测试版使用受邀邮箱和激活时设置的密码登录。</p><form onSubmit={signIn}>
           <label htmlFor="email">邮箱地址</label><input id="email" type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" />

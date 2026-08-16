@@ -19,7 +19,7 @@ describe("GreenhouseAdapter", () => {
       externalId: "ideo:7417974",
       company: "IDEO",
       title: "Director",
-      location: "Shanghai, China",
+      location: "上海",
       description: "Lead a multidisciplinary team & shape meaningful impact.",
       normalizedUrl: "https://boards.greenhouse.io/ideo/jobs/7417974",
     });

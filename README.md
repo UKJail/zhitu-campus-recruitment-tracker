@@ -21,11 +21,13 @@
 
 ```powershell
 Copy-Item .env.example .env.local
-pnpm install
-pnpm dev
+npm.cmd install
+npm.cmd run dev
 ```
 
-打开 `http://localhost:3000`。首次配置期间保持 `NEXT_PUBLIC_DEMO_MODE=true`；真实账号可登录后再改为 `false`。
+启动命令会先真实检查 Supabase Auth 是否可访问；只有检查通过后才会启动 Next.js。终端出现 `Ready` 后再打开 `http://localhost:3000`。如果提示“无法连接认证服务”，请在能够正常联网的独立 Windows PowerShell 中重新运行上述命令，不要继续尝试密码或验证码。
+
+可用 `http://localhost:3000/api/health/auth` 检查认证链路。返回 `ok: true` 才表示本地网页能够向 Supabase 发起登录请求。首次配置期间保持 `NEXT_PUBLIC_DEMO_MODE=true`；真实账号可登录后再改为 `false`。
 
 ## 首位管理员与邀请制登录
 
@@ -60,8 +62,11 @@ RESEND_API_KEY=
 RESEND_WEBHOOK_SECRET=
 RESEND_INBOUND_DOMAIN=
 SUPABASE_SERVICE_ROLE_KEY=
+AUTH_RECOVERY_GRANT_SECRET=
 APP_URL=http://localhost:3000
 ```
+
+`AUTH_RECOVERY_GRANT_SECRET` 仅用于服务器端密码恢复临时凭证，与 `SUPABASE_SERVICE_ROLE_KEY` 分离。本地启动脚本在未配置时会为当前进程临时生成；生产发布前必须设置稳定的随机密钥。二者都不得使用 `NEXT_PUBLIC_*` 前缀或提交到 Git。
 
 如果曾在聊天、截图或仓库中暴露 DeepSeek 密钥，请先到 DeepSeek 控制台吊销旧密钥并生成新密钥，然后只写入本地 `.env.local` 或部署平台的加密环境变量。
 

@@ -28,6 +28,10 @@ export type Job = {
   applicationId?: string;
   appliedConfirmedAt?: string;
   events?: ApplicationEvent[];
+  databaseJobId?: string;
+  discovery?: boolean;
+  deadline?: string;
+  industry?: string;
 };
 
 export type ApplicationEvent = {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { APPLICATION_DELETED_ACTION, APPLICATION_RESTORED_ACTION, isApplicationHidden } from "@/lib/applications/visibility";
 import { jobFingerprint } from "@/lib/business";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
 import type { ApplicationStatus } from "@/lib/types";
@@ -59,7 +60,12 @@ export async function POST(request: Request) {
       supabase.from("resume_versions").select("id").eq("user_id", userId).eq("source", "ai_suggestion").order("created_at", { ascending: false }).limit(1).maybeSingle(),
     ]);
     if (existingError) throw new Error(existingError.message);
-    if (existing && (progressedStatuses.includes(existing.status) || (existing.status === "applied" && existing.applied_confirmed_at))) {
+    const { data: lifecycleEvents, error: lifecycleError } = existing
+      ? await supabase.from("application_events").select("metadata").eq("application_id", existing.id).in("metadata->>action", [APPLICATION_DELETED_ACTION, APPLICATION_RESTORED_ACTION]).order("created_at", { ascending: false })
+      : { data: [], error: null };
+    if (lifecycleError) throw new Error(lifecycleError.message);
+    const restoring = Boolean(existing && isApplicationHidden(lifecycleEvents || []));
+    if (existing && !restoring && (progressedStatuses.includes(existing.status) || (existing.status === "applied" && existing.applied_confirmed_at))) {
       return NextResponse.json({ application: existing, jobId: job.id, duplicate: true });
     }
 
@@ -85,7 +91,7 @@ export async function POST(request: Request) {
       from_status: previousStatus,
       to_status: "applied",
       source: "user",
-      metadata: { outcome: "applied", action: "manual_external_confirmation", applyUrl: input.applyUrl },
+      metadata: { outcome: "applied", action: restoring ? APPLICATION_RESTORED_ACTION : "manual_external_confirmation", applyUrl: input.applyUrl },
     });
     if (eventError) {
       if (existing) {

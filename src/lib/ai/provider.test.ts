@@ -154,6 +154,27 @@ describe("DeepSeekProvider", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it("模型首次返回字段结构错误时会按字段路径纠正重试", async () => {
+    const validAnalysis = {
+      score: 76,
+      matchedKeywords: ["用户研究"],
+      missingKeywords: [],
+      risks: [],
+      suggestions: [],
+    };
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ ...validAnalysis, score: "76" }) } }] }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify(validAnalysis) } }] }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(new DeepSeekProvider("test-secret").analyzeResume("真实简历原文", "完整岗位描述至少二十个字符，用于验证结构纠错。"))
+      .resolves.toMatchObject({ score: 76 });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const retryBody = JSON.parse(String((fetchMock.mock.calls[1][1] as RequestInit).body));
+    expect(retryBody.messages[1].content).toContain("score");
+    expect(retryBody.messages[1].content).toContain("不得新增或改写简历事实");
+  });
+
   it("连续空响应时重试三次并保留非敏感诊断信息", async () => {
     const fetchMock = vi.fn().mockImplementation(async () => new Response(JSON.stringify({
       id: "request-safe-id",

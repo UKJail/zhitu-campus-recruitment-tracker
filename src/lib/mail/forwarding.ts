@@ -1,14 +1,19 @@
-const confirmationHosts = new Set([
-  "mail.google.com",
-  "mail-settings.google.com",
-  "accounts.google.com",
-  "outlook.live.com",
-  "outlook.office.com",
-]);
+export type ForwardingConfirmationProvider = "gmail" | "qq";
+
+const confirmationHosts: Record<ForwardingConfirmationProvider, Set<string>> = {
+  gmail: new Set(["mail.google.com", "mail-settings.google.com", "accounts.google.com"]),
+  qq: new Set(["mail.qq.com", "wx.mail.qq.com", "exmail.qq.com", "service.exmail.qq.com"]),
+};
 
 type EmailIdentity = {
   sender?: string | null;
   subject?: string | null;
+};
+
+export type ForwardingVerificationState = {
+  phase: "waiting" | "received" | "opened";
+  title: string;
+  description: string;
 };
 
 export const recruitmentFilterKeywords = [
@@ -40,15 +45,81 @@ export function isGmailForwardingConfirmation(email: EmailIdentity) {
   return isGoogleForwardingSender && hasForwardingSubject;
 }
 
-export function allowedConfirmationLinks(bodyText: string | null | undefined) {
-  const matches = bodyText?.match(/https:\/\/[^\s<>"'，。；]+/gi) || [];
-  return [...new Set(matches.map((value) => value.replace(/&amp;/gi, "&").replace(/[),，。；;]+$/, "")).filter((value) => {
-    try {
-      return confirmationHosts.has(new URL(value).hostname.toLowerCase());
-    } catch {
-      return false;
-    }
-  }))].slice(0, 5);
+export function isQqForwardingConfirmation(email: EmailIdentity) {
+  const sender = email.sender?.toLowerCase().trim() || "";
+  const subject = email.subject?.toLowerCase() || "";
+  const isQqSender = /@qq\.com(?:>|$)/.test(sender);
+  const hasForwardingSubject = subject.includes("qq邮箱自动转发验证邮件")
+    || (subject.includes("qq") && /(自动转发|auto.?forward)/i.test(subject) && /(验证|驗證|verif)/i.test(subject));
+  return isQqSender && hasForwardingSubject;
+}
+
+export function forwardingConfirmationProvider(email: EmailIdentity): ForwardingConfirmationProvider | null {
+  if (isGmailForwardingConfirmation(email)) return "gmail";
+  if (isQqForwardingConfirmation(email)) return "qq";
+  return null;
+}
+
+export function forwardingVerificationState(
+  provider: ForwardingConfirmationProvider,
+  emails: EmailIdentity[],
+  opened = false,
+): ForwardingVerificationState {
+  const label = provider === "gmail" ? "Gmail" : "QQ 邮箱";
+  const verificationLabel = provider === "gmail" ? "Gmail 验证邮件" : "QQ 邮箱验证邮件";
+  const received = emails.some((email) => forwardingConfirmationProvider(email) === provider);
+  if (!received) return {
+    phase: "waiting",
+    title: `正在等待 ${verificationLabel}`,
+    description: "添加地址后通常等待 1—3 分钟；无需把验证邮件手动转发给我们。",
+  };
+  if (opened) return {
+    phase: "opened",
+    title: `已打开 ${verificationLabel}`,
+    description: "验证入口已打开，请回到原邮箱设置页刷新并确认转发地址已生效。",
+  };
+  return {
+    phase: "received",
+    title: `已收到 ${verificationLabel}`,
+    description: `验证邮件只对当前账号可见，请打开并通过${label}提供的官方入口完成验证。`,
+  };
+}
+
+function decodeHtmlUrl(value: string) {
+  return value
+    .replace(/&amp;/gi, "&")
+    .replace(/&#38;/g, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'");
+}
+
+function normalizedConfirmationUrl(value: string, provider?: ForwardingConfirmationProvider) {
+  try {
+    const url = new URL(value);
+    const providers = provider ? [provider] : (Object.keys(confirmationHosts) as ForwardingConfirmationProvider[]);
+    if (!providers.some((key) => confirmationHosts[key].has(url.hostname.toLowerCase()))) return null;
+    if (provider === "qq" && !url.pathname.startsWith("/cgi-bin/")) return null;
+    if (url.protocol === "http:" && provider === "qq") url.protocol = "https:";
+    if (url.protocol !== "https:") return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+export function allowedConfirmationLinks(
+  bodyText: string | null | undefined,
+  html?: string | null,
+  provider?: ForwardingConfirmationProvider,
+) {
+  const textMatches = bodyText?.match(/https:\/\/[^\s<>"'，。；]+/gi) || [];
+  const hrefMatches = [...(html || "").matchAll(/<a\b[^>]*\bhref\s*=\s*(["'])(.*?)\1/gi)].map((match) => match[2]);
+  const matches = [...textMatches, ...hrefMatches];
+  const normalized = matches
+    .map((value) => decodeHtmlUrl(value).replace(/[),，。；;]+$/, ""))
+    .map((value) => normalizedConfirmationUrl(value, provider))
+    .filter((value): value is string => Boolean(value));
+  return [...new Set(normalized)].slice(0, 5);
 }
 
 export function gmailForwardingConfirmationCode(bodyText: string | null | undefined) {

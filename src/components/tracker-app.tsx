@@ -1,26 +1,30 @@
 "use client";
 
 import {
-  ArrowUpRight, Bell, BellRing, Bookmark, BriefcaseBusiness, CalendarDays, Check, CheckCircle2,
+  ArrowUpRight, Bell, Bookmark, BriefcaseBusiness, Building2, CalendarDays, Check, CheckCircle2,
   ChevronDown, ChevronLeft, ChevronRight, CircleUserRound, ClipboardCheck, Clock3, FileCheck2, FilePenLine,
   Copy, Download, ExternalLink, FileText, Inbox, KeyRound, LayoutDashboard, Link2, LogOut, Mail, Menu, MessageSquareText, MoreHorizontal,
-  PenLine, Plus, RefreshCw, Save, Search, Send, Settings, ShieldCheck, Sparkles, Star, Target, Trash2, Upload, UserPlus, X, XCircle, MailCheck, MessageCircleMore,
+  PenLine, Plus, RefreshCw, Save, Search, Send, ShieldCheck, Sparkles, Star, Target, Trash2, Upload, UserPlus, X, XCircle, MailCheck, MessageCircleMore,
 } from "lucide-react";
 import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { applicationStatuses, applySuggestion, canTransition, classifyRecruitmentType, confirmedApplicationCount, confirmedApplicationCountOnDate } from "@/lib/business";
+import { applicationStatuses, applySuggestion, canTransition, confirmedApplicationCount, confirmedApplicationCountOnDate } from "@/lib/business";
 import { initialSuggestions, jobs as seedJobs, journey, resumes as seedResumes, reviews as seedReviews } from "@/lib/demo-data";
 import { formatLocalChineseDate, greetingWithId } from "@/lib/local-time";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { InterviewPrepPage } from "@/components/interview-prep-page";
 import { BrandMascot } from "@/components/brand-mascot";
-import { allowedConfirmationLinks, gmailForwardingConfirmationCode, gmailRecruitmentFilterQuery, hasRecentInboundEmail, isGmailForwardingConfirmation, recruitmentFilterKeywords } from "@/lib/mail/forwarding";
+import { CareerPortalDirectory } from "@/components/career-portal-directory";
+import { allowedConfirmationLinks, forwardingConfirmationProvider, forwardingVerificationState, gmailForwardingConfirmationCode, gmailRecruitmentFilterQuery, hasRecentInboundEmail, isGmailForwardingConfirmation, isQqForwardingConfirmation, recruitmentFilterKeywords } from "@/lib/mail/forwarding";
 import type { JobAnalysis, StructuredResume } from "@/lib/ai/provider";
 import type { InterviewReview, Job, Resume, Suggestion } from "@/lib/types";
 import type { RecruitingCalendarEvent } from "@/lib/mail/calendar";
+import { DEFAULT_DAILY_APPLICATION_TARGET, DEFAULT_JOB_PREFERENCES, hasJobPreferences, type JobPreferences } from "@/lib/account/preferences";
+import { matchJobPreferences } from "@/lib/jobs/preferences";
 
 type PageKey = "home" | "jobs" | "resumes" | "progress" | "prep" | "reviews";
-type AccountProfile = { displayName: string | null; email: string; isAdmin: boolean };
+type AccountProfile = { displayName: string | null; email: string; isAdmin: boolean; dailyApplicationTarget: number; jobPreferences: JobPreferences };
 type NotificationItem = {
   id: string;
   kind: string;
@@ -33,7 +37,6 @@ type NotificationItem = {
   action_status: "pending" | "accepted" | "rejected" | null;
 };
 const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE !== "false";
-const DAILY_APPLICATION_TARGET = 20;
 
 const navItems = [
   { key: "home" as const, label: "首页", icon: LayoutDashboard },
@@ -57,8 +60,12 @@ export function TrackerApp() {
   const [accountOpen, setAccountOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [profile, setProfile] = useState<AccountProfile | null>(isDemoMode ? { displayName: "测试用户", email: "", isAdmin: false } : null);
+  const [profile, setProfile] = useState<AccountProfile | null>(isDemoMode ? { displayName: "测试用户", email: "", isAdmin: false, dailyApplicationTarget: DEFAULT_DAILY_APPLICATION_TARGET, jobPreferences: DEFAULT_JOB_PREFERENCES } : null);
   const [progressClock, setProgressClock] = useState<Date | null>(null);
+  const [dailyApplicationTarget, setDailyApplicationTarget] = useState(DEFAULT_DAILY_APPLICATION_TARGET);
+  const [dailyTargetDraft, setDailyTargetDraft] = useState(String(DEFAULT_DAILY_APPLICATION_TARGET));
+  const [editingDailyTarget, setEditingDailyTarget] = useState(false);
+  const [savingDailyTarget, setSavingDailyTarget] = useState(false);
 
   const notify = useCallback((message: string) => {
     setToast(message);
@@ -86,7 +93,10 @@ export function TrackerApp() {
       const response = await fetch("/api/account", { cache: "no-store" });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "账号资料加载失败");
-      setProfile(payload.profile as AccountProfile);
+      const nextProfile = payload.profile as AccountProfile;
+      setProfile(nextProfile);
+      setDailyApplicationTarget(nextProfile.dailyApplicationTarget || DEFAULT_DAILY_APPLICATION_TARGET);
+      setDailyTargetDraft(String(nextProfile.dailyApplicationTarget || DEFAULT_DAILY_APPLICATION_TARGET));
     } catch (profileError) {
       notify(profileError instanceof Error ? profileError.message : "账号资料加载失败");
     }
@@ -116,8 +126,34 @@ export function TrackerApp() {
 
   const title = navItems.find((item) => item.key === page)?.label ?? "首页";
   const dailyApplicationCount = progressClock ? confirmedApplicationCountOnDate(jobs, progressClock) : 0;
-  const dailyApplicationProgress = Math.min(100, Math.round(dailyApplicationCount / DAILY_APPLICATION_TARGET * 100));
-  const dailyApplicationsRemaining = Math.max(0, DAILY_APPLICATION_TARGET - dailyApplicationCount);
+  const dailyApplicationProgress = Math.min(100, Math.round(dailyApplicationCount / dailyApplicationTarget * 100));
+  const dailyApplicationsRemaining = Math.max(0, dailyApplicationTarget - dailyApplicationCount);
+
+  async function saveDailyApplicationTarget(event: FormEvent) {
+    event.preventDefault();
+    const target = Number(dailyTargetDraft);
+    if (!Number.isInteger(target) || target < 1 || target > 200) return notify("投递目标需要是 1—200 的整数");
+    if (isDemoMode) {
+      setDailyApplicationTarget(target);
+      setEditingDailyTarget(false);
+      notify("今日投递目标已更新");
+      return;
+    }
+    setSavingDailyTarget(true);
+    try {
+      const response = await fetch("/api/account", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ dailyApplicationTarget: target }) });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "投递目标保存失败");
+      setDailyApplicationTarget(payload.dailyApplicationTarget);
+      setProfile((current) => current ? { ...current, dailyApplicationTarget: payload.dailyApplicationTarget } : current);
+      setEditingDailyTarget(false);
+      notify("今日投递目标已保存");
+    } catch (targetError) {
+      notify(targetError instanceof Error ? targetError.message : "投递目标保存失败");
+    } finally {
+      setSavingDailyTarget(false);
+    }
+  }
 
   return (
     <div className="app-shell">
@@ -133,10 +169,12 @@ export function TrackerApp() {
         </nav>
         <button className="feedback-entry" onClick={() => setFeedbackOpen(true)}><span><MessageCircleMore size={17} /></span><span><strong>有想法，告诉站长</strong><small>建议与 Bug 都欢迎</small></span><ArrowUpRight size={15} /></button>
         <div className="sidebar-companion">
-          <div className="companion-progress-head"><div className="companion-orbit"><Target size={18} /></div><span>今日目标</span></div>
-          <div className="companion-progress-value"><p>确认投递</p><strong><b>{dailyApplicationCount}</b><span>/ {DAILY_APPLICATION_TARGET}</span></strong></div>
-          <div className="companion-progress-track" role="progressbar" aria-label="今日确认投递进度" aria-valuemin={0} aria-valuemax={DAILY_APPLICATION_TARGET} aria-valuenow={Math.min(dailyApplicationCount, DAILY_APPLICATION_TARGET)}><i style={{ width: `${dailyApplicationProgress}%` }} /></div>
+          <div className="companion-progress-head"><div className="companion-orbit"><Target size={18} /></div><span>今日目标</span><button type="button" onClick={() => { setDailyTargetDraft(String(dailyApplicationTarget)); setEditingDailyTarget(true); }} aria-label="自定义今日投递目标" title="自定义今日投递目标"><PenLine size={12} />调整</button></div>
+          {editingDailyTarget ? <form className="companion-target-form" onSubmit={saveDailyApplicationTarget}><label htmlFor="daily-application-target">目标份数</label><input id="daily-application-target" autoFocus type="number" min={1} max={200} step={1} value={dailyTargetDraft} onChange={(event) => setDailyTargetDraft(event.target.value)} /><span><button type="button" onClick={() => setEditingDailyTarget(false)}>取消</button><button type="submit" disabled={savingDailyTarget}>{savingDailyTarget ? "保存中" : "保存"}</button></span></form> : <>
+          <div className="companion-progress-value"><p>确认投递</p><strong><b>{dailyApplicationCount}</b><span>/ {dailyApplicationTarget}</span></strong></div>
+          <div className="companion-progress-track" role="progressbar" aria-label="今日确认投递进度" aria-valuemin={0} aria-valuemax={dailyApplicationTarget} aria-valuenow={Math.min(dailyApplicationCount, dailyApplicationTarget)}><i style={{ width: `${dailyApplicationProgress}%` }} /></div>
           <footer className="companion-progress-footer"><span>{dailyApplicationsRemaining > 0 ? `还差 ${dailyApplicationsRemaining} 份` : "今日目标已达成"}</span><em>{dailyApplicationProgress}%</em></footer>
+          </>}
         </div>
         <button className="profile-chip" onClick={() => setAccountOpen(true)}><span>{profile?.displayName?.trim().slice(0, 1) || "我"}</span><span><strong>{profile?.displayName || "未设置用户 ID"}</strong><small>账号与管理</small></span><MoreHorizontal size={18} /></button>
       </aside>
@@ -153,13 +191,13 @@ export function TrackerApp() {
               <button className="icon-button has-dot" aria-label="通知" onClick={() => setNotificationsOpen(!notificationsOpen)}><Bell size={19} /></button>
               {notificationsOpen && <Notifications onClose={() => setNotificationsOpen(false)} notify={notify} onChanged={loadJobs} />}
             </div>
-            <button className="icon-button" aria-label="设置" onClick={() => setSettingsOpen(true)}><Settings size={19} /></button>
+            <button className="icon-button" aria-label="面试邮件自动转发设置" title="面试邮件自动转发设置" onClick={() => setSettingsOpen(true)}><Mail size={19} /></button>
           </div>
         </header>
 
         <main className="page-content">
           {page === "home" && <HomePage jobs={jobs} displayName={profile?.displayName} onNavigate={navigate} />}
-          {page === "jobs" && <JobsPage jobs={jobs} setJobs={setJobs} refreshJobs={loadJobs} loading={jobsLoading} notify={notify} />}
+          {page === "jobs" && <JobsPage refreshActivity={loadJobs} notify={notify} preferences={profile?.jobPreferences || DEFAULT_JOB_PREFERENCES} onPreferencesUpdated={(jobPreferences) => setProfile((current) => current ? { ...current, jobPreferences } : current)} />}
           {page === "resumes" && <ResumesPage suggestions={suggestions} setSuggestions={setSuggestions} notify={notify} />}
           {page === "progress" && <ProgressPage jobs={jobs} refreshJobs={loadJobs} notify={notify} onOpenMailSettings={() => setSettingsOpen(true)} />}
           {page === "prep" && <InterviewPrepPage notify={notify} />}
@@ -288,7 +326,15 @@ function RecruitingCalendar() {
 
   return <section className="panel tasks-panel calendar-panel">
     <div className="calendar-head">
-      <div><p className="eyebrow">接下来</p><h3>求职日历</h3></div>
+      <div className="calendar-title-row">
+        <div><p className="eyebrow">接下来</p><h3>求职日历</h3></div>
+        <div className="calendar-eta" aria-label="What's your ETA">
+          <span className="calendar-eta-bunny" aria-hidden="true">
+            <Image src="/newjeans-bunny.jpg" alt="" width={555} height={1200} sizes="48px" />
+          </span>
+          <span className="calendar-eta-copy">What&apos;s your ETA</span>
+        </div>
+      </div>
       <div className="calendar-legend"><span><i className="assessment-dot" />测评截止</span><span><i className="interview-dot" />面试日期</span></div>
     </div>
     <div className="calendar-toolbar">
@@ -330,37 +376,67 @@ function CalendarAgendaItem({ event }: { event: RecruitingCalendarEvent }) {
   </article>;
 }
 
-function JobsPage({ jobs, setJobs, refreshJobs, loading, notify }: { jobs: Job[]; setJobs: (jobs: Job[]) => void; refreshJobs: () => Promise<void>; loading: boolean; notify: (text: string) => void }) {
+type JobCatalogMeta = { catalogTotal: number; total: number; page: number; pageSize: number; pageCount: number; generatedAt: string; cities: string[]; companies: string[] };
+
+function JobsPage({ refreshActivity, notify, preferences, onPreferencesUpdated }: { refreshActivity: () => Promise<void>; notify: (text: string) => void; preferences: JobPreferences; onPreferencesUpdated: (preferences: JobPreferences) => void }) {
+  const [view, setView] = useState<"jobs" | "portals">("jobs");
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [catalogMeta, setCatalogMeta] = useState<JobCatalogMeta>({ catalogTotal: 0, total: 0, page: 1, pageSize: 10, pageCount: 1, generatedAt: "", cities: [], companies: [] });
   const [query, setQuery] = useState("");
   const [city, setCity] = useState("全部城市");
-  const [company, setCompany] = useState("全部公司");
-  const [experience, setExperience] = useState("全部经验");
+  const [company, setCompany] = useState("");
   const [education, setEducation] = useState("全部学历");
   const [recruitmentType, setRecruitmentType] = useState<"all" | "graduate" | "internship">("all");
-  const [sortBy, setSortBy] = useState<"match" | "published" | "company">("match");
+  const [sortBy, setSortBy] = useState<"published" | "company">("published");
   const [pageNumber, setPageNumber] = useState(1);
   const [savedOnly, setSavedOnly] = useState(false);
+  const [preferredOnly, setPreferredOnly] = useState(false);
+  const [preferenceOpen, setPreferenceOpen] = useState(false);
   const [compare, setCompare] = useState<string[]>([]);
   const [compareOpen, setCompareOpen] = useState(false);
   const [pendingJob, setPendingJob] = useState<Job | null>(null);
   const [busyId, setBusyId] = useState("");
-  const filtered = useMemo(() => jobs.filter((job) =>
-    (job.title + job.company + job.tags.join("")).toLowerCase().includes(query.toLowerCase())
-    && (city === "全部城市" || job.location.includes(city))
-    && (company === "全部公司" || job.company === company)
-    && (experience === "全部经验" || job.experience === experience)
-    && (education === "全部学历" || job.education === education)
-    && (recruitmentType === "all" || classifyRecruitmentType(job) === recruitmentType)
-    && (!savedOnly || job.saved)
-  ).sort((a, b) => sortBy === "match" ? b.match - a.match : sortBy === "published" ? new Date(b.publishedAtIso || 0).getTime() - new Date(a.publishedAtIso || 0).getTime() : a.company.localeCompare(b.company, "zh-CN")), [jobs, query, city, company, experience, education, recruitmentType, savedOnly, sortBy]);
-  const cities = useMemo(() => Array.from(new Set(jobs.flatMap((job) => job.location.split(/[;；|]/).map((item) => item.trim()).filter(Boolean)))).sort(), [jobs]);
-  const companies = useMemo(() => Array.from(new Set(jobs.map((job) => job.company))).sort(), [jobs]);
-  const experiences = useMemo(() => Array.from(new Set(jobs.map((job) => job.experience))).sort(), [jobs]);
+  const loadCatalog = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ scope: "catalog", page: String(pageNumber), pageSize: "10", recruitmentType, savedOnly: String(savedOnly), sort: sortBy });
+      if (query.trim()) params.set("query", query.trim());
+      if (city !== "全部城市") params.set("city", city);
+      if (company.trim()) params.set("company", company.trim());
+      if (preferredOnly) {
+        params.set("preferredOnly", "true");
+        if (preferences.graduationYear) params.set("preferenceGraduationYear", preferences.graduationYear);
+        preferences.roleKeywords.forEach((value) => params.append("preferenceRole", value));
+        preferences.cities.forEach((value) => params.append("preferenceCity", value));
+        preferences.recruitmentTypes.forEach((value) => params.append("preferenceRecruitmentType", value));
+        preferences.focusCompanies.forEach((value) => params.append("preferenceCompany", value));
+        preferences.excludedKeywords.forEach((value) => params.append("preferenceExcluded", value));
+      }
+      const response = await fetch(`/api/jobs?${params}`, { cache: "no-store" });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "职位加载失败");
+      setJobs(Array.isArray(payload.jobs) ? payload.jobs : []);
+      setCatalogMeta(payload.meta as JobCatalogMeta);
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "职位加载失败");
+    } finally {
+      setLoading(false);
+    }
+  }, [city, company, notify, pageNumber, preferences, preferredOnly, query, recruitmentType, savedOnly, sortBy]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void loadCatalog(); }, query || company ? 260 : 0);
+    return () => window.clearTimeout(timer);
+  }, [company, loadCatalog, query]);
+
+  const preferenceMatches = useMemo(() => new Map(jobs.map((job) => [job.id, matchJobPreferences(job, preferences)])), [jobs, preferences]);
+  const filtered = useMemo(() => jobs.filter((job) => education === "全部学历" || job.education === education), [jobs, education]);
+  const cities = catalogMeta.cities;
   const educations = useMemo(() => Array.from(new Set(jobs.map((job) => job.education))).sort(), [jobs]);
-  const pageSize = 10;
-  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const visiblePage = Math.min(pageNumber, pageCount);
-  const pagedJobs = filtered.slice((visiblePage - 1) * pageSize, visiblePage * pageSize);
+  const pageCount = catalogMeta.pageCount;
+  const visiblePage = catalogMeta.page;
+  const pagedJobs = filtered;
   const comparedJobs = jobs.filter((job) => compare.includes(job.id));
 
   async function toggleSave(job: Job) {
@@ -372,6 +448,7 @@ function JobsPage({ jobs, setJobs, refreshJobs, loading, notify }: { jobs: Job[]
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(payload.error || "收藏操作失败");
       }
+      await refreshActivity();
       notify(next ? "已收藏职位" : "已取消收藏");
     } catch (error) {
       setJobs(jobs);
@@ -394,6 +471,7 @@ function JobsPage({ jobs, setJobs, refreshJobs, loading, notify }: { jobs: Job[]
         const next = { ...job, status: payload.application.status, applicationId: payload.application.id } as Job;
         setJobs(jobs.map((item) => item.id === job.id ? next : item));
         setPendingJob(next);
+        await refreshActivity();
       }
       notify("已记录为“准备投递”，返回后请确认结果");
     } catch (error) {
@@ -414,7 +492,9 @@ function JobsPage({ jobs, setJobs, refreshJobs, loading, notify }: { jobs: Job[]
       }
       setPendingJob(null);
       if (isDemoMode) setJobs(jobs.map((item) => item.id === pendingJob.id ? { ...item, status: "applied" } : item));
-      else await refreshJobs();
+      else {
+        await Promise.all([loadCatalog(), refreshActivity()]);
+      }
       notify("投递已确认，已计入投递总数");
     } catch (error) {
       notify(error instanceof Error ? error.message : "无法更新投递结果");
@@ -424,35 +504,95 @@ function JobsPage({ jobs, setJobs, refreshJobs, loading, notify }: { jobs: Job[]
   }
 
   return <div className="page-stack">
-    <section className="page-intro"><div><p className="eyebrow">当前收录 {jobs.length} 个职位</p><h2>找到值得认真准备的机会</h2><span>公开职位会由采集任务定时更新；受限来源不会绕过登录、验证码或访问控制。</span></div><button className="secondary-button" onClick={() => notify("职位提醒将在邮件通知阶段接入")}><BellRing size={17} />订阅职位提醒</button></section>
+    <section className="page-intro"><div><p className="eyebrow">{view === "jobs" ? `当前收录 ${catalogMeta.catalogTotal} 个岗位` : "690 家企业官方入口"}</p><h2>{view === "jobs" ? "找到值得认真准备的机会" : "去企业官网看看新的可能"}</h2>{view === "portals" && <span>没有开放职位接口的企业，也可以从这里直达官方招聘网站。</span>}</div></section>
+    <nav className="jobs-view-switch" aria-label="职位库内容"><button type="button" aria-current={view === "jobs" ? "page" : undefined} onClick={() => setView("jobs")}><BriefcaseBusiness size={17} /><span><strong>具体岗位</strong><small>搜索可直接投递的职位</small></span></button><button type="button" aria-current={view === "portals" ? "page" : undefined} onClick={() => setView("portals")}><Building2 size={17} /><span><strong>企业校招入口</strong><small>进入企业官方招聘网站</small></span></button></nav>
+    {view === "portals" ? <CareerPortalDirectory notify={notify} /> : <>
+    <section className="preference-strip">
+      <span className="preference-orbit"><Target size={18} /></span>
+      <div><p className="eyebrow">我的求职偏好</p><strong>{hasJobPreferences(preferences) ? [preferences.roleKeywords.slice(0, 2).join(" / "), preferences.cities.slice(0, 2).join(" / "), preferences.graduationYear ? `${preferences.graduationYear} 届` : ""].filter(Boolean).join(" · ") || "已设置偏好" : "先告诉职途你想找什么"}</strong><small>{hasJobPreferences(preferences) ? "偏好只用于筛选与排序，不会改变简历匹配分。" : "设置岗位方向、城市和届别，职位库会优先呈现更合适的机会。"}</small></div>
+      <button type="button" className="preference-edit" onClick={() => setPreferenceOpen(true)}><PenLine size={15} />{hasJobPreferences(preferences) ? "调整偏好" : "设置偏好"}</button>
+    </section>
     <section className="filter-card">
-      <label className="search-large"><Search /><input placeholder="搜索职位、公司或技能关键词" value={query} onChange={(e) => setQuery(e.target.value)} /></label>
+      <label className="search-large"><Search /><input placeholder="搜索职位、公司或行业关键词" value={query} onChange={(e) => { setQuery(e.target.value); setPageNumber(1); }} /></label>
       <div className="filter-row">
-        <label className="select-filter"><span>公司</span><select aria-label="公司" value={company} onChange={(e) => setCompany(e.target.value)}><option>全部公司</option>{companies.map((item) => <option key={item}>{item}</option>)}</select></label>
+        <label className="select-filter company-filter"><span>公司</span><input aria-label="公司" placeholder="全部公司 / 输入名称" value={company} onChange={(e) => { setCompany(e.target.value); setPageNumber(1); }} /></label>
         <label className="select-filter"><span>学历</span><select aria-label="学历" value={education} onChange={(e) => setEducation(e.target.value)}><option>全部学历</option>{educations.map((item) => <option key={item}>{item}</option>)}</select></label>
-        <label className="select-filter"><span>经验</span><select aria-label="经验" value={experience} onChange={(e) => setExperience(e.target.value)}><option>全部经验</option>{experiences.map((item) => <option key={item}>{item}</option>)}</select></label>
-        <label className="select-filter"><span>城市</span><select aria-label="城市" value={city} onChange={(e) => setCity(e.target.value)}><option>全部城市</option>{cities.map((item) => <option key={item}>{item}</option>)}</select></label>
-        <label className="select-filter"><span>招聘类型</span><select aria-label="招聘类型" value={recruitmentType} onChange={(e) => setRecruitmentType(e.target.value as typeof recruitmentType)}><option value="all">全部类型</option><option value="graduate">应届生</option><option value="internship">实习</option></select></label>
-        <button type="button" aria-pressed={savedOnly} className={savedOnly ? "filter-active" : ""} onClick={() => setSavedOnly(!savedOnly)}><Bookmark size={14} />仅看收藏</button>
+        <label className="select-filter"><span>城市</span><select aria-label="城市" value={city} onChange={(e) => { setCity(e.target.value); setPageNumber(1); }}><option>全部城市</option>{cities.map((item) => <option key={item}>{item}</option>)}</select></label>
+        <label className="select-filter"><span>招聘类型</span><select aria-label="招聘类型" value={recruitmentType} onChange={(e) => { setRecruitmentType(e.target.value as typeof recruitmentType); setPageNumber(1); }}><option value="all">全部</option><option value="graduate">校招</option><option value="internship">实习</option></select></label>
+        <button type="button" aria-pressed={preferredOnly} className={preferredOnly ? "filter-active preference-filter" : "preference-filter"} onClick={() => { if (!hasJobPreferences(preferences)) return setPreferenceOpen(true); setPreferredOnly(!preferredOnly); setPageNumber(1); }}><Target size={14} />符合我的偏好</button>
+        <button type="button" aria-pressed={savedOnly} className={savedOnly ? "filter-active" : ""} onClick={() => { setSavedOnly(!savedOnly); setPageNumber(1); }}><Bookmark size={14} />仅看收藏</button>
       </div>
     </section>
     <section className="jobs-card">
-      <div className="table-toolbar"><span>共找到 <strong>{filtered.length}</strong> 个职位</span><span>{compare.length > 0 && <button className="compare-button" onClick={() => setCompareOpen(true)}>比较职位 ({compare.length})</button>}<label className="sort-control"><select aria-label="职位排序" value={sortBy} onChange={(event) => setSortBy(event.target.value as typeof sortBy)}><option value="match">匹配度优先</option><option value="published">发布时间优先</option><option value="company">公司名称排序</option></select><ChevronDown size={14} /></label></span></div>
+      <div className="table-toolbar"><span>共找到 <strong>{catalogMeta.total}</strong> 个职位</span><span>{compare.length > 0 && <button className="compare-button" onClick={() => setCompareOpen(true)}>比较职位 ({compare.length})</button>}<label className="sort-control"><select aria-label="职位排序" value={sortBy} onChange={(event) => { setSortBy(event.target.value as typeof sortBy); setPageNumber(1); }}><option value="published">页面日期优先</option><option value="company">公司名称排序</option></select><ChevronDown size={14} /></label></span></div>
       <div className="job-table" role="table">
-        <div className="job-table-head" role="row"><span>职位与公司</span><span>职位要求</span><span>来源 / 发布时间</span><span>匹配度</span><span>操作</span></div>
+        <div className="job-table-head" role="row"><span>职位与公司</span><span>职位要求</span><span>发布时间</span><span>匹配度</span><span>操作</span></div>
         {loading ? <div className="jobs-empty"><span className="loading-dot" />正在加载职位…</div> : filtered.length === 0 ? <div className="jobs-empty"><Search size={22} /><strong>没有符合条件的职位</strong><span>调整关键词或筛选条件后再试试。</span></div> : pagedJobs.map((job) => <div className="job-table-row" role="row" key={job.id}>
-          <div className="job-main"><label className="check"><input type="checkbox" checked={compare.includes(job.id)} onChange={() => setCompare(compare.includes(job.id) ? compare.filter((id) => id !== job.id) : [...compare, job.id])} /><span /></label><span className="company-logo big">{job.company.slice(0, 1)}</span><span><strong>{job.title}</strong><small>{job.company} · {job.location}</small><em>{job.tags.slice(0, 2).map((tag) => <i key={tag}>{tag}</i>)}</em></span></div>
+          <div className="job-main"><label className="check"><input type="checkbox" checked={compare.includes(job.id)} onChange={() => setCompare(compare.includes(job.id) ? compare.filter((id) => id !== job.id) : [...compare, job.id])} /><span /></label><span className="company-logo big">{job.company.slice(0, 1)}</span><span><strong>{job.title}</strong><small>{job.company} · {job.location}</small><em>{hasJobPreferences(preferences) && preferenceMatches.get(job.id)?.eligible && <i className={`preference-rank rank-${preferenceMatches.get(job.id)?.level.toLowerCase()}`}>{preferenceMatches.get(job.id)?.level} 偏好</i>}{job.tags.slice(0, 2).map((tag) => <i key={tag}>{tag}</i>)}</em></span></div>
           <div className="requirements"><strong>{job.salary}</strong><span>{job.experience} · {job.education}</span></div>
-          <div className="source-cell"><strong>{job.source}</strong><span>{job.publishedAt}</span></div>
+          <div className="source-cell"><span>{job.publishedAt}</span></div>
           <div className={`match-score ${job.match >= 85 ? "high" : ""}`}>{job.match > 0 ? <><strong>{job.match}<small>%</small></strong><span>较匹配</span></> : <><strong>—</strong><span>待分析</span></>}</div>
           <div className="job-actions"><button className={`save-button ${job.saved ? "saved" : ""}`} aria-label={job.saved ? "取消收藏" : "收藏"} onClick={() => toggleSave(job)}><Bookmark size={17} fill={job.saved ? "currentColor" : "none"} /></button><button className="apply-button" disabled={busyId === job.id} onClick={() => prepare(job)}>{job.status === "preparing" ? "继续投递" : job.status && !["saved", "closed"].includes(job.status) ? "查看岗位" : "去投递"} <ArrowUpRight size={15} /></button></div>
         </div>)}
       </div>
-      {filtered.length > pageSize && <div className="pagination"><button disabled={visiblePage === 1} onClick={() => setPageNumber((value) => Math.max(1, value - 1))}>上一页</button><span>{visiblePage} / {pageCount}</span><button disabled={visiblePage === pageCount} onClick={() => setPageNumber((value) => Math.min(pageCount, value + 1))}>下一页</button></div>}
+      {catalogMeta.total > catalogMeta.pageSize && <div className="pagination"><button disabled={visiblePage === 1} onClick={() => setPageNumber((value) => Math.max(1, value - 1))}>上一页</button><span>{visiblePage} / {pageCount}</span><button disabled={visiblePage === pageCount} onClick={() => setPageNumber((value) => Math.min(pageCount, value + 1))}>下一页</button></div>}
     </section>
     {pendingJob && <div className="modal-backdrop"><section className="application-confirm" role="dialog" aria-modal="true" aria-labelledby="application-confirm-title"><div className="application-route"><span>准备投递</span><i /><span>确认结果</span><i /><span>计入统计</span></div><button className="modal-x" onClick={() => setPendingJob(null)} aria-label="关闭"><X /></button><span className="company-logo big">{pendingJob.company.slice(0, 1)}</span><p className="eyebrow">刚刚打开了投递页面</p><h3 id="application-confirm-title">{pendingJob.company} · {pendingJob.title}</h3><p>你是否已经在招聘页面成功提交？只有确认成功后，才会计入投递数量。</p><div className="application-confirm-actions"><button onClick={() => setPendingJob(null)}>返回</button><button className="primary-button" disabled={busyId === pendingJob.id} onClick={() => recordResult()}><CheckCircle2 size={16} />确认已投递</button></div></section></div>}
-    {compareOpen && <div className="modal-backdrop"><section className="job-compare" role="dialog" aria-modal="true" aria-labelledby="job-compare-title"><header><div><p className="eyebrow">职位比较</p><h3 id="job-compare-title">并排查看 {comparedJobs.length} 个机会</h3></div><button aria-label="关闭比较" onClick={() => setCompareOpen(false)}><X /></button></header><div className="compare-grid">{comparedJobs.map((job) => <article key={job.id}><span className="company-logo big">{job.company.slice(0,1)}</span><h4>{job.title}</h4><p>{job.company} · {job.location}</p><dl><div><dt>薪资</dt><dd>{job.salary}</dd></div><div><dt>经验</dt><dd>{job.experience}</dd></div><div><dt>学历</dt><dd>{job.education}</dd></div><div><dt>来源</dt><dd>{job.source}</dd></div><div><dt>匹配度</dt><dd>{job.match ? `${job.match}%` : "待分析"}</dd></div></dl><button className="secondary-button" onClick={() => void prepare(job)}>打开投递页</button></article>)}</div></section></div>}
+    {compareOpen && <div className="modal-backdrop"><section className="job-compare" role="dialog" aria-modal="true" aria-labelledby="job-compare-title"><header><div><p className="eyebrow">职位比较</p><h3 id="job-compare-title">并排查看 {comparedJobs.length} 个机会</h3></div><button aria-label="关闭比较" onClick={() => setCompareOpen(false)}><X /></button></header><div className="compare-grid">{comparedJobs.map((job) => <article key={job.id}><span className="company-logo big">{job.company.slice(0,1)}</span><h4>{job.title}</h4><p>{job.company} · {job.location}</p><dl><div><dt>薪资</dt><dd>{job.salary}</dd></div><div><dt>经验</dt><dd>{job.experience}</dd></div><div><dt>学历</dt><dd>{job.education}</dd></div><div><dt>匹配度</dt><dd>{job.match ? `${job.match}%` : "待分析"}</dd></div></dl><button className="secondary-button" onClick={() => void prepare(job)}>打开投递页</button></article>)}</div></section></div>}
+    {preferenceOpen && <JobPreferenceDialog preferences={preferences} notify={notify} onClose={() => setPreferenceOpen(false)} onSaved={(next) => { onPreferencesUpdated(next); setPreferenceOpen(false); setPageNumber(1); notify("求职偏好已保存"); }} />}
+    </>}
   </div>;
+}
+
+function splitPreferenceInput(value: string) {
+  return [...new Set(value.split(/[,，、\n]/).map((item) => item.trim()).filter(Boolean))].slice(0, 12);
+}
+
+function JobPreferenceDialog({ preferences, notify, onClose, onSaved }: { preferences: JobPreferences; notify: (text: string) => void; onClose: () => void; onSaved: (preferences: JobPreferences) => void }) {
+  const [graduationYear, setGraduationYear] = useState(preferences.graduationYear);
+  const [roleKeywords, setRoleKeywords] = useState(preferences.roleKeywords.join("、"));
+  const [cities, setCities] = useState(preferences.cities.join("、"));
+  const [focusCompanies, setFocusCompanies] = useState(preferences.focusCompanies.join("、"));
+  const [recruitmentType, setRecruitmentType] = useState<"" | "graduate" | "internship">(preferences.recruitmentTypes.length === 1 ? preferences.recruitmentTypes[0] : "");
+  const [saving, setSaving] = useState(false);
+
+  async function save(event: FormEvent) {
+    event.preventDefault();
+    if (graduationYear && !/^20\d{2}$/.test(graduationYear)) return notify("届别请填写四位年份，例如 2027");
+    const next: JobPreferences = {
+      graduationYear,
+      roleKeywords: splitPreferenceInput(roleKeywords),
+      cities: splitPreferenceInput(cities),
+      recruitmentTypes: recruitmentType ? [recruitmentType] : [],
+      focusCompanies: splitPreferenceInput(focusCompanies),
+      excludedKeywords: [],
+    };
+    if (isDemoMode) return onSaved(next);
+    setSaving(true);
+    try {
+      const response = await fetch("/api/account", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ jobPreferences: next }) });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "求职偏好保存失败");
+      onSaved(payload.jobPreferences as JobPreferences);
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "求职偏好保存失败");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return <div className="modal-backdrop"><section className="job-preference-dialog" role="dialog" aria-modal="true" aria-labelledby="job-preference-title">
+    <button className="modal-x" type="button" onClick={onClose} aria-label="关闭求职偏好"><X /></button>
+    <div className="preference-dialog-heading"><span className="preference-dialog-icon"><Target size={20} /></span><p className="eyebrow">职位库筛选</p><h3 id="job-preference-title">填写我的求职偏好</h3><p className="dialog-copy">填写你关心的条件即可，职途会在后台自动识别相关关键词并推荐岗位。</p></div>
+    <form onSubmit={save} className="preference-form">
+      <label><span>毕业届别</span><select value={graduationYear} onChange={(event) => setGraduationYear(event.target.value)}><option value="">不限届别</option>{[2026, 2027, 2028, 2029, 2030].map((year) => <option key={year} value={year}>{year} 届</option>)}</select></label>
+      <label><span>招聘类型</span><select value={recruitmentType} onChange={(event) => setRecruitmentType(event.target.value as typeof recruitmentType)}><option value="">校招和实习均可</option><option value="graduate">只看校招</option><option value="internship">只看实习</option></select></label>
+      <label className="wide"><span>岗位方向</span><input placeholder="例如 数据分析、产品、运营" value={roleKeywords} onChange={(event) => setRoleKeywords(event.target.value)} /><small>可填写多个方向，用逗号分隔；相关岗位写法由后台自动匹配。</small></label>
+      <label className="wide"><span>意向城市</span><input placeholder="例如 北京、上海、深圳" value={cities} onChange={(event) => setCities(event.target.value)} /></label>
+      <label className="wide"><span>关注公司 <small>可不填</small></span><input placeholder="例如 腾讯、字节跳动" value={focusCompanies} onChange={(event) => setFocusCompanies(event.target.value)} /></label>
+      <div className="preference-actions wide"><button type="button" onClick={() => { setGraduationYear(""); setRoleKeywords(""); setCities(""); setFocusCompanies(""); setRecruitmentType(""); }}>清空</button><button type="submit" className="primary-button" disabled={saving}><Save size={16} />{saving ? "保存中…" : "保存偏好"}</button></div>
+    </form>
+  </section></div>;
 }
 
 function ResumesPage({ suggestions, setSuggestions, notify }: { suggestions: Suggestion[]; setSuggestions: (s: Suggestion[]) => void; notify: (text: string) => void }) {
@@ -755,6 +895,9 @@ function ProgressPage({ jobs, refreshJobs, notify, onOpenMailSettings }: { jobs:
     { key: "rejected", label: "已拒绝", tone: "coral" }, { key: "closed", label: "已结束", tone: "blue" },
   ];
   const [busyId, setBusyId] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<Job | null>(null);
+  const [hiddenDemoJobIds, setHiddenDemoJobIds] = useState<string[]>([]);
+  const visibleJobs = isDemoMode ? jobs.filter((job) => !hiddenDemoJobIds.includes(job.id)) : jobs;
   async function confirm(job: Job) {
     if (!job.applicationId) return notify("找不到投递记录，请从职位库重新打开投递页面");
     setBusyId(job.id);
@@ -792,10 +935,31 @@ function ProgressPage({ jobs, refreshJobs, notify, onOpenMailSettings }: { jobs:
       setBusyId("");
     }
   }
+  async function deleteApplication() {
+    if (!pendingDelete?.applicationId) return notify("找不到这条投递记录");
+    setBusyId(pendingDelete.id);
+    try {
+      if (isDemoMode) {
+        setHiddenDemoJobIds((current) => [...current, pendingDelete.id]);
+      } else {
+        const response = await fetch(`/api/applications/${pendingDelete.applicationId}`, { method: "DELETE" });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.error || "无法删除投递记录");
+        await refreshJobs();
+      }
+      setPendingDelete(null);
+      notify("投递记录已从看板删除");
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "无法删除投递记录");
+    } finally {
+      setBusyId("");
+    }
+  }
   return <div className="page-stack">
     <section className="page-intro"><div><p className="eyebrow">求职进度</p><h2>下一步，总是清清楚楚</h2><span>邮件进展会先生成建议，确认后才改变申请状态。</span></div><button className="secondary-button" onClick={onOpenMailSettings}><Inbox size={17} />绑定邮箱</button></section>
-    <div className="progress-stats"><div><span className="stat-icon coral"><ArrowUpRight /></span><p><strong>{confirmedApplicationCount(jobs)}</strong><small>已确认投递</small></p><em>不含准备投递</em></div><div><span className="stat-icon sage"><CalendarDays /></span><p><strong>{jobs.filter((job) => job.status === "interview").length}</strong><small>进行中面试</small></p><em>来自真实记录</em></div><div><span className="stat-icon apricot"><ClipboardCheck /></span><p><strong>{jobs.filter((job) => job.status === "preparing").length}</strong><small>待确认投递</small></p><em>返回后确认结果</em></div><div><span className="stat-icon blue"><Target /></span><p><strong>{jobs.length ? Math.round(jobs.filter((job) => job.status === "interview" || job.status === "offer").length / Math.max(confirmedApplicationCount(jobs), 1) * 100) : 0}%</strong><small>面试转化率</small></p><em>按已确认投递计算</em></div></div>
-    <section className="kanban-wrap"><div className="kanban-toolbar"><h3>申请看板</h3><span><small>每次变化都会写入不可覆盖的时间线</small></span></div><div className="kanban">{columns.map((col) => { const items = jobs.filter((job) => job.status === col.key); return <div className="kanban-column" key={col.key}><header><span><i className={col.tone} />{col.label}</span><b>{items.length}</b></header>{items.length === 0 ? <div className="empty-column"><span>这里还没有职位</span></div> : items.map((job) => <article className="kanban-card" key={job.id}><div><span className="company-logo">{job.company.slice(0, 1)}</span><span className="event-count">{job.events?.length || 0} 条记录</span></div><h4>{job.title}</h4><p>{job.company} · {job.location}</p><span className="kanban-tags"><i>{job.source}</i><i>{job.match}% 匹配</i></span>{job.status === "preparing" && <button className="confirm-button" disabled={busyId === job.id} onClick={() => confirm(job)}>确认已投递</button>}{job.status && job.applicationId && <label className="status-select"><span>更新阶段</span><select aria-label={`${job.company} ${job.title} 求职阶段`} disabled={busyId === job.id} value={job.status} onChange={(event) => void changeStatus(job, event.target.value as Job["status"])}>{applicationStatuses.filter((status) => canTransition(job.status!, status)).map((status) => <option key={status} value={status}>{statusLabel(status)}</option>)}</select></label>}<footer><Clock3 size={13} />{job.events?.[0] ? `${new Date(job.events[0].createdAt).toLocaleString("zh-CN")} · ${statusLabel(job.events[0].toStatus)}` : job.publishedAt + "更新"}</footer></article>)}</div>; })}</div></section>
+    <div className="progress-stats"><div><span className="stat-icon coral"><ArrowUpRight /></span><p><strong>{confirmedApplicationCount(visibleJobs)}</strong><small>已确认投递</small></p><em>不含准备投递</em></div><div><span className="stat-icon sage"><CalendarDays /></span><p><strong>{visibleJobs.filter((job) => job.status === "interview").length}</strong><small>进行中面试</small></p><em>来自真实记录</em></div><div><span className="stat-icon apricot"><ClipboardCheck /></span><p><strong>{visibleJobs.filter((job) => job.status === "preparing").length}</strong><small>待确认投递</small></p><em>返回后确认结果</em></div><div><span className="stat-icon blue"><Target /></span><p><strong>{visibleJobs.length ? Math.round(visibleJobs.filter((job) => job.status === "interview" || job.status === "offer").length / Math.max(confirmedApplicationCount(visibleJobs), 1) * 100) : 0}%</strong><small>面试转化率</small></p><em>按已确认投递计算</em></div></div>
+    <section className="kanban-wrap"><div className="kanban-toolbar"><h3>申请看板</h3><span><small>每次变化都会写入不可覆盖的时间线</small></span></div><div className="kanban">{columns.map((col) => { const items = visibleJobs.filter((job) => job.status === col.key); return <div className="kanban-column" key={col.key}><header><span><i className={col.tone} />{col.label}</span><b>{items.length}</b></header>{items.length === 0 ? <div className="empty-column"><span>这里还没有职位</span></div> : items.map((job) => <article className="kanban-card" key={job.id}><div className="kanban-card-head"><span className="company-logo">{job.company.slice(0, 1)}</span><span className="kanban-card-actions"><span className="event-count">{job.events?.length || 0} 条记录</span><button className="kanban-delete" type="button" disabled={busyId === job.id} aria-label={`删除 ${job.company} ${job.title} 的投递记录`} title="删除投递记录" onClick={() => setPendingDelete(job)}><Trash2 size={14} /></button></span></div><h4>{job.title}</h4><p>{job.company} · {job.location}</p><span className="kanban-tags"><i>{job.match}% 匹配</i></span>{job.status === "preparing" && <button className="confirm-button" disabled={busyId === job.id} onClick={() => confirm(job)}>确认已投递</button>}{job.status && job.applicationId && <label className="status-select"><span>更新阶段</span><select aria-label={`${job.company} ${job.title} 求职阶段`} disabled={busyId === job.id} value={job.status} onChange={(event) => void changeStatus(job, event.target.value as Job["status"])}>{applicationStatuses.filter((status) => canTransition(job.status!, status)).map((status) => <option key={status} value={status}>{statusLabel(status)}</option>)}</select></label>}<footer><Clock3 size={13} />{job.events?.[0] ? `${new Date(job.events[0].createdAt).toLocaleString("zh-CN")} · ${statusLabel(job.events[0].toStatus)}` : job.publishedAt + "更新"}</footer></article>)}</div>; })}</div></section>
+    {pendingDelete && <div className="modal-backdrop"><section className="application-confirm delete-application-confirm" role="dialog" aria-modal="true" aria-labelledby="delete-application-title"><button className="modal-x" onClick={() => setPendingDelete(null)} aria-label="关闭"><X /></button><span className="delete-confirm-icon"><Trash2 /></span><p className="eyebrow">删除投递记录</p><h3 id="delete-application-title">{pendingDelete.company} · {pendingDelete.title}</h3><p>删除后，这条申请会从看板、投递统计和进度列表中隐藏。以后重新投递该岗位时可以再次恢复。</p><div className="delete-application-actions"><button onClick={() => setPendingDelete(null)}>返回</button><button className="danger-button" disabled={busyId === pendingDelete.id} onClick={() => void deleteApplication()}>{busyId === pendingDelete.id ? "删除中…" : "确认删除"}</button></div></section></div>}
   </div>;
 }
 
@@ -1045,15 +1209,16 @@ function AccountSettings({ profile, onClose, notify, onUpdated, onOpenAdmin }: {
         <div className="password-mode-toggle" role="group" aria-label="密码设置方式"><button type="button" className={firstPasswordSetup ? "active" : ""} onClick={() => { setFirstPasswordSetup(true); setCurrentPassword(""); }}>首次设置</button><button type="button" className={!firstPasswordSetup ? "active" : ""} onClick={() => setFirstPasswordSetup(false)}>修改已有密码</button></div>
         <form className="account-form password-form" onSubmit={changePassword}>{!firstPasswordSetup && <><label htmlFor="current-password">当前密码</label><input id="current-password" type="password" required autoComplete="current-password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} /></>}<label htmlFor="new-password">{firstPasswordSetup ? "设置密码" : "新密码"}</label><input id="new-password" type="password" required minLength={8} maxLength={72} autoComplete="new-password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} placeholder="至少 8 位，包含字母和数字" /><label htmlFor="confirm-new-password">再次输入新密码</label><input id="confirm-new-password" type="password" required minLength={8} maxLength={72} autoComplete="new-password" value={passwordConfirmation} onChange={(event) => setPasswordConfirmation(event.target.value)} /><button className="primary-button" disabled={savingPassword}><KeyRound size={15} />{savingPassword ? "保存中…" : firstPasswordSetup ? "设置密码" : "确认修改密码"}</button></form>
       </section>
-      {profile?.isAdmin && <button className="admin-entry-button" onClick={onOpenAdmin}><ShieldCheck size={17} /><span><strong>管理员控制台</strong><small>邀请管理、用户配额和采集来源状态</small></span><ArrowUpRight size={16} /></button>}
+      {profile?.isAdmin && <button className="admin-entry-button" onClick={onOpenAdmin}><ShieldCheck size={17} /><span><strong>管理员控制台</strong><small>邀请、配额、来源状态与用户反馈</small></span><ArrowUpRight size={16} /></button>}
       <footer><button className="account-signout" disabled={signingOut} onClick={() => void signOut()}><LogOut size={15} />{signingOut ? "退出中…" : "退出登录"}</button><button className="primary-button" onClick={onClose}>完成</button></footer>
     </section>
   </div>;
 }
 
-type MailProvider = "gmail" | "outlook" | "qq" | "163";
+type MailProvider = "gmail" | "outlook" | "qq";
+type VerificationProvider = "gmail" | "qq";
 type EmailRecord = { id: string; sender: string | null; subject: string | null; category: string; received_at: string };
-type EmailDetail = EmailRecord & { body_text: string | null };
+type EmailDetail = EmailRecord & { body_text: string | null; confirmation_links?: string[] };
 
 const forwardingKeywords = recruitmentFilterKeywords.join(" ");
 const mailProviderGuides: Record<MailProvider, { label: string; note: string; steps: string[]; filterLabel: string; filterText: string }> = {
@@ -1092,18 +1257,25 @@ const mailProviderGuides: Record<MailProvider, { label: string; note: string; st
     filterLabel: "建议筛选关键词",
     filterText: forwardingKeywords,
   },
-  "163": {
-    label: "163 邮箱",
-    note: "优先使用来信分类或过滤规则，避免把私人邮件全部转发。",
-    steps: [
-      "进入 163 邮箱设置，找到来信分类、过滤规则或自动转发。",
-      "创建仅匹配招聘关键词的规则，并将匹配邮件转发到专属地址。",
-      "保存并发送“面试通知测试”邮件，再回到本页检测接收结果。",
-    ],
-    filterLabel: "建议筛选关键词",
-    filterText: forwardingKeywords,
-  },
 };
+
+function MailVerificationStatus({ provider, email, opened, opening, onOpen }: {
+  provider: VerificationProvider;
+  email: EmailRecord | null;
+  opened: boolean;
+  opening: boolean;
+  onOpen: () => void;
+}) {
+  const state = forwardingVerificationState(provider, email ? [email] : [], opened);
+  return <div className={`mail-verification-status ${email ? "received" : "waiting"}`} aria-live="polite">
+    <span className="mail-verification-icon" aria-hidden="true">{email ? <MailCheck /> : <Clock3 />}</span>
+    <span>
+      <strong>{state.title}</strong>
+      <small>{state.description}</small>
+    </span>
+    {email && <button type="button" onClick={onOpen} disabled={opening}>{opening ? "读取中…" : "打开验证邮件"}</button>}
+  </div>;
+}
 
 function MailSettings({ onClose, notify }: { onClose: () => void; notify: (text: string) => void }) {
   const router = useRouter();
@@ -1119,7 +1291,7 @@ function MailSettings({ onClose, notify }: { onClose: () => void; notify: (text:
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
-  const [gmailVerificationOpened, setGmailVerificationOpened] = useState(false);
+  const [verificationOpened, setVerificationOpened] = useState<Record<VerificationProvider, boolean>>({ gmail: false, qq: false });
 
   useEffect(() => {
     let active = true;
@@ -1241,9 +1413,18 @@ function MailSettings({ onClose, notify }: { onClose: () => void; notify: (text:
   }
 
   const providerGuide = mailProviderGuides[provider];
-  const gmailConfirmationEmail = emails.find(isGmailForwardingConfirmation) || null;
-  const emailIsGmailConfirmation = emailDetail ? isGmailForwardingConfirmation(emailDetail) : false;
-  const confirmationLinks = allowedConfirmationLinks(emailDetail?.body_text);
+  const providerConfirmationEmail = provider === "gmail"
+    ? emails.find(isGmailForwardingConfirmation) || null
+    : provider === "qq"
+      ? emails.find(isQqForwardingConfirmation) || null
+      : null;
+  const emailConfirmationProvider = emailDetail ? forwardingConfirmationProvider(emailDetail) : null;
+  const emailIsGmailConfirmation = emailConfirmationProvider === "gmail";
+  const emailIsQqConfirmation = emailConfirmationProvider === "qq";
+  const confirmationLinks = emailConfirmationProvider ? [...new Set([
+    ...(emailDetail?.confirmation_links || []),
+    ...allowedConfirmationLinks(emailDetail?.body_text, null, emailConfirmationProvider),
+  ])] : [];
   const gmailConfirmationCode = emailIsGmailConfirmation ? gmailForwardingConfirmationCode(emailDetail?.body_text) : null;
 
   async function copyGmailConfirmationCode() {
@@ -1252,26 +1433,37 @@ function MailSettings({ onClose, notify }: { onClose: () => void; notify: (text:
     notify("Gmail 8 位确认码已复制，请返回 Gmail 填写");
   }
 
+  async function copyConfirmationLink(link: string) {
+    await navigator.clipboard.writeText(link);
+    notify("官方验证链接已复制");
+  }
+
   return <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <section className="mail-settings" role="dialog" aria-modal="true" aria-labelledby="mail-settings-title">
-      <header><div><p className="eyebrow">邮件求职跟踪</p><h3 id="mail-settings-title">设置招聘邮件自动转发</h3></div><button onClick={onClose} aria-label="关闭设置"><X /></button></header>
+      <header><div><p className="eyebrow">邮件求职跟踪</p><h3 id="mail-settings-title">面试邮件自动转发设置</h3></div><button onClick={onClose} aria-label="关闭设置"><X /></button></header>
       <p className="mail-settings-lead">只需在你的邮箱中设置一次规则，以后的投递、测评、面试和 Offer 邮件会自动进入职途。我们不会获取或保存你的邮箱密码。</p>
-      <div className="inbound-address"><span>你的专属收件地址</span><strong>{loading ? "正在生成…" : address || "等待管理员完成 Resend 收件域名配置"}</strong>{address && <button onClick={copyAddress}>复制地址</button>}</div>
+      <div className="inbound-address">
+        <span>你的专属收件地址</span>
+        <strong>{loading ? "正在生成…" : address || "等待管理员完成 Resend 收件域名配置"}</strong>
+        {address && <button onClick={copyAddress}>复制地址</button>}
+      </div>
       {!loading && !configured && <p className="settings-warning">网页功能已经接通；管理员还需要在部署环境填写 Resend 收件域名后，地址才会正式可用。</p>}
       <section className="forwarding-setup" aria-labelledby="forwarding-setup-title">
         <header><div><h4 id="forwarding-setup-title">选择你的邮箱</h4><span>按照对应步骤设置，不需要把账号密码交给职途。</span></div><em className={emails.length ? "working" : ""}>{emails.length ? "收件链路正常" : "等待测试"}</em></header>
         <div className="provider-tabs" role="tablist" aria-label="邮箱类型">{(Object.keys(mailProviderGuides) as MailProvider[]).map((key) => <button key={key} type="button" role="tab" aria-selected={provider === key} className={provider === key ? "active" : ""} onClick={() => setProvider(key)}>{mailProviderGuides[key].label}</button>)}</div>
         <p className="provider-note">{providerGuide.note}</p>
         <ol>{providerGuide.steps.map((step) => <li key={step}><strong>{step}</strong></li>)}</ol>
-        {provider === "gmail" && <div className={`gmail-verification-status ${gmailConfirmationEmail ? "received" : "waiting"}`}>
-          <span className="gmail-verification-icon">{gmailConfirmationEmail ? <MailCheck /> : <Clock3 />}</span>
-          <span><strong>{gmailConfirmationEmail ? "已收到 Gmail 验证邮件" : "正在等待 Gmail 验证邮件"}</strong><small>{gmailConfirmationEmail ? (gmailVerificationOpened ? "请回到 Gmail 刷新设置页，确认地址已验证。" : "验证邮件只对当前账号可见，请打开并完成 Google 官方验证。") : "添加地址后通常等待 1–3 分钟；无需把验证邮件手动转发给我们。"}</small></span>
-          {gmailConfirmationEmail && <button type="button" onClick={() => void openEmail(gmailConfirmationEmail.id)} disabled={openingEmailId === gmailConfirmationEmail.id}>{openingEmailId === gmailConfirmationEmail.id ? "读取中…" : "打开验证邮件"}</button>}
-        </div>}
+        {(provider === "gmail" || provider === "qq") && <MailVerificationStatus
+          provider={provider}
+          email={providerConfirmationEmail}
+          opened={verificationOpened[provider]}
+          opening={Boolean(providerConfirmationEmail && openingEmailId === providerConfirmationEmail.id)}
+          onOpen={() => { if (providerConfirmationEmail) void openEmail(providerConfirmationEmail.id); }}
+        />}
         <div className="forward-keywords"><span><strong>{providerGuide.filterLabel}</strong><small>{providerGuide.filterText}</small></span><button type="button" onClick={copyKeywords}><Copy size={14} />复制筛选条件</button></div>
         <div className="forward-test"><span><strong>最后一步：测试收件</strong><small>从另一个邮箱向你的私人邮箱发送主题为“面试通知测试”的邮件，等待约一分钟后检测。</small></span><button className="secondary-button" type="button" disabled={checkingForwarding || !configured} onClick={() => void checkForwarding()}><RefreshCw size={14} />{checkingForwarding ? "检测中…" : "检测是否收到"}</button></div>
       </section>
-      <section className="email-records" aria-labelledby="email-records-title"><div><h4 id="email-records-title">已接收的招聘邮件</h4><span>邮箱服务商发送的转发验证邮件也会显示在这里；完成验证后，招聘邮件会继续用于求职跟踪。</span></div>{emails.length === 0 ? <p>暂时没有邮件记录。添加并验证专属转发地址后，请等待 1–3 分钟再检查。</p> : emails.map((item) => { const isGmailConfirmation = isGmailForwardingConfirmation(item); return <article className={isGmailConfirmation ? "verification-email" : ""} key={item.id}><div><strong>{item.subject || "无主题邮件"}</strong><span>{item.sender || "未知发件人"} · {new Date(item.received_at).toLocaleString("zh-CN")}</span></div><em>{isGmailConfirmation ? "待完成 Gmail 验证" : item.category}</em><span className="email-record-actions"><button disabled={openingEmailId === item.id} onClick={() => void openEmail(item.id)}>{openingEmailId === item.id ? "读取中…" : isGmailConfirmation ? "打开验证" : "打开"}</button><button disabled={deletingEmailId === item.id} onClick={() => void deleteEmail(item.id)}>{deletingEmailId === item.id ? "删除中…" : "删除"}</button></span></article>; })}</section>
+      <section className="email-records" aria-labelledby="email-records-title"><div><h4 id="email-records-title">已接收的招聘邮件</h4><span>邮箱服务商发送的转发验证邮件也会显示在这里；完成验证后，招聘邮件会继续用于求职跟踪。</span></div>{emails.length === 0 ? <p>暂时没有邮件记录。添加并验证专属转发地址后，请等待 1–3 分钟再检查。</p> : emails.map((item) => { const confirmationProvider = forwardingConfirmationProvider(item); return <article className={confirmationProvider ? "verification-email" : ""} key={item.id}><div><strong>{item.subject || "无主题邮件"}</strong><span>{item.sender || "未知发件人"} · {new Date(item.received_at).toLocaleString("zh-CN")}</span></div><em>{confirmationProvider ? `待完成 ${confirmationProvider === "gmail" ? "Gmail" : "QQ 邮箱"}验证` : item.category}</em><span className="email-record-actions"><button disabled={openingEmailId === item.id} onClick={() => void openEmail(item.id)}>{openingEmailId === item.id ? "读取中…" : confirmationProvider ? "打开验证" : "打开"}</button><button disabled={deletingEmailId === item.id} onClick={() => void deleteEmail(item.id)}>{deletingEmailId === item.id ? "删除中…" : "删除"}</button></span></article>; })}</section>
       <section className="privacy-settings" aria-labelledby="privacy-settings-title">
         <div><p className="eyebrow">隐私与数据</p><h4 id="privacy-settings-title">你的数据，由你掌控</h4><span>可导出全部个人记录；注销后会删除简历文件、邮件正文和业务记录，且无法恢复。</span></div>
         <button className="secondary-button" disabled={exporting} onClick={() => void exportData()}><Download size={15} />{exporting ? "导出中…" : "导出个人数据"}</button>
@@ -1279,7 +1471,7 @@ function MailSettings({ onClose, notify }: { onClose: () => void; notify: (text:
       </section>
       <footer><span>邮件正文仅用于你的求职跟踪，可在设置中删除。</span><button className="primary-button" onClick={onClose}>完成</button></footer>
     </section>
-    {emailDetail && <section className="email-detail" role="dialog" aria-modal="true" aria-labelledby="email-detail-title"><header><div><p className="eyebrow">{emailIsGmailConfirmation ? "Gmail 转发地址验证" : "邮件内容"}</p><h3 id="email-detail-title">{emailDetail.subject || "无主题邮件"}</h3><span>{emailDetail.sender || "未知发件人"} · {new Date(emailDetail.received_at).toLocaleString("zh-CN")}</span></div><button onClick={() => setEmailDetail(null)} aria-label="关闭邮件内容"><X /></button></header>{emailIsGmailConfirmation && <div className="verification-safety"><ShieldCheck size={16} /><span><strong>这是 Gmail 发往你专属地址的验证邮件</strong><small>职途不会代替你授权。请自行点击下方 Google 官方链接，完成后返回 Gmail 刷新设置页。</small></span></div>}<pre>{emailDetail.body_text || "这封邮件没有可显示的纯文本内容。"}</pre>{emailIsGmailConfirmation && confirmationLinks.length === 0 && !gmailConfirmationCode && <p className="verification-missing">没有从邮件正文中识别到 Google 官方验证链接或 8 位确认码。请在 Gmail 删除该转发地址后重新添加；如果仍然如此，请联系管理员检查邮件正文解析。</p>}{(confirmationLinks.length > 0 || gmailConfirmationCode) && <footer><span>仅提供经过校验的 Google 官方链接或 Gmail 8 位确认码。</span>{gmailConfirmationCode && <button type="button" className="secondary-button" onClick={() => void copyGmailConfirmationCode()}><Copy size={14} />复制确认码 {gmailConfirmationCode}</button>}{confirmationLinks.map((link) => <a className="primary-button" href={link} target="_blank" rel="noreferrer" onClick={() => setGmailVerificationOpened(true)} key={link}>完成 Gmail 验证<ExternalLink size={14} /></a>)}</footer>}</section>}
+    {emailDetail && <section className="email-detail" role="dialog" aria-modal="true" aria-labelledby="email-detail-title"><header><div><p className="eyebrow">{emailIsGmailConfirmation ? "Gmail 转发地址验证" : emailIsQqConfirmation ? "QQ 邮箱转发地址验证" : "邮件内容"}</p><h3 id="email-detail-title">{emailDetail.subject || "无主题邮件"}</h3><span>{emailDetail.sender || "未知发件人"} · {new Date(emailDetail.received_at).toLocaleString("zh-CN")}</span></div><button onClick={() => setEmailDetail(null)} aria-label="关闭邮件内容"><X /></button></header>{emailConfirmationProvider && <div className="verification-safety"><ShieldCheck size={16} /><span><strong>这是 {emailIsGmailConfirmation ? "Gmail" : "QQ 邮箱"}发往你专属地址的验证邮件</strong><small>职途不会代替你授权，只会展示经过官方域名校验的链接。点击下方按钮完成后，请返回原邮箱刷新设置页。</small></span></div>}<pre>{emailDetail.body_text || "这封邮件没有可显示的纯文本内容。"}</pre>{emailConfirmationProvider && confirmationLinks.length === 0 && !gmailConfirmationCode && <p className="verification-missing">未识别到安全验证入口。没有从邮件原始内容中找到可安全打开的{emailIsGmailConfirmation ? " Google 官方验证链接或 8 位确认码" : " QQ 邮箱官方验证链接"}。请在原邮箱重新生成验证邮件后再试。</p>}{(confirmationLinks.length > 0 || gmailConfirmationCode) && <footer><span>仅展示通过官方域名校验的验证入口。</span>{gmailConfirmationCode && <button type="button" className="secondary-button" onClick={() => void copyGmailConfirmationCode()}><Copy size={14} />复制确认码 {gmailConfirmationCode}</button>}{confirmationLinks.map((link) => <span className="confirmation-actions" key={link}><button type="button" className="secondary-button" onClick={() => void copyConfirmationLink(link)}><Copy size={14} />复制验证入口</button><a className="primary-button" href={link} target="_blank" rel="noopener noreferrer" onClick={() => { if (emailConfirmationProvider) setVerificationOpened((current) => ({ ...current, [emailConfirmationProvider]: true })); }}>{emailIsQqConfirmation ? "打开 QQ 官方验证入口" : "打开 Google 官方验证入口"}<ExternalLink size={14} /></a></span>)}</footer>}</section>}
   </div>;
 }
 
@@ -1389,7 +1581,7 @@ function AdminPanel({ onClose, notify }: { onClose: () => void; notify: (text: s
   return <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <section className="admin-panel" role="dialog" aria-modal="true" aria-labelledby="admin-panel-title">
       <header><div><p className="eyebrow">受限后台</p><h3 id="admin-panel-title"><ShieldCheck size={20} />管理员控制台</h3></div><button onClick={onClose} aria-label="关闭管理员后台"><X /></button></header>
-      {error && <div className="admin-error"><strong>{error}</strong><span>{error.includes("密钥") ? "请在 Vercel 生产环境配置 SUPABASE_SERVICE_ROLE_KEY。" : "普通用户无法查看其他用户、邀请或采集运行信息。"}</span></div>}
+      {error && <div className="admin-error"><strong>{error}</strong><span>{error.includes("密钥") ? "本地整改环境尚未填写管理员只读密钥。请仅写入本机 .env.local，切勿发送到聊天或提交 Git。" : "普通用户无法查看其他用户、邀请、反馈或采集运行信息。"}</span></div>}
       {!error && !overview && <p className="notice-empty">正在读取管理员数据…</p>}
       {overview && <>
         <section className="admin-invite">

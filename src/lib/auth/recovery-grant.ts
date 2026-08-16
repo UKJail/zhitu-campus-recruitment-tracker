@@ -3,6 +3,10 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 export const RECOVERY_GRANT_COOKIE = "zhitu_recovery_grant";
 export const RECOVERY_GRANT_MAX_AGE_SECONDS = 15 * 60;
 
+export function getRecoveryGrantSecret() {
+  return process.env.AUTH_RECOVERY_GRANT_SECRET || "";
+}
+
 function signingKey(secret: string) {
   return createHmac("sha256", secret).update("zhitu-password-recovery:v1").digest();
 }
