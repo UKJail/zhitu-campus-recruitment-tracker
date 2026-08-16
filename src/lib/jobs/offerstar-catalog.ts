@@ -121,11 +121,16 @@ export function searchOfferstarRecords(records: OfferstarRecord[], input: Offers
     if (input.preferredOnly && input.preferences && hasJobPreferences(input.preferences) && !preferenceMatchFor(record).eligible) return false;
     return true;
   });
-  if (input.preferredOnly && input.preferences && hasJobPreferences(input.preferences) && input.sort === "match") {
-    filtered.sort((a, b) => preferenceMatchFor(b).score - preferenceMatchFor(a).score);
+  const secondarySort = (a: OfferstarRecord, b: OfferstarRecord) => {
+    if (input.sort === "company") return a.company.localeCompare(b.company, "zh-CN");
+    if (input.sort === "published") return b.postDate.localeCompare(a.postDate, "zh-CN");
+    return 0;
+  };
+  if (input.preferredOnly && input.preferences && hasJobPreferences(input.preferences)) {
+    filtered.sort((a, b) => preferenceMatchFor(b).score - preferenceMatchFor(a).score || secondarySort(a, b));
+  } else if (input.sort === "company" || input.sort === "published") {
+    filtered.sort(secondarySort);
   }
-  if (input.sort === "company") filtered.sort((a, b) => a.company.localeCompare(b.company, "zh-CN"));
-  if (input.sort === "published") filtered.sort((a, b) => b.postDate.localeCompare(a.postDate, "zh-CN"));
   const pageSize = Math.min(50, Math.max(1, input.pageSize || 10));
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const page = Math.min(pageCount, Math.max(1, input.page || 1));

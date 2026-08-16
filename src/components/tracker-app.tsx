@@ -389,7 +389,7 @@ function JobsPage({ refreshActivity, notify, preferences, onPreferencesUpdated }
   const [company, setCompany] = useState("");
   const [education, setEducation] = useState("全部学历");
   const [recruitmentType, setRecruitmentType] = useState<"all" | "graduate" | "internship">("all");
-  const [sortBy, setSortBy] = useState<"match" | "published" | "company">("match");
+  const [sortBy, setSortBy] = useState<"published" | "company">("published");
   const [pageNumber, setPageNumber] = useState(1);
   const [savedOnly, setSavedOnly] = useState(false);
   const [preferredOnly, setPreferredOnly] = useState(false);
@@ -525,7 +525,7 @@ function JobsPage({ refreshActivity, notify, preferences, onPreferencesUpdated }
       </div>
     </section>
     <section className="jobs-card">
-      <div className="table-toolbar"><span>共找到 <strong>{catalogMeta.total}</strong> 个职位</span><span>{compare.length > 0 && <button className="compare-button" onClick={() => setCompareOpen(true)}>比较职位 ({compare.length})</button>}<label className="sort-control"><select aria-label="职位排序" value={sortBy} onChange={(event) => { setSortBy(event.target.value as typeof sortBy); setPageNumber(1); }}><option value="match">OfferStar 更新顺序</option><option value="published">页面日期优先</option><option value="company">公司名称排序</option></select><ChevronDown size={14} /></label></span></div>
+      <div className="table-toolbar"><span>共找到 <strong>{catalogMeta.total}</strong> 个职位</span><span>{compare.length > 0 && <button className="compare-button" onClick={() => setCompareOpen(true)}>比较职位 ({compare.length})</button>}<label className="sort-control"><select aria-label="职位排序" value={sortBy} onChange={(event) => { setSortBy(event.target.value as typeof sortBy); setPageNumber(1); }}><option value="published">页面日期优先</option><option value="company">公司名称排序</option></select><ChevronDown size={14} /></label></span></div>
       <div className="job-table" role="table">
         <div className="job-table-head" role="row"><span>职位与公司</span><span>职位要求</span><span>来源 / 发布时间</span><span>匹配度</span><span>操作</span></div>
         {loading ? <div className="jobs-empty"><span className="loading-dot" />正在加载职位…</div> : filtered.length === 0 ? <div className="jobs-empty"><Search size={22} /><strong>没有符合条件的职位</strong><span>调整关键词或筛选条件后再试试。</span></div> : pagedJobs.map((job) => <div className="job-table-row" role="row" key={job.id}>

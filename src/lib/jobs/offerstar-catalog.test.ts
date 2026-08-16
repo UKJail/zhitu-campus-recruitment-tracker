@@ -70,6 +70,25 @@ describe("OfferStar catalog", () => {
     expect(result.records[0].externalId).toBe("offerstar-1");
   });
 
+  it("keeps preference score first when the visible sort uses page date", () => {
+    const result = catalog.searchOfferstarRecords(records, {
+      preferredOnly: true,
+      preferences: {
+        graduationYear: "",
+        roleKeywords: [],
+        cities: [],
+        recruitmentTypes: [],
+        focusCompanies: ["丙公司"],
+        excludedKeywords: [],
+      },
+      page: 1,
+      pageSize: 10,
+      sort: "published",
+    });
+    expect(result.records[0].externalId).toBe("offerstar-3");
+    expect(result.records[1].externalId).toBe("offerstar-1");
+  });
+
   it("offers frequently occurring catalog companies as preference suggestions", () => {
     const options = catalog.offerstarFilterOptions([...records, { ...records[0], externalId: "offerstar-5" }]);
     expect(options.companies[0]).toBe("甲公司");
