@@ -22,7 +22,11 @@ export const ROLE_DIRECTION_OPTIONS: RoleDirectionOption[] = [
   { label: "管培生", aliases: ["管培", "管理培训生", "储备干部", "培训生"] },
 ];
 
-const roleAliases = new Map(ROLE_DIRECTION_OPTIONS.map((option) => [option.label.toLocaleLowerCase("zh-CN"), option.aliases]));
+const roleAliases = new Map<string, string[]>();
+for (const option of ROLE_DIRECTION_OPTIONS) {
+  const variants = [...new Set([option.label, ...option.aliases])];
+  variants.forEach((variant) => roleAliases.set(variant.toLocaleLowerCase("zh-CN"), variants));
+}
 
 function includesVariant(text: string, variant: string) {
   const normalizedVariant = variant.trim().toLocaleLowerCase("zh-CN");
@@ -43,4 +47,3 @@ export function matchesRolePreferences(text: string, values: string[]) {
   const normalizedText = text.toLocaleLowerCase("zh-CN");
   return values.some((value) => rolePreferenceVariants(value).some((variant) => includesVariant(normalizedText, variant)));
 }
-

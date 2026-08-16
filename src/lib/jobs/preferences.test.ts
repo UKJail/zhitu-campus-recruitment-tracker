@@ -42,4 +42,17 @@ describe("job preference matching", () => {
     expect(result.eligible).toBe(true);
     expect(result.reasons).toContain("岗位方向匹配");
   });
+
+  it("expands a user-entered synonym back to its full role direction", () => {
+    const result = matchJobPreferences({ ...job, company: "某集团", title: "数据分析培训生", description: "面向校招生", tags: ["校招"] }, {
+      ...preferences,
+      graduationYear: "",
+      roleKeywords: ["商业分析"],
+      cities: ["深圳"],
+      focusCompanies: [],
+      excludedKeywords: [],
+    });
+    expect(result.eligible).toBe(true);
+    expect(result.reasons).toContain("岗位方向匹配");
+  });
 });

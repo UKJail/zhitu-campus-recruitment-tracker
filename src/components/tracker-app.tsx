@@ -22,7 +22,6 @@ import type { InterviewReview, Job, Resume, Suggestion } from "@/lib/types";
 import type { RecruitingCalendarEvent } from "@/lib/mail/calendar";
 import { DEFAULT_DAILY_APPLICATION_TARGET, DEFAULT_JOB_PREFERENCES, hasJobPreferences, type JobPreferences } from "@/lib/account/preferences";
 import { matchJobPreferences } from "@/lib/jobs/preferences";
-import { ROLE_DIRECTION_OPTIONS } from "@/lib/jobs/preference-taxonomy";
 
 type PageKey = "home" | "jobs" | "resumes" | "progress" | "prep" | "reviews";
 type AccountProfile = { displayName: string | null; email: string; isAdmin: boolean; dailyApplicationTarget: number; jobPreferences: JobPreferences };
@@ -540,7 +539,7 @@ function JobsPage({ refreshActivity, notify, preferences, onPreferencesUpdated }
     </section>
     {pendingJob && <div className="modal-backdrop"><section className="application-confirm" role="dialog" aria-modal="true" aria-labelledby="application-confirm-title"><div className="application-route"><span>准备投递</span><i /><span>确认结果</span><i /><span>计入统计</span></div><button className="modal-x" onClick={() => setPendingJob(null)} aria-label="关闭"><X /></button><span className="company-logo big">{pendingJob.company.slice(0, 1)}</span><p className="eyebrow">刚刚打开了投递页面</p><h3 id="application-confirm-title">{pendingJob.company} · {pendingJob.title}</h3><p>你是否已经在招聘页面成功提交？只有确认成功后，才会计入投递数量。</p><div className="application-confirm-actions"><button onClick={() => setPendingJob(null)}>返回</button><button className="primary-button" disabled={busyId === pendingJob.id} onClick={() => recordResult()}><CheckCircle2 size={16} />确认已投递</button></div></section></div>}
     {compareOpen && <div className="modal-backdrop"><section className="job-compare" role="dialog" aria-modal="true" aria-labelledby="job-compare-title"><header><div><p className="eyebrow">职位比较</p><h3 id="job-compare-title">并排查看 {comparedJobs.length} 个机会</h3></div><button aria-label="关闭比较" onClick={() => setCompareOpen(false)}><X /></button></header><div className="compare-grid">{comparedJobs.map((job) => <article key={job.id}><span className="company-logo big">{job.company.slice(0,1)}</span><h4>{job.title}</h4><p>{job.company} · {job.location}</p><dl><div><dt>薪资</dt><dd>{job.salary}</dd></div><div><dt>经验</dt><dd>{job.experience}</dd></div><div><dt>学历</dt><dd>{job.education}</dd></div><div><dt>匹配度</dt><dd>{job.match ? `${job.match}%` : "待分析"}</dd></div></dl><button className="secondary-button" onClick={() => void prepare(job)}>打开投递页</button></article>)}</div></section></div>}
-    {preferenceOpen && <JobPreferenceDialog preferences={preferences} cityOptions={catalogMeta.cities} companyOptions={catalogMeta.companies} notify={notify} onClose={() => setPreferenceOpen(false)} onSaved={(next) => { onPreferencesUpdated(next); setPreferenceOpen(false); setPageNumber(1); notify("求职偏好已保存"); }} />}
+    {preferenceOpen && <JobPreferenceDialog preferences={preferences} notify={notify} onClose={() => setPreferenceOpen(false)} onSaved={(next) => { onPreferencesUpdated(next); setPreferenceOpen(false); setPageNumber(1); notify("求职偏好已保存"); }} />}
     </>}
   </div>;
 }
@@ -549,36 +548,24 @@ function splitPreferenceInput(value: string) {
   return [...new Set(value.split(/[,，、\n]/).map((item) => item.trim()).filter(Boolean))].slice(0, 12);
 }
 
-function JobPreferenceDialog({ preferences, cityOptions, companyOptions, notify, onClose, onSaved }: { preferences: JobPreferences; cityOptions: string[]; companyOptions: string[]; notify: (text: string) => void; onClose: () => void; onSaved: (preferences: JobPreferences) => void }) {
+function JobPreferenceDialog({ preferences, notify, onClose, onSaved }: { preferences: JobPreferences; notify: (text: string) => void; onClose: () => void; onSaved: (preferences: JobPreferences) => void }) {
   const [graduationYear, setGraduationYear] = useState(preferences.graduationYear);
-  const roleLabels = useMemo(() => new Set(ROLE_DIRECTION_OPTIONS.map((option) => option.label)), []);
-  const [selectedRoles, setSelectedRoles] = useState(preferences.roleKeywords.filter((item) => roleLabels.has(item)));
-  const [customRoles, setCustomRoles] = useState(preferences.roleKeywords.filter((item) => !roleLabels.has(item)).join("、"));
-  const [cities, setCities] = useState(preferences.cities);
+  const [roleKeywords, setRoleKeywords] = useState(preferences.roleKeywords.join("、"));
+  const [cities, setCities] = useState(preferences.cities.join("、"));
   const [focusCompanies, setFocusCompanies] = useState(preferences.focusCompanies.join("、"));
-  const [excludedKeywords, setExcludedKeywords] = useState(preferences.excludedKeywords.join("、"));
-  const [recruitmentTypes, setRecruitmentTypes] = useState(preferences.recruitmentTypes);
+  const [recruitmentType, setRecruitmentType] = useState<"" | "graduate" | "internship">(preferences.recruitmentTypes.length === 1 ? preferences.recruitmentTypes[0] : "");
   const [saving, setSaving] = useState(false);
-  const popularCities = useMemo(() => cityOptions.filter((item) => item !== "地点待确认").slice(0, 18), [cityOptions]);
-
-  function toggleRecruitmentType(value: "graduate" | "internship") {
-    setRecruitmentTypes((current) => current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
-  }
-
-  function toggleValue(value: string, current: string[], setter: (next: string[]) => void) {
-    setter(current.includes(value) ? current.filter((item) => item !== value) : [...current, value].slice(0, 12));
-  }
 
   async function save(event: FormEvent) {
     event.preventDefault();
     if (graduationYear && !/^20\d{2}$/.test(graduationYear)) return notify("届别请填写四位年份，例如 2027");
     const next: JobPreferences = {
       graduationYear,
-      roleKeywords: [...new Set([...selectedRoles, ...splitPreferenceInput(customRoles)])].slice(0, 12),
-      cities,
-      recruitmentTypes,
+      roleKeywords: splitPreferenceInput(roleKeywords),
+      cities: splitPreferenceInput(cities),
+      recruitmentTypes: recruitmentType ? [recruitmentType] : [],
       focusCompanies: splitPreferenceInput(focusCompanies),
-      excludedKeywords: splitPreferenceInput(excludedKeywords),
+      excludedKeywords: [],
     };
     if (isDemoMode) return onSaved(next);
     setSaving(true);
@@ -596,15 +583,14 @@ function JobPreferenceDialog({ preferences, cityOptions, companyOptions, notify,
 
   return <div className="modal-backdrop"><section className="job-preference-dialog" role="dialog" aria-modal="true" aria-labelledby="job-preference-title">
     <button className="modal-x" type="button" onClick={onClose} aria-label="关闭求职偏好"><X /></button>
-    <div className="preference-dialog-heading"><span className="preference-dialog-icon"><Target size={20} /></span><p className="eyebrow">职位库真实标签</p><h3 id="job-preference-title">设置我的求职偏好</h3><p className="dialog-copy">直接选择职位库能够识别的方向和城市。同一方向会自动覆盖常见写法，例如“数据分析”也会识别商业分析、经营分析和 BI。</p></div>
+    <div className="preference-dialog-heading"><span className="preference-dialog-icon"><Target size={20} /></span><p className="eyebrow">职位库筛选</p><h3 id="job-preference-title">填写我的求职偏好</h3><p className="dialog-copy">填写你关心的条件即可，职途会在后台自动识别相关关键词并推荐岗位。</p></div>
     <form onSubmit={save} className="preference-form">
       <label><span>毕业届别</span><select value={graduationYear} onChange={(event) => setGraduationYear(event.target.value)}><option value="">不限届别</option>{[2026, 2027, 2028, 2029, 2030].map((year) => <option key={year} value={year}>{year} 届</option>)}</select></label>
-      <fieldset><legend>招聘类型</legend><button type="button" aria-pressed={recruitmentTypes.includes("graduate")} onClick={() => toggleRecruitmentType("graduate")}>校招</button><button type="button" aria-pressed={recruitmentTypes.includes("internship")} onClick={() => toggleRecruitmentType("internship")}>实习</button></fieldset>
-      <section className="wide preference-choice-field" role="group" aria-labelledby="preference-role-heading"><div className="preference-section-heading" id="preference-role-heading"><strong>岗位方向</strong><small>可多选</small></div><div className="preference-choice-grid">{ROLE_DIRECTION_OPTIONS.map((option) => <button type="button" key={option.label} aria-pressed={selectedRoles.includes(option.label)} onClick={() => toggleValue(option.label, selectedRoles, setSelectedRoles)}>{option.label}</button>)}</div><label className="preference-custom"><span>没有想要的方向？补充职位关键词</span><input placeholder="例如 ESG、精算、医药研发" value={customRoles} onChange={(event) => setCustomRoles(event.target.value)} /></label></section>
-      <section className="wide preference-choice-field" role="group" aria-labelledby="preference-city-heading"><div className="preference-section-heading" id="preference-city-heading"><strong>意向城市</strong><small>选项来自当前职位库</small></div><div className="preference-choice-grid city-choices">{popularCities.map((item) => <button type="button" key={item} aria-pressed={cities.includes(item)} onClick={() => toggleValue(item, cities, setCities)}>{item}</button>)}</div>{cities.some((item) => !popularCities.includes(item)) && <div className="preference-selected-list" aria-label="已选其他城市">{cities.filter((item) => !popularCities.includes(item)).map((item) => <button type="button" key={item} onClick={() => setCities(cities.filter((cityName) => cityName !== item))}>{item}<X size={12} /></button>)}</div>}{cityOptions.length > popularCities.length && <label className="preference-more"><span>更多城市</span><select value="" onChange={(event) => { if (event.target.value && !cities.includes(event.target.value)) setCities([...cities, event.target.value].slice(0, 12)); }}><option value="">从职位库选择</option>{cityOptions.filter((item) => item !== "地点待确认" && !cities.includes(item)).map((item) => <option key={item}>{item}</option>)}</select></label>}</section>
-      <label className="wide"><span>关注公司 <small>用于偏好加分，不会排除其他公司</small></span><input list="job-preference-companies" placeholder="输入公司名称，用逗号分隔" value={focusCompanies} onChange={(event) => setFocusCompanies(event.target.value)} /><datalist id="job-preference-companies">{companyOptions.map((item) => <option key={item} value={item} />)}</datalist></label>
-      <label className="wide"><span>排除关键词</span><input placeholder="例如 销售、电话邀约、纯佣金" value={excludedKeywords} onChange={(event) => setExcludedKeywords(event.target.value)} /><small>命中这些词的岗位不会进入“符合我的偏好”。</small></label>
-      <div className="preference-actions wide"><button type="button" onClick={() => { setGraduationYear(""); setSelectedRoles([]); setCustomRoles(""); setCities([]); setFocusCompanies(""); setExcludedKeywords(""); setRecruitmentTypes([]); }}>清空</button><button type="submit" className="primary-button" disabled={saving}><Save size={16} />{saving ? "保存中…" : "保存偏好"}</button></div>
+      <label><span>招聘类型</span><select value={recruitmentType} onChange={(event) => setRecruitmentType(event.target.value as typeof recruitmentType)}><option value="">校招和实习均可</option><option value="graduate">只看校招</option><option value="internship">只看实习</option></select></label>
+      <label className="wide"><span>岗位方向</span><input placeholder="例如 数据分析、产品、运营" value={roleKeywords} onChange={(event) => setRoleKeywords(event.target.value)} /><small>可填写多个方向，用逗号分隔；相关岗位写法由后台自动匹配。</small></label>
+      <label className="wide"><span>意向城市</span><input placeholder="例如 北京、上海、深圳" value={cities} onChange={(event) => setCities(event.target.value)} /></label>
+      <label className="wide"><span>关注公司 <small>可不填</small></span><input placeholder="例如 腾讯、字节跳动" value={focusCompanies} onChange={(event) => setFocusCompanies(event.target.value)} /></label>
+      <div className="preference-actions wide"><button type="button" onClick={() => { setGraduationYear(""); setRoleKeywords(""); setCities(""); setFocusCompanies(""); setRecruitmentType(""); }}>清空</button><button type="submit" className="primary-button" disabled={saving}><Save size={16} />{saving ? "保存中…" : "保存偏好"}</button></div>
     </form>
   </section></div>;
 }
