@@ -533,13 +533,21 @@
 
 .job-preference-dialog {
   position: relative;
-  width: min(760px, calc(100vw - 32px));
-  max-height: min(820px, calc(100svh - 32px));
-  overflow: auto;
-  padding: 28px;
+  width: min(820px, calc(100vw - 32px));
+  height: min(820px, calc(100svh - 40px));
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 28px 22px 0 28px;
   border-radius: 24px;
   background: #fff;
   box-shadow: 0 24px 70px rgba(36, 48, 59, 0.2);
+}
+
+.preference-dialog-heading {
+  flex: none;
+  padding-right: 52px;
 }
 
 .job-preference-dialog h3 {
@@ -548,18 +556,24 @@
 }
 
 .job-preference-dialog .dialog-copy {
-  max-width: 510px;
+  max-width: 600px;
   margin-top: 8px;
   color: var(--muted);
-  font-size: 11px;
-  line-height: 1.75;
+  font-size: 12px;
+  line-height: 1.65;
 }
 
 .preference-form {
+  min-height: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
   margin-top: 22px;
+  padding: 2px 6px 0 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  align-content: start;
 }
 
 .preference-form label,
@@ -572,7 +586,7 @@
   display: block;
   margin-bottom: 7px;
   color: var(--ink);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -584,7 +598,7 @@
   border: 1px solid var(--line);
   border-radius: 11px;
   background: #fafbfb;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .preference-form select {
@@ -614,7 +628,8 @@
   border: 0;
 }
 
-.preference-form fieldset.preference-choice-field {
+.preference-choice-field {
+  min-width: 0;
   display: block;
   padding: 14px;
   border: 1px solid rgba(127, 163, 141, 0.26);
@@ -622,11 +637,23 @@
   background: linear-gradient(135deg, rgba(239, 246, 242, 0.72), rgba(255, 252, 247, 0.72));
 }
 
+.preference-section-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-bottom: 11px;
+  color: var(--ink);
+}
+
+.preference-section-heading strong {
+  font-size: 12px;
+}
+
+.preference-section-heading small,
 .preference-form legend small,
 .preference-form label > span small {
-  margin-left: 6px;
   color: var(--muted);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 500;
 }
 
@@ -638,8 +665,8 @@
 
 .preference-form .preference-choice-grid button {
   width: 100%;
-  min-height: 36px;
-  padding: 0 8px;
+  min-height: 38px;
+  padding: 7px 8px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.76);
 }
@@ -702,7 +729,7 @@
   border: 1px solid var(--line);
   border-radius: 999px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .preference-form fieldset button[aria-pressed="true"] {
@@ -712,11 +739,16 @@
 }
 
 .preference-actions {
+  position: sticky;
+  z-index: 2;
+  bottom: 0;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  padding-top: 8px;
+  margin-top: 2px;
+  padding: 14px 0 18px;
   border-top: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(255,255,255,.9), #fff 28%);
 }
 
 .preference-actions > button:first-child {
@@ -736,8 +768,14 @@
   }
 
   .job-preference-dialog {
-    padding: 22px 18px;
+    width: calc(100vw - 20px);
+    height: calc(100svh - 20px);
+    padding: 22px 12px 0 18px;
     border-radius: 22px;
+  }
+
+  .preference-dialog-heading {
+    padding-right: 42px;
   }
 
   .preference-form {
