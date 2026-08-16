@@ -533,7 +533,7 @@
 
 .job-preference-dialog {
   position: relative;
-  width: min(660px, calc(100vw - 32px));
+  width: min(760px, calc(100vw - 32px));
   max-height: min(820px, calc(100svh - 32px));
   overflow: auto;
   padding: 28px;
@@ -576,7 +576,8 @@
   font-weight: 700;
 }
 
-.preference-form input {
+.preference-form input,
+.preference-form select {
   width: 100%;
   height: 44px;
   padding: 0 12px;
@@ -584,6 +585,15 @@
   border-radius: 11px;
   background: #fafbfb;
   font-size: 11px;
+}
+
+.preference-form select {
+  padding: 0 36px 0 12px;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #6f7c84 50%), linear-gradient(135deg, #6f7c84 50%, transparent 50%);
+  background-position: calc(100% - 16px) 19px, calc(100% - 11px) 19px;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
 }
 
 .preference-form label small {
@@ -602,6 +612,84 @@
   gap: 8px;
   padding: 0;
   border: 0;
+}
+
+.preference-form fieldset.preference-choice-field {
+  display: block;
+  padding: 14px;
+  border: 1px solid rgba(127, 163, 141, 0.26);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(239, 246, 242, 0.72), rgba(255, 252, 247, 0.72));
+}
+
+.preference-form legend small,
+.preference-form label > span small {
+  margin-left: 6px;
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 500;
+}
+
+.preference-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.preference-form .preference-choice-grid button {
+  width: 100%;
+  min-height: 36px;
+  padding: 0 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.preference-form .preference-choice-grid button[aria-pressed="true"] {
+  color: #315f46;
+  border-color: #7fa38d;
+  background: #e7f2eb;
+  box-shadow: inset 0 0 0 1px rgba(127, 163, 141, 0.14);
+}
+
+.preference-selected-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.preference-form .preference-selected-list button {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 10px;
+  border-color: rgba(127, 163, 141, 0.4);
+  border-radius: 999px;
+  color: #426c55;
+  background: #edf5f0;
+}
+
+.preference-custom,
+.preference-more {
+  display: grid;
+  grid-template-columns: minmax(140px, auto) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(127, 163, 141, 0.2);
+}
+
+.preference-custom > span,
+.preference-more > span {
+  margin: 0 !important;
+  color: #52645b !important;
+  font-size: 9px !important;
+}
+
+.preference-more select {
+  min-width: 0;
 }
 
 .preference-form fieldset legend {
@@ -660,8 +748,25 @@
     grid-column: auto;
   }
 
-  .preference-form input {
+  .preference-form input,
+  .preference-form select {
     font-size: 16px;
+  }
+
+  .preference-choice-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .preference-custom,
+  .preference-more {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+}
+
+@media (max-width: 420px) {
+  .preference-choice-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

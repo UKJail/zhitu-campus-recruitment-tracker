@@ -1,6 +1,7 @@
 import { classifyRecruitmentType } from "@/lib/business";
 import type { JobPreferences } from "@/lib/account/preferences";
 import type { Job } from "@/lib/types";
+import { matchesRolePreferences } from "@/lib/jobs/preference-taxonomy";
 
 export type PreferenceMatch = {
   eligible: boolean;
@@ -33,7 +34,7 @@ export function matchJobPreferences(job: Job, preferences: JobPreferences): Pref
 
   if (preferences.roleKeywords.length) {
     total += 40;
-    if (includesAny([job.title, job.description, ...job.tags].join(" "), preferences.roleKeywords)) {
+    if (matchesRolePreferences([job.title, job.description, ...job.tags].join(" "), preferences.roleKeywords)) {
       points += 40;
       reasons.push("岗位方向匹配");
     } else {

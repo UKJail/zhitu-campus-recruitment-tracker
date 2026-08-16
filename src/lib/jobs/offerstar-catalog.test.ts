@@ -50,4 +50,28 @@ describe("OfferStar catalog", () => {
   it("filters companies by a partial name without rendering a giant option list", () => {
     expect(catalog.searchOfferstarRecords(records, { company: "甲" }).records.map((item) => item.company)).toEqual(["甲公司"]);
   });
+
+  it("filters the whole catalog by preferences before pagination", () => {
+    const result = catalog.searchOfferstarRecords(records, {
+      preferredOnly: true,
+      preferences: {
+        graduationYear: "",
+        roleKeywords: ["产品"],
+        cities: ["上海"],
+        recruitmentTypes: ["internship"],
+        focusCompanies: [],
+        excludedKeywords: [],
+      },
+      page: 1,
+      pageSize: 1,
+      sort: "match",
+    });
+    expect(result.total).toBe(1);
+    expect(result.records[0].externalId).toBe("offerstar-1");
+  });
+
+  it("offers frequently occurring catalog companies as preference suggestions", () => {
+    const options = catalog.offerstarFilterOptions([...records, { ...records[0], externalId: "offerstar-5" }]);
+    expect(options.companies[0]).toBe("甲公司");
+  });
 });

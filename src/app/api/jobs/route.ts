@@ -3,6 +3,7 @@ import { isApplicationHidden } from "@/lib/applications/visibility";
 import { loadOfferstarCatalog, offerstarCatalogMeta, offerstarRecordToJob, searchOfferstarRecords, type OfferstarInteraction } from "@/lib/jobs/offerstar-catalog";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
 import type { ApplicationStatus } from "@/lib/types";
+import { DEFAULT_JOB_PREFERENCES, jobPreferencesSchema } from "@/lib/account/preferences";
 
 export const runtime = "nodejs";
 
@@ -88,6 +89,18 @@ export async function GET(request: NextRequest) {
     const catalog = await loadOfferstarCatalog();
     const query = request.nextUrl.searchParams;
     const savedOnly = query.get("savedOnly") === "true";
+    const preferredOnly = query.get("preferredOnly") === "true";
+    const parsedPreferences = jobPreferencesSchema.safeParse({
+      graduationYear: query.get("preferenceGraduationYear") || "",
+      roleKeywords: query.getAll("preferenceRole"),
+      cities: query.getAll("preferenceCity"),
+      recruitmentTypes: query.getAll("preferenceRecruitmentType"),
+      focusCompanies: query.getAll("preferenceCompany"),
+      excludedKeywords: query.getAll("preferenceExcluded"),
+    });
+    if (preferredOnly && !parsedPreferences.success) {
+      return NextResponse.json({ error: "求职偏好格式无效，请重新保存" }, { status: 400 });
+    }
     const savedFingerprints = new Set((jobs || []).filter((job) => savedSet.has(job.id)).map((job) => job.fingerprint));
     const catalogRecords = savedOnly ? catalog.data.records.filter((record) => savedFingerprints.has(record.businessFingerprint)) : catalog.data.records;
     const result = searchOfferstarRecords(catalogRecords, {
@@ -98,6 +111,8 @@ export async function GET(request: NextRequest) {
       sort: (query.get("sort") || "match") as "match" | "published" | "company",
       page: Number(query.get("page") || 1),
       pageSize: Number(query.get("pageSize") || 10),
+      preferredOnly,
+      preferences: parsedPreferences.success ? parsedPreferences.data : DEFAULT_JOB_PREFERENCES,
     });
     const selectedFingerprints = result.records.map((record) => record.businessFingerprint);
     const materialized = selectedFingerprints.length

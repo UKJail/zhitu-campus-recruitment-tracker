@@ -2,6 +2,9 @@ import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import type { ApplicationEvent, ApplicationStatus, Job } from "@/lib/types";
 import { normalizeOfferstarCities } from "@/lib/jobs/offerstar-location";
+import type { JobPreferences } from "@/lib/account/preferences";
+import { hasJobPreferences } from "@/lib/account/preferences";
+import { matchJobPreferences } from "@/lib/jobs/preferences";
 
 export type OfferstarRecord = {
   externalId: string;
@@ -44,6 +47,8 @@ export type OfferstarCatalogQuery = {
   sort?: "match" | "published" | "company";
   page?: number;
   pageSize?: number;
+  preferredOnly?: boolean;
+  preferences?: JobPreferences;
 };
 
 function catalogPath() {
@@ -98,6 +103,14 @@ export function offerstarRecordToJob(record: OfferstarRecord, interaction: Offer
 
 export function searchOfferstarRecords(records: OfferstarRecord[], input: OfferstarCatalogQuery) {
   const normalizedQuery = input.query?.trim().toLocaleLowerCase("zh-CN") || "";
+  const preferenceMatches = new Map<string, ReturnType<typeof matchJobPreferences>>();
+  const preferenceMatchFor = (record: OfferstarRecord) => {
+    const cached = preferenceMatches.get(record.externalId);
+    if (cached) return cached;
+    const result = matchJobPreferences(offerstarRecordToJob(record), input.preferences!);
+    preferenceMatches.set(record.externalId, result);
+    return result;
+  };
   const filtered = records.filter((record) => {
     if (normalizedQuery && ![record.title, record.company, record.position, record.industry, record.location]
       .join(" ").toLocaleLowerCase("zh-CN").includes(normalizedQuery)) return false;
@@ -105,8 +118,12 @@ export function searchOfferstarRecords(records: OfferstarRecord[], input: Offers
     const normalizedCompany = input.company?.trim().toLocaleLowerCase("zh-CN") || "";
     if (normalizedCompany && !record.company.toLocaleLowerCase("zh-CN").includes(normalizedCompany)) return false;
     if (input.recruitmentType && input.recruitmentType !== "all" && recruitmentType(record) !== input.recruitmentType) return false;
+    if (input.preferredOnly && input.preferences && hasJobPreferences(input.preferences) && !preferenceMatchFor(record).eligible) return false;
     return true;
   });
+  if (input.preferredOnly && input.preferences && hasJobPreferences(input.preferences) && input.sort === "match") {
+    filtered.sort((a, b) => preferenceMatchFor(b).score - preferenceMatchFor(a).score);
+  }
   if (input.sort === "company") filtered.sort((a, b) => a.company.localeCompare(b.company, "zh-CN"));
   if (input.sort === "published") filtered.sort((a, b) => b.postDate.localeCompare(a.postDate, "zh-CN"));
   const pageSize = Math.min(50, Math.max(1, input.pageSize || 10));
@@ -118,6 +135,8 @@ export function searchOfferstarRecords(records: OfferstarRecord[], input: Offers
 export function offerstarFilterOptions(records: OfferstarRecord[]) {
   const cityOrder = ["全国", "北京", "上海", "深圳", "广州", "杭州", "南京", "苏州", "成都", "武汉", "香港", "海外", "远程", "地点待确认"];
   const cities = [...new Set(records.flatMap((record) => normalizeOfferstarCities(record.location)))];
+  const companyCounts = new Map<string, number>();
+  for (const record of records) companyCounts.set(record.company, (companyCounts.get(record.company) || 0) + 1);
   return {
     cities: cities.sort((a, b) => {
       const aIndex = cityOrder.indexOf(a);
@@ -125,6 +144,7 @@ export function offerstarFilterOptions(records: OfferstarRecord[]) {
       if (aIndex >= 0 || bIndex >= 0) return (aIndex < 0 ? cityOrder.length : aIndex) - (bIndex < 0 ? cityOrder.length : bIndex);
       return a.localeCompare(b, "zh-CN");
     }),
+    companies: [...companyCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "zh-CN")).slice(0, 40).map(([company]) => company),
   };
 }
 

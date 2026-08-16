@@ -29,4 +29,17 @@ describe("job preference matching", () => {
     expect(result.blockedBy).toContain("命中排除关键词");
     expect(result.blockedBy).toContain("届别不匹配");
   });
+
+  it("expands a catalog direction into common title synonyms", () => {
+    const result = matchJobPreferences({ ...job, company: "某集团", title: "经营分析培训生", description: "面向校招生", tags: ["校招"] }, {
+      ...preferences,
+      graduationYear: "",
+      roleKeywords: ["数据分析"],
+      cities: ["深圳"],
+      focusCompanies: [],
+      excludedKeywords: [],
+    });
+    expect(result.eligible).toBe(true);
+    expect(result.reasons).toContain("岗位方向匹配");
+  });
 });
