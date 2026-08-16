@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
       meta: offerstarCatalogMeta(catalog.data.records, result, catalog.data.generatedAt),
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "OfferStar 职位加载失败" }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : "职位加载失败" }, { status: 500 });
   }
 
 }

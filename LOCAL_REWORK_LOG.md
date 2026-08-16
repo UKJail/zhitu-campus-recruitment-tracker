@@ -372,3 +372,9 @@ Move-Item -LiteralPath ".vercel\project.json.disabled" -Destination ".vercel\pro
 - 完整验证结果：36 个测试文件、137 项测试通过；ESLint 与 Next.js 16.3.0 生产构建通过。
 - 本地提交为 `7900a68`。GitHub HTTPS 连续三次连接重置或超时，远程分支暂未同步；本地提交保持完整且工作区干净。
 - 为避免阻塞验收，使用同一份提交直接创建独立 Vercel Preview：`https://zhitu-tracker-97297rq4m-zhitu-tracker.vercel.app`，部署 ID `dpl_GseHcCDY4qpAYip6hEhHRjdKUmvw`，状态 `READY`；正式站未被覆盖。
+
+# 2026-08-17 隐藏职位数据来源
+
+- 职位列表表头由“来源 / 发布时间”改为“发布时间”，每行只展示页面日期，不再显示数据来源名称。
+- 职位比较和求职进度看板同步移除来源标签，避免用户在其他入口再次看到来源名称。
+- 后端仍保留来源字段，用于数据同步、去重、排错和投递链接管理；本次只调整用户可见内容。
