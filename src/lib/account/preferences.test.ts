@@ -3,6 +3,10 @@ import {
   DEFAULT_DAILY_APPLICATION_TARGET,
   dailyApplicationTargetFromMetadata,
   dailyApplicationTargetSchema,
+  DEFAULT_JOB_PREFERENCES,
+  hasJobPreferences,
+  jobPreferencesFromMetadata,
+  jobPreferencesSchema,
 } from "./preferences";
 
 describe("daily application target preference", () => {
@@ -23,5 +27,29 @@ describe("daily application target preference", () => {
     expect(dailyApplicationTargetSchema.safeParse(0).success).toBe(false);
     expect(dailyApplicationTargetSchema.safeParse(201).success).toBe(false);
     expect(dailyApplicationTargetSchema.safeParse(12.5).success).toBe(false);
+  });
+});
+
+describe("job preferences", () => {
+  const valid = {
+    graduationYear: "2027",
+    roleKeywords: ["产品", "数据分析", "产品"],
+    cities: ["深圳", "香港"],
+    recruitmentTypes: ["graduate" as const, "internship" as const],
+    focusCompanies: ["腾讯"],
+    excludedKeywords: ["销售"],
+  };
+
+  it("normalizes and reads account metadata", () => {
+    const parsed = jobPreferencesSchema.parse(valid);
+    expect(parsed.roleKeywords).toEqual(["产品", "数据分析"]);
+    expect(jobPreferencesFromMetadata({ job_preferences: valid })).toEqual(parsed);
+    expect(hasJobPreferences(parsed)).toBe(true);
+  });
+
+  it("falls back safely for invalid metadata", () => {
+    expect(jobPreferencesFromMetadata(null)).toEqual(DEFAULT_JOB_PREFERENCES);
+    expect(jobPreferencesFromMetadata({ job_preferences: { graduationYear: "27" } })).toEqual(DEFAULT_JOB_PREFERENCES);
+    expect(hasJobPreferences(DEFAULT_JOB_PREFERENCES)).toBe(false);
   });
 });

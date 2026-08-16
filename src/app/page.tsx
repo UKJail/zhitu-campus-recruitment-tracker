@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
+  const [authServiceError, setAuthServiceError] = useState("");
   const [screen, setScreen] = useState<"login" | "otp" | "recovery" | "recovery-sent">("login");
 
   useEffect(() => {
@@ -29,6 +30,19 @@ export default function LoginPage() {
     };
   }, [router]);
 
+  useEffect(() => {
+    let active = true;
+    void fetch("/api/health/auth", { cache: "no-store" }).then((response) => {
+      if (!active) return;
+      setAuthServiceError(response.ok ? "" : "无法连接认证服务，请从可联网的本地终端重新启动职途。");
+    }).catch(() => {
+      if (active) setAuthServiceError("无法连接认证服务，请从可联网的本地终端重新启动职途。");
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   async function signIn(event: FormEvent) {
     event.preventDefault();
     setLoading(true);
@@ -40,7 +54,8 @@ export default function LoginPage() {
       body: JSON.stringify({ method: "password", email, password }),
     }).catch(() => null);
     if (!response?.ok) {
-      const result = await response?.json().catch(() => null) as { error?: string } | null;
+      const result = await response?.json().catch(() => null) as { error?: string; code?: string } | null;
+      if (result?.code === "auth_service_unreachable") setAuthServiceError(result.error || "无法连接认证服务。");
       setError(result?.error || "登录服务暂时不可用，请稍后重试。");
       setLoading(false);
       return;
@@ -130,6 +145,7 @@ export default function LoginPage() {
       <p className="login-note">邀请制内测 · 你的数据只属于你</p>
     </section>
     <section className="login-panel"><div className="login-card">
+      {authServiceError && <p className="auth-service-alert" role="alert">{authServiceError}</p>}
       {screen === "login" && <>
         <span className="mini-icon"><LockKeyhole size={18} /></span><h2>欢迎回来</h2><p>测试版使用受邀邮箱和激活时设置的密码登录。</p><form onSubmit={signIn}>
           <label htmlFor="email">邮箱地址</label><input id="email" type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" />

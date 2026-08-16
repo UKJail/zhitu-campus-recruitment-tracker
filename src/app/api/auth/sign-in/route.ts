@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseAuthClient, createSupabaseServerClient } from "@/lib/supabase/server";
+import { classifyAuthFailure, getAuthFailureMessage, getAuthFailureStatus } from "@/lib/auth/provider-error";
 
 export const runtime = "nodejs";
 
@@ -23,24 +24,6 @@ const signInSchema = z.discriminatedUnion("method", [
 
 const responseHeaders = { "Cache-Control": "private, no-store" };
 
-function getAuthErrorMessage(code?: string) {
-  switch (code) {
-    case "invalid_credentials":
-      return "邮箱或密码不正确，或该账号尚未设置密码";
-    case "otp_expired":
-      return "验证码错误或已过期，请重新获取";
-    case "email_not_confirmed":
-      return "该邮箱尚未完成确认";
-    case "user_banned":
-      return "该账号当前已被停用";
-    case "over_request_rate_limit":
-    case "over_email_send_rate_limit":
-      return "尝试次数过多，请稍后再试";
-    default:
-      return "登录信息无效或已过期";
-  }
-}
-
 export async function POST(request: Request) {
   try {
     const input = signInSchema.parse(await request.json());
@@ -53,9 +36,14 @@ export async function POST(request: Request) {
         options: { shouldCreateUser: false },
       });
       if (result.error) {
-        const code = typeof result.error.code === "string" ? result.error.code : undefined;
-        return NextResponse.json({ error: getAuthErrorMessage(code), code }, {
-          status: result.error.status || 400,
+        const code = classifyAuthFailure(result.error) ?? "missing_session";
+        console.warn("Supabase OTP request rejected", {
+          code,
+          provider: result.error.name,
+          status: result.error.status,
+        });
+        return NextResponse.json({ error: getAuthFailureMessage(code), code }, {
+          status: getAuthFailureStatus(code),
           headers: responseHeaders,
         });
       }
@@ -67,16 +55,15 @@ export async function POST(request: Request) {
       : await authClient.auth.verifyOtp({ email, token: input.token, type: "email" });
 
     if (result.error || !result.data.session) {
-      const code = result.error && "code" in result.error && typeof result.error.code === "string"
-        ? result.error.code
-        : undefined;
+      const code = classifyAuthFailure(result.error, Boolean(result.data.session)) ?? "missing_session";
       console.warn("Supabase sign-in rejected", {
         method: input.method,
-        code: code ?? "missing_session",
-        status: result.error?.status ?? 401,
+        code,
+        provider: result.error?.name,
+        status: result.error?.status,
       });
-      return NextResponse.json({ error: getAuthErrorMessage(code), code: code ?? "missing_session" }, {
-        status: 401,
+      return NextResponse.json({ error: getAuthFailureMessage(code), code }, {
+        status: getAuthFailureStatus(code),
         headers: responseHeaders,
       });
     }
@@ -91,8 +78,8 @@ export async function POST(request: Request) {
         code: sessionError.code ?? "session_write_failed",
         status: sessionError.status,
       });
-      return NextResponse.json({ error: "登录状态创建失败，请重试" }, {
-        status: 500,
+      return NextResponse.json({ error: getAuthFailureMessage("session_write_failed"), code: "session_write_failed" }, {
+        status: getAuthFailureStatus("session_write_failed"),
         headers: responseHeaders,
       });
     }

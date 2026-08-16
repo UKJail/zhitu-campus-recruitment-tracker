@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { validateNewPassword } from "@/lib/auth/password";
-import { RECOVERY_GRANT_COOKIE, verifyRecoveryGrant } from "@/lib/auth/recovery-grant";
+import { getRecoveryGrantSecret, RECOVERY_GRANT_COOKIE, verifyRecoveryGrant } from "@/lib/auth/recovery-grant";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
   const { supabase, userId } = await getAuthenticatedUserId();
   const cookieStore = await cookies();
   const grant = cookieStore.get(RECOVERY_GRANT_COOKIE)?.value;
-  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+  const secret = getRecoveryGrantSecret();
 
   if (!userId || !verifyRecoveryGrant(grant, userId, secret)) {
     return NextResponse.json({ error: "重置链接无效或已过期，请重新申请。" }, { status: 401 });

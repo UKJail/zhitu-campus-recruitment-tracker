@@ -1,27 +1,30 @@
 "use client";
 
 import {
-  ArrowUpRight, Bell, BellRing, Bookmark, BriefcaseBusiness, CalendarDays, Check, CheckCircle2,
+  ArrowUpRight, Bell, Bookmark, BriefcaseBusiness, Building2, CalendarDays, Check, CheckCircle2,
   ChevronDown, ChevronLeft, ChevronRight, CircleUserRound, ClipboardCheck, Clock3, FileCheck2, FilePenLine,
   Copy, Download, ExternalLink, FileText, Inbox, KeyRound, LayoutDashboard, Link2, LogOut, Mail, Menu, MessageSquareText, MoreHorizontal,
   PenLine, Plus, RefreshCw, Save, Search, Send, ShieldCheck, Sparkles, Star, Target, Trash2, Upload, UserPlus, X, XCircle, MailCheck, MessageCircleMore,
 } from "lucide-react";
 import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { applicationStatuses, applySuggestion, canTransition, classifyRecruitmentType, confirmedApplicationCount, confirmedApplicationCountOnDate } from "@/lib/business";
+import { applicationStatuses, applySuggestion, canTransition, confirmedApplicationCount, confirmedApplicationCountOnDate } from "@/lib/business";
 import { initialSuggestions, jobs as seedJobs, journey, resumes as seedResumes, reviews as seedReviews } from "@/lib/demo-data";
 import { formatLocalChineseDate, greetingWithId } from "@/lib/local-time";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { InterviewPrepPage } from "@/components/interview-prep-page";
 import { BrandMascot } from "@/components/brand-mascot";
+import { CareerPortalDirectory } from "@/components/career-portal-directory";
 import { allowedConfirmationLinks, forwardingConfirmationProvider, forwardingVerificationState, gmailForwardingConfirmationCode, gmailRecruitmentFilterQuery, hasRecentInboundEmail, isGmailForwardingConfirmation, isQqForwardingConfirmation, recruitmentFilterKeywords } from "@/lib/mail/forwarding";
 import type { JobAnalysis, StructuredResume } from "@/lib/ai/provider";
 import type { InterviewReview, Job, Resume, Suggestion } from "@/lib/types";
 import type { RecruitingCalendarEvent } from "@/lib/mail/calendar";
-import { DEFAULT_DAILY_APPLICATION_TARGET } from "@/lib/account/preferences";
+import { DEFAULT_DAILY_APPLICATION_TARGET, DEFAULT_JOB_PREFERENCES, hasJobPreferences, type JobPreferences } from "@/lib/account/preferences";
+import { matchJobPreferences } from "@/lib/jobs/preferences";
 
 type PageKey = "home" | "jobs" | "resumes" | "progress" | "prep" | "reviews";
-type AccountProfile = { displayName: string | null; email: string; isAdmin: boolean; dailyApplicationTarget: number };
+type AccountProfile = { displayName: string | null; email: string; isAdmin: boolean; dailyApplicationTarget: number; jobPreferences: JobPreferences };
 type NotificationItem = {
   id: string;
   kind: string;
@@ -57,7 +60,7 @@ export function TrackerApp() {
   const [accountOpen, setAccountOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [profile, setProfile] = useState<AccountProfile | null>(isDemoMode ? { displayName: "测试用户", email: "", isAdmin: false, dailyApplicationTarget: DEFAULT_DAILY_APPLICATION_TARGET } : null);
+  const [profile, setProfile] = useState<AccountProfile | null>(isDemoMode ? { displayName: "测试用户", email: "", isAdmin: false, dailyApplicationTarget: DEFAULT_DAILY_APPLICATION_TARGET, jobPreferences: DEFAULT_JOB_PREFERENCES } : null);
   const [progressClock, setProgressClock] = useState<Date | null>(null);
   const [dailyApplicationTarget, setDailyApplicationTarget] = useState(DEFAULT_DAILY_APPLICATION_TARGET);
   const [dailyTargetDraft, setDailyTargetDraft] = useState(String(DEFAULT_DAILY_APPLICATION_TARGET));
@@ -194,7 +197,7 @@ export function TrackerApp() {
 
         <main className="page-content">
           {page === "home" && <HomePage jobs={jobs} displayName={profile?.displayName} onNavigate={navigate} />}
-          {page === "jobs" && <JobsPage jobs={jobs} setJobs={setJobs} refreshJobs={loadJobs} loading={jobsLoading} notify={notify} />}
+          {page === "jobs" && <JobsPage refreshActivity={loadJobs} notify={notify} preferences={profile?.jobPreferences || DEFAULT_JOB_PREFERENCES} onPreferencesUpdated={(jobPreferences) => setProfile((current) => current ? { ...current, jobPreferences } : current)} />}
           {page === "resumes" && <ResumesPage suggestions={suggestions} setSuggestions={setSuggestions} notify={notify} />}
           {page === "progress" && <ProgressPage jobs={jobs} refreshJobs={loadJobs} notify={notify} onOpenMailSettings={() => setSettingsOpen(true)} />}
           {page === "prep" && <InterviewPrepPage notify={notify} />}
@@ -323,7 +326,15 @@ function RecruitingCalendar() {
 
   return <section className="panel tasks-panel calendar-panel">
     <div className="calendar-head">
-      <div><p className="eyebrow">接下来</p><h3>求职日历</h3></div>
+      <div className="calendar-title-row">
+        <div><p className="eyebrow">接下来</p><h3>求职日历</h3></div>
+        <div className="calendar-eta" aria-label="What's your ETA">
+          <span className="calendar-eta-bunny" aria-hidden="true">
+            <Image src="/newjeans-bunny.jpg" alt="" width={555} height={1200} sizes="48px" />
+          </span>
+          <span className="calendar-eta-copy">What&apos;s your ETA</span>
+        </div>
+      </div>
       <div className="calendar-legend"><span><i className="assessment-dot" />测评截止</span><span><i className="interview-dot" />面试日期</span></div>
     </div>
     <div className="calendar-toolbar">
@@ -365,37 +376,67 @@ function CalendarAgendaItem({ event }: { event: RecruitingCalendarEvent }) {
   </article>;
 }
 
-function JobsPage({ jobs, setJobs, refreshJobs, loading, notify }: { jobs: Job[]; setJobs: (jobs: Job[]) => void; refreshJobs: () => Promise<void>; loading: boolean; notify: (text: string) => void }) {
+type JobCatalogMeta = { catalogTotal: number; total: number; page: number; pageSize: number; pageCount: number; generatedAt: string; cities: string[] };
+
+function JobsPage({ refreshActivity, notify, preferences, onPreferencesUpdated }: { refreshActivity: () => Promise<void>; notify: (text: string) => void; preferences: JobPreferences; onPreferencesUpdated: (preferences: JobPreferences) => void }) {
+  const [view, setView] = useState<"jobs" | "portals">("jobs");
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [catalogMeta, setCatalogMeta] = useState<JobCatalogMeta>({ catalogTotal: 0, total: 0, page: 1, pageSize: 10, pageCount: 1, generatedAt: "", cities: [] });
   const [query, setQuery] = useState("");
   const [city, setCity] = useState("全部城市");
-  const [company, setCompany] = useState("全部公司");
-  const [experience, setExperience] = useState("全部经验");
+  const [company, setCompany] = useState("");
   const [education, setEducation] = useState("全部学历");
   const [recruitmentType, setRecruitmentType] = useState<"all" | "graduate" | "internship">("all");
   const [sortBy, setSortBy] = useState<"match" | "published" | "company">("match");
   const [pageNumber, setPageNumber] = useState(1);
   const [savedOnly, setSavedOnly] = useState(false);
+  const [preferredOnly, setPreferredOnly] = useState(false);
+  const [preferenceOpen, setPreferenceOpen] = useState(false);
   const [compare, setCompare] = useState<string[]>([]);
   const [compareOpen, setCompareOpen] = useState(false);
   const [pendingJob, setPendingJob] = useState<Job | null>(null);
   const [busyId, setBusyId] = useState("");
+  const loadCatalog = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ scope: "catalog", page: String(pageNumber), pageSize: "10", recruitmentType, savedOnly: String(savedOnly), sort: sortBy });
+      if (query.trim()) params.set("query", query.trim());
+      if (city !== "全部城市") params.set("city", city);
+      if (company.trim()) params.set("company", company.trim());
+      const response = await fetch(`/api/jobs?${params}`, { cache: "no-store" });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "职位加载失败");
+      setJobs(Array.isArray(payload.jobs) ? payload.jobs : []);
+      setCatalogMeta(payload.meta as JobCatalogMeta);
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "职位加载失败");
+    } finally {
+      setLoading(false);
+    }
+  }, [city, company, notify, pageNumber, query, recruitmentType, savedOnly, sortBy]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void loadCatalog(); }, query || company ? 260 : 0);
+    return () => window.clearTimeout(timer);
+  }, [company, loadCatalog, query]);
+
+  const preferenceMatches = useMemo(() => new Map(jobs.map((job) => [job.id, matchJobPreferences(job, preferences)])), [jobs, preferences]);
   const filtered = useMemo(() => jobs.filter((job) =>
-    (job.title + job.company + job.tags.join("")).toLowerCase().includes(query.toLowerCase())
-    && (city === "全部城市" || job.location.includes(city))
-    && (company === "全部公司" || job.company === company)
-    && (experience === "全部经验" || job.experience === experience)
-    && (education === "全部学历" || job.education === education)
-    && (recruitmentType === "all" || classifyRecruitmentType(job) === recruitmentType)
-    && (!savedOnly || job.saved)
-  ).sort((a, b) => sortBy === "match" ? b.match - a.match : sortBy === "published" ? new Date(b.publishedAtIso || 0).getTime() - new Date(a.publishedAtIso || 0).getTime() : a.company.localeCompare(b.company, "zh-CN")), [jobs, query, city, company, experience, education, recruitmentType, savedOnly, sortBy]);
-  const cities = useMemo(() => Array.from(new Set(jobs.flatMap((job) => job.location.split(/[;；|]/).map((item) => item.trim()).filter(Boolean)))).sort(), [jobs]);
-  const companies = useMemo(() => Array.from(new Set(jobs.map((job) => job.company))).sort(), [jobs]);
-  const experiences = useMemo(() => Array.from(new Set(jobs.map((job) => job.experience))).sort(), [jobs]);
+    (education === "全部学历" || job.education === education)
+    && (!preferredOnly || preferenceMatches.get(job.id)?.eligible)
+  ).sort((a, b) => {
+    if (preferredOnly) {
+      const difference = (preferenceMatches.get(b.id)?.score || 0) - (preferenceMatches.get(a.id)?.score || 0);
+      if (difference) return difference;
+    }
+    return 0;
+  }), [jobs, education, preferredOnly, preferenceMatches]);
+  const cities = catalogMeta.cities;
   const educations = useMemo(() => Array.from(new Set(jobs.map((job) => job.education))).sort(), [jobs]);
-  const pageSize = 10;
-  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const visiblePage = Math.min(pageNumber, pageCount);
-  const pagedJobs = filtered.slice((visiblePage - 1) * pageSize, visiblePage * pageSize);
+  const pageCount = catalogMeta.pageCount;
+  const visiblePage = catalogMeta.page;
+  const pagedJobs = filtered;
   const comparedJobs = jobs.filter((job) => compare.includes(job.id));
 
   async function toggleSave(job: Job) {
@@ -407,6 +448,7 @@ function JobsPage({ jobs, setJobs, refreshJobs, loading, notify }: { jobs: Job[]
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(payload.error || "收藏操作失败");
       }
+      await refreshActivity();
       notify(next ? "已收藏职位" : "已取消收藏");
     } catch (error) {
       setJobs(jobs);
@@ -429,6 +471,7 @@ function JobsPage({ jobs, setJobs, refreshJobs, loading, notify }: { jobs: Job[]
         const next = { ...job, status: payload.application.status, applicationId: payload.application.id } as Job;
         setJobs(jobs.map((item) => item.id === job.id ? next : item));
         setPendingJob(next);
+        await refreshActivity();
       }
       notify("已记录为“准备投递”，返回后请确认结果");
     } catch (error) {
@@ -449,7 +492,9 @@ function JobsPage({ jobs, setJobs, refreshJobs, loading, notify }: { jobs: Job[]
       }
       setPendingJob(null);
       if (isDemoMode) setJobs(jobs.map((item) => item.id === pendingJob.id ? { ...item, status: "applied" } : item));
-      else await refreshJobs();
+      else {
+        await Promise.all([loadCatalog(), refreshActivity()]);
+      }
       notify("投递已确认，已计入投递总数");
     } catch (error) {
       notify(error instanceof Error ? error.message : "无法更新投递结果");
@@ -459,35 +504,101 @@ function JobsPage({ jobs, setJobs, refreshJobs, loading, notify }: { jobs: Job[]
   }
 
   return <div className="page-stack">
-    <section className="page-intro"><div><p className="eyebrow">当前收录 {jobs.length} 个职位</p><h2>找到值得认真准备的机会</h2><span>公开职位会由采集任务定时更新；受限来源不会绕过登录、验证码或访问控制。</span></div><button className="secondary-button" onClick={() => notify("职位提醒将在邮件通知阶段接入")}><BellRing size={17} />订阅职位提醒</button></section>
+    <section className="page-intro"><div><p className="eyebrow">{view === "jobs" ? `当前收录 ${catalogMeta.catalogTotal} 个岗位` : "690 家企业官方入口"}</p><h2>{view === "jobs" ? "找到值得认真准备的机会" : "去企业官网看看新的可能"}</h2>{view === "portals" && <span>没有开放职位接口的企业，也可以从这里直达官方招聘网站。</span>}</div></section>
+    <nav className="jobs-view-switch" aria-label="职位库内容"><button type="button" aria-current={view === "jobs" ? "page" : undefined} onClick={() => setView("jobs")}><BriefcaseBusiness size={17} /><span><strong>具体岗位</strong><small>搜索可直接投递的职位</small></span></button><button type="button" aria-current={view === "portals" ? "page" : undefined} onClick={() => setView("portals")}><Building2 size={17} /><span><strong>企业校招入口</strong><small>进入企业官方招聘网站</small></span></button></nav>
+    {view === "portals" ? <CareerPortalDirectory notify={notify} /> : <>
+    <section className="preference-strip">
+      <span className="preference-orbit"><Target size={18} /></span>
+      <div><p className="eyebrow">我的求职偏好</p><strong>{hasJobPreferences(preferences) ? [preferences.roleKeywords.slice(0, 2).join(" / "), preferences.cities.slice(0, 2).join(" / "), preferences.graduationYear ? `${preferences.graduationYear} 届` : ""].filter(Boolean).join(" · ") || "已设置偏好" : "先告诉职途你想找什么"}</strong><small>{hasJobPreferences(preferences) ? "偏好只用于筛选与排序，不会改变简历匹配分。" : "设置岗位方向、城市和届别，职位库会优先呈现更合适的机会。"}</small></div>
+      <button type="button" className="preference-edit" onClick={() => setPreferenceOpen(true)}><PenLine size={15} />{hasJobPreferences(preferences) ? "调整偏好" : "设置偏好"}</button>
+    </section>
     <section className="filter-card">
-      <label className="search-large"><Search /><input placeholder="搜索职位、公司或技能关键词" value={query} onChange={(e) => setQuery(e.target.value)} /></label>
+      <label className="search-large"><Search /><input placeholder="搜索职位、公司或行业关键词" value={query} onChange={(e) => { setQuery(e.target.value); setPageNumber(1); }} /></label>
       <div className="filter-row">
-        <label className="select-filter"><span>公司</span><select aria-label="公司" value={company} onChange={(e) => setCompany(e.target.value)}><option>全部公司</option>{companies.map((item) => <option key={item}>{item}</option>)}</select></label>
+        <label className="select-filter company-filter"><span>公司</span><input aria-label="公司" placeholder="全部公司 / 输入名称" value={company} onChange={(e) => { setCompany(e.target.value); setPageNumber(1); }} /></label>
         <label className="select-filter"><span>学历</span><select aria-label="学历" value={education} onChange={(e) => setEducation(e.target.value)}><option>全部学历</option>{educations.map((item) => <option key={item}>{item}</option>)}</select></label>
-        <label className="select-filter"><span>经验</span><select aria-label="经验" value={experience} onChange={(e) => setExperience(e.target.value)}><option>全部经验</option>{experiences.map((item) => <option key={item}>{item}</option>)}</select></label>
-        <label className="select-filter"><span>城市</span><select aria-label="城市" value={city} onChange={(e) => setCity(e.target.value)}><option>全部城市</option>{cities.map((item) => <option key={item}>{item}</option>)}</select></label>
-        <label className="select-filter"><span>招聘类型</span><select aria-label="招聘类型" value={recruitmentType} onChange={(e) => setRecruitmentType(e.target.value as typeof recruitmentType)}><option value="all">全部类型</option><option value="graduate">应届生</option><option value="internship">实习</option></select></label>
-        <button type="button" aria-pressed={savedOnly} className={savedOnly ? "filter-active" : ""} onClick={() => setSavedOnly(!savedOnly)}><Bookmark size={14} />仅看收藏</button>
+        <label className="select-filter"><span>城市</span><select aria-label="城市" value={city} onChange={(e) => { setCity(e.target.value); setPageNumber(1); }}><option>全部城市</option>{cities.map((item) => <option key={item}>{item}</option>)}</select></label>
+        <label className="select-filter"><span>招聘类型</span><select aria-label="招聘类型" value={recruitmentType} onChange={(e) => { setRecruitmentType(e.target.value as typeof recruitmentType); setPageNumber(1); }}><option value="all">全部</option><option value="graduate">校招</option><option value="internship">实习</option></select></label>
+        <button type="button" aria-pressed={preferredOnly} className={preferredOnly ? "filter-active preference-filter" : "preference-filter"} onClick={() => { if (!hasJobPreferences(preferences)) return setPreferenceOpen(true); setPreferredOnly(!preferredOnly); setPageNumber(1); }}><Target size={14} />符合我的偏好</button>
+        <button type="button" aria-pressed={savedOnly} className={savedOnly ? "filter-active" : ""} onClick={() => { setSavedOnly(!savedOnly); setPageNumber(1); }}><Bookmark size={14} />仅看收藏</button>
       </div>
     </section>
     <section className="jobs-card">
-      <div className="table-toolbar"><span>共找到 <strong>{filtered.length}</strong> 个职位</span><span>{compare.length > 0 && <button className="compare-button" onClick={() => setCompareOpen(true)}>比较职位 ({compare.length})</button>}<label className="sort-control"><select aria-label="职位排序" value={sortBy} onChange={(event) => setSortBy(event.target.value as typeof sortBy)}><option value="match">匹配度优先</option><option value="published">发布时间优先</option><option value="company">公司名称排序</option></select><ChevronDown size={14} /></label></span></div>
+      <div className="table-toolbar"><span>共找到 <strong>{catalogMeta.total}</strong> 个职位</span><span>{compare.length > 0 && <button className="compare-button" onClick={() => setCompareOpen(true)}>比较职位 ({compare.length})</button>}<label className="sort-control"><select aria-label="职位排序" value={sortBy} onChange={(event) => { setSortBy(event.target.value as typeof sortBy); setPageNumber(1); }}><option value="match">OfferStar 更新顺序</option><option value="published">页面日期优先</option><option value="company">公司名称排序</option></select><ChevronDown size={14} /></label></span></div>
       <div className="job-table" role="table">
         <div className="job-table-head" role="row"><span>职位与公司</span><span>职位要求</span><span>来源 / 发布时间</span><span>匹配度</span><span>操作</span></div>
         {loading ? <div className="jobs-empty"><span className="loading-dot" />正在加载职位…</div> : filtered.length === 0 ? <div className="jobs-empty"><Search size={22} /><strong>没有符合条件的职位</strong><span>调整关键词或筛选条件后再试试。</span></div> : pagedJobs.map((job) => <div className="job-table-row" role="row" key={job.id}>
-          <div className="job-main"><label className="check"><input type="checkbox" checked={compare.includes(job.id)} onChange={() => setCompare(compare.includes(job.id) ? compare.filter((id) => id !== job.id) : [...compare, job.id])} /><span /></label><span className="company-logo big">{job.company.slice(0, 1)}</span><span><strong>{job.title}</strong><small>{job.company} · {job.location}</small><em>{job.tags.slice(0, 2).map((tag) => <i key={tag}>{tag}</i>)}</em></span></div>
+          <div className="job-main"><label className="check"><input type="checkbox" checked={compare.includes(job.id)} onChange={() => setCompare(compare.includes(job.id) ? compare.filter((id) => id !== job.id) : [...compare, job.id])} /><span /></label><span className="company-logo big">{job.company.slice(0, 1)}</span><span><strong>{job.title}</strong><small>{job.company} · {job.location}</small><em>{hasJobPreferences(preferences) && preferenceMatches.get(job.id)?.eligible && <i className={`preference-rank rank-${preferenceMatches.get(job.id)?.level.toLowerCase()}`}>{preferenceMatches.get(job.id)?.level} 偏好</i>}{job.tags.slice(0, 2).map((tag) => <i key={tag}>{tag}</i>)}</em></span></div>
           <div className="requirements"><strong>{job.salary}</strong><span>{job.experience} · {job.education}</span></div>
           <div className="source-cell"><strong>{job.source}</strong><span>{job.publishedAt}</span></div>
           <div className={`match-score ${job.match >= 85 ? "high" : ""}`}>{job.match > 0 ? <><strong>{job.match}<small>%</small></strong><span>较匹配</span></> : <><strong>—</strong><span>待分析</span></>}</div>
           <div className="job-actions"><button className={`save-button ${job.saved ? "saved" : ""}`} aria-label={job.saved ? "取消收藏" : "收藏"} onClick={() => toggleSave(job)}><Bookmark size={17} fill={job.saved ? "currentColor" : "none"} /></button><button className="apply-button" disabled={busyId === job.id} onClick={() => prepare(job)}>{job.status === "preparing" ? "继续投递" : job.status && !["saved", "closed"].includes(job.status) ? "查看岗位" : "去投递"} <ArrowUpRight size={15} /></button></div>
         </div>)}
       </div>
-      {filtered.length > pageSize && <div className="pagination"><button disabled={visiblePage === 1} onClick={() => setPageNumber((value) => Math.max(1, value - 1))}>上一页</button><span>{visiblePage} / {pageCount}</span><button disabled={visiblePage === pageCount} onClick={() => setPageNumber((value) => Math.min(pageCount, value + 1))}>下一页</button></div>}
+      {catalogMeta.total > catalogMeta.pageSize && <div className="pagination"><button disabled={visiblePage === 1} onClick={() => setPageNumber((value) => Math.max(1, value - 1))}>上一页</button><span>{visiblePage} / {pageCount}</span><button disabled={visiblePage === pageCount} onClick={() => setPageNumber((value) => Math.min(pageCount, value + 1))}>下一页</button></div>}
     </section>
     {pendingJob && <div className="modal-backdrop"><section className="application-confirm" role="dialog" aria-modal="true" aria-labelledby="application-confirm-title"><div className="application-route"><span>准备投递</span><i /><span>确认结果</span><i /><span>计入统计</span></div><button className="modal-x" onClick={() => setPendingJob(null)} aria-label="关闭"><X /></button><span className="company-logo big">{pendingJob.company.slice(0, 1)}</span><p className="eyebrow">刚刚打开了投递页面</p><h3 id="application-confirm-title">{pendingJob.company} · {pendingJob.title}</h3><p>你是否已经在招聘页面成功提交？只有确认成功后，才会计入投递数量。</p><div className="application-confirm-actions"><button onClick={() => setPendingJob(null)}>返回</button><button className="primary-button" disabled={busyId === pendingJob.id} onClick={() => recordResult()}><CheckCircle2 size={16} />确认已投递</button></div></section></div>}
     {compareOpen && <div className="modal-backdrop"><section className="job-compare" role="dialog" aria-modal="true" aria-labelledby="job-compare-title"><header><div><p className="eyebrow">职位比较</p><h3 id="job-compare-title">并排查看 {comparedJobs.length} 个机会</h3></div><button aria-label="关闭比较" onClick={() => setCompareOpen(false)}><X /></button></header><div className="compare-grid">{comparedJobs.map((job) => <article key={job.id}><span className="company-logo big">{job.company.slice(0,1)}</span><h4>{job.title}</h4><p>{job.company} · {job.location}</p><dl><div><dt>薪资</dt><dd>{job.salary}</dd></div><div><dt>经验</dt><dd>{job.experience}</dd></div><div><dt>学历</dt><dd>{job.education}</dd></div><div><dt>来源</dt><dd>{job.source}</dd></div><div><dt>匹配度</dt><dd>{job.match ? `${job.match}%` : "待分析"}</dd></div></dl><button className="secondary-button" onClick={() => void prepare(job)}>打开投递页</button></article>)}</div></section></div>}
+    {preferenceOpen && <JobPreferenceDialog preferences={preferences} notify={notify} onClose={() => setPreferenceOpen(false)} onSaved={(next) => { onPreferencesUpdated(next); setPreferenceOpen(false); setPageNumber(1); notify("求职偏好已保存"); }} />}
+    </>}
   </div>;
+}
+
+function splitPreferenceInput(value: string) {
+  return [...new Set(value.split(/[,，、\n]/).map((item) => item.trim()).filter(Boolean))].slice(0, 12);
+}
+
+function JobPreferenceDialog({ preferences, notify, onClose, onSaved }: { preferences: JobPreferences; notify: (text: string) => void; onClose: () => void; onSaved: (preferences: JobPreferences) => void }) {
+  const [graduationYear, setGraduationYear] = useState(preferences.graduationYear);
+  const [roleKeywords, setRoleKeywords] = useState(preferences.roleKeywords.join("、"));
+  const [cities, setCities] = useState(preferences.cities.join("、"));
+  const [focusCompanies, setFocusCompanies] = useState(preferences.focusCompanies.join("、"));
+  const [excludedKeywords, setExcludedKeywords] = useState(preferences.excludedKeywords.join("、"));
+  const [recruitmentTypes, setRecruitmentTypes] = useState(preferences.recruitmentTypes);
+  const [saving, setSaving] = useState(false);
+
+  function toggleRecruitmentType(value: "graduate" | "internship") {
+    setRecruitmentTypes((current) => current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
+  }
+
+  async function save(event: FormEvent) {
+    event.preventDefault();
+    if (graduationYear && !/^20\d{2}$/.test(graduationYear)) return notify("届别请填写四位年份，例如 2027");
+    const next: JobPreferences = {
+      graduationYear,
+      roleKeywords: splitPreferenceInput(roleKeywords),
+      cities: splitPreferenceInput(cities),
+      recruitmentTypes,
+      focusCompanies: splitPreferenceInput(focusCompanies),
+      excludedKeywords: splitPreferenceInput(excludedKeywords),
+    };
+    if (isDemoMode) return onSaved(next);
+    setSaving(true);
+    try {
+      const response = await fetch("/api/account", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ jobPreferences: next }) });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "求职偏好保存失败");
+      onSaved(payload.jobPreferences as JobPreferences);
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "求职偏好保存失败");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return <div className="modal-backdrop"><section className="job-preference-dialog" role="dialog" aria-modal="true" aria-labelledby="job-preference-title">
+    <button className="modal-x" type="button" onClick={onClose} aria-label="关闭求职偏好"><X /></button>
+    <span className="preference-dialog-icon"><Target size={20} /></span><p className="eyebrow">职位库筛选</p><h3 id="job-preference-title">设置我的求职偏好</h3><p className="dialog-copy">填写你真正关心的条件。未填写的项目不会限制结果，偏好分也不会替代简历匹配分析。</p>
+    <form onSubmit={save} className="preference-form">
+      <label><span>毕业届别</span><input inputMode="numeric" maxLength={4} placeholder="例如 2027" value={graduationYear} onChange={(event) => setGraduationYear(event.target.value.replace(/\D/g, ""))} /></label>
+      <label className="wide"><span>岗位方向</span><input placeholder="产品、数据分析、运营（用逗号分隔）" value={roleKeywords} onChange={(event) => setRoleKeywords(event.target.value)} /></label>
+      <label><span>意向城市</span><input placeholder="深圳、香港" value={cities} onChange={(event) => setCities(event.target.value)} /></label>
+      <label><span>关注公司</span><input placeholder="腾讯、字节跳动" value={focusCompanies} onChange={(event) => setFocusCompanies(event.target.value)} /></label>
+      <fieldset className="wide"><legend>招聘类型</legend><button type="button" aria-pressed={recruitmentTypes.includes("graduate")} onClick={() => toggleRecruitmentType("graduate")}>应届生 / 校招</button><button type="button" aria-pressed={recruitmentTypes.includes("internship")} onClick={() => toggleRecruitmentType("internship")}>实习</button></fieldset>
+      <label className="wide"><span>排除关键词</span><input placeholder="例如 销售、电话邀约、纯佣金" value={excludedKeywords} onChange={(event) => setExcludedKeywords(event.target.value)} /><small>命中这些词的岗位不会进入“符合我的偏好”。</small></label>
+      <div className="preference-actions wide"><button type="button" onClick={() => { setGraduationYear(""); setRoleKeywords(""); setCities(""); setFocusCompanies(""); setExcludedKeywords(""); setRecruitmentTypes([]); }}>清空</button><button type="submit" className="primary-button" disabled={saving}><Save size={16} />{saving ? "保存中…" : "保存偏好"}</button></div>
+    </form>
+  </section></div>;
 }
 
 function ResumesPage({ suggestions, setSuggestions, notify }: { suggestions: Suggestion[]; setSuggestions: (s: Suggestion[]) => void; notify: (text: string) => void }) {
@@ -790,6 +901,9 @@ function ProgressPage({ jobs, refreshJobs, notify, onOpenMailSettings }: { jobs:
     { key: "rejected", label: "已拒绝", tone: "coral" }, { key: "closed", label: "已结束", tone: "blue" },
   ];
   const [busyId, setBusyId] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<Job | null>(null);
+  const [hiddenDemoJobIds, setHiddenDemoJobIds] = useState<string[]>([]);
+  const visibleJobs = isDemoMode ? jobs.filter((job) => !hiddenDemoJobIds.includes(job.id)) : jobs;
   async function confirm(job: Job) {
     if (!job.applicationId) return notify("找不到投递记录，请从职位库重新打开投递页面");
     setBusyId(job.id);
@@ -827,10 +941,31 @@ function ProgressPage({ jobs, refreshJobs, notify, onOpenMailSettings }: { jobs:
       setBusyId("");
     }
   }
+  async function deleteApplication() {
+    if (!pendingDelete?.applicationId) return notify("找不到这条投递记录");
+    setBusyId(pendingDelete.id);
+    try {
+      if (isDemoMode) {
+        setHiddenDemoJobIds((current) => [...current, pendingDelete.id]);
+      } else {
+        const response = await fetch(`/api/applications/${pendingDelete.applicationId}`, { method: "DELETE" });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.error || "无法删除投递记录");
+        await refreshJobs();
+      }
+      setPendingDelete(null);
+      notify("投递记录已从看板删除");
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "无法删除投递记录");
+    } finally {
+      setBusyId("");
+    }
+  }
   return <div className="page-stack">
     <section className="page-intro"><div><p className="eyebrow">求职进度</p><h2>下一步，总是清清楚楚</h2><span>邮件进展会先生成建议，确认后才改变申请状态。</span></div><button className="secondary-button" onClick={onOpenMailSettings}><Inbox size={17} />绑定邮箱</button></section>
-    <div className="progress-stats"><div><span className="stat-icon coral"><ArrowUpRight /></span><p><strong>{confirmedApplicationCount(jobs)}</strong><small>已确认投递</small></p><em>不含准备投递</em></div><div><span className="stat-icon sage"><CalendarDays /></span><p><strong>{jobs.filter((job) => job.status === "interview").length}</strong><small>进行中面试</small></p><em>来自真实记录</em></div><div><span className="stat-icon apricot"><ClipboardCheck /></span><p><strong>{jobs.filter((job) => job.status === "preparing").length}</strong><small>待确认投递</small></p><em>返回后确认结果</em></div><div><span className="stat-icon blue"><Target /></span><p><strong>{jobs.length ? Math.round(jobs.filter((job) => job.status === "interview" || job.status === "offer").length / Math.max(confirmedApplicationCount(jobs), 1) * 100) : 0}%</strong><small>面试转化率</small></p><em>按已确认投递计算</em></div></div>
-    <section className="kanban-wrap"><div className="kanban-toolbar"><h3>申请看板</h3><span><small>每次变化都会写入不可覆盖的时间线</small></span></div><div className="kanban">{columns.map((col) => { const items = jobs.filter((job) => job.status === col.key); return <div className="kanban-column" key={col.key}><header><span><i className={col.tone} />{col.label}</span><b>{items.length}</b></header>{items.length === 0 ? <div className="empty-column"><span>这里还没有职位</span></div> : items.map((job) => <article className="kanban-card" key={job.id}><div><span className="company-logo">{job.company.slice(0, 1)}</span><span className="event-count">{job.events?.length || 0} 条记录</span></div><h4>{job.title}</h4><p>{job.company} · {job.location}</p><span className="kanban-tags"><i>{job.source}</i><i>{job.match}% 匹配</i></span>{job.status === "preparing" && <button className="confirm-button" disabled={busyId === job.id} onClick={() => confirm(job)}>确认已投递</button>}{job.status && job.applicationId && <label className="status-select"><span>更新阶段</span><select aria-label={`${job.company} ${job.title} 求职阶段`} disabled={busyId === job.id} value={job.status} onChange={(event) => void changeStatus(job, event.target.value as Job["status"])}>{applicationStatuses.filter((status) => canTransition(job.status!, status)).map((status) => <option key={status} value={status}>{statusLabel(status)}</option>)}</select></label>}<footer><Clock3 size={13} />{job.events?.[0] ? `${new Date(job.events[0].createdAt).toLocaleString("zh-CN")} · ${statusLabel(job.events[0].toStatus)}` : job.publishedAt + "更新"}</footer></article>)}</div>; })}</div></section>
+    <div className="progress-stats"><div><span className="stat-icon coral"><ArrowUpRight /></span><p><strong>{confirmedApplicationCount(visibleJobs)}</strong><small>已确认投递</small></p><em>不含准备投递</em></div><div><span className="stat-icon sage"><CalendarDays /></span><p><strong>{visibleJobs.filter((job) => job.status === "interview").length}</strong><small>进行中面试</small></p><em>来自真实记录</em></div><div><span className="stat-icon apricot"><ClipboardCheck /></span><p><strong>{visibleJobs.filter((job) => job.status === "preparing").length}</strong><small>待确认投递</small></p><em>返回后确认结果</em></div><div><span className="stat-icon blue"><Target /></span><p><strong>{visibleJobs.length ? Math.round(visibleJobs.filter((job) => job.status === "interview" || job.status === "offer").length / Math.max(confirmedApplicationCount(visibleJobs), 1) * 100) : 0}%</strong><small>面试转化率</small></p><em>按已确认投递计算</em></div></div>
+    <section className="kanban-wrap"><div className="kanban-toolbar"><h3>申请看板</h3><span><small>每次变化都会写入不可覆盖的时间线</small></span></div><div className="kanban">{columns.map((col) => { const items = visibleJobs.filter((job) => job.status === col.key); return <div className="kanban-column" key={col.key}><header><span><i className={col.tone} />{col.label}</span><b>{items.length}</b></header>{items.length === 0 ? <div className="empty-column"><span>这里还没有职位</span></div> : items.map((job) => <article className="kanban-card" key={job.id}><div className="kanban-card-head"><span className="company-logo">{job.company.slice(0, 1)}</span><span className="kanban-card-actions"><span className="event-count">{job.events?.length || 0} 条记录</span><button className="kanban-delete" type="button" disabled={busyId === job.id} aria-label={`删除 ${job.company} ${job.title} 的投递记录`} title="删除投递记录" onClick={() => setPendingDelete(job)}><Trash2 size={14} /></button></span></div><h4>{job.title}</h4><p>{job.company} · {job.location}</p><span className="kanban-tags"><i>{job.source}</i><i>{job.match}% 匹配</i></span>{job.status === "preparing" && <button className="confirm-button" disabled={busyId === job.id} onClick={() => confirm(job)}>确认已投递</button>}{job.status && job.applicationId && <label className="status-select"><span>更新阶段</span><select aria-label={`${job.company} ${job.title} 求职阶段`} disabled={busyId === job.id} value={job.status} onChange={(event) => void changeStatus(job, event.target.value as Job["status"])}>{applicationStatuses.filter((status) => canTransition(job.status!, status)).map((status) => <option key={status} value={status}>{statusLabel(status)}</option>)}</select></label>}<footer><Clock3 size={13} />{job.events?.[0] ? `${new Date(job.events[0].createdAt).toLocaleString("zh-CN")} · ${statusLabel(job.events[0].toStatus)}` : job.publishedAt + "更新"}</footer></article>)}</div>; })}</div></section>
+    {pendingDelete && <div className="modal-backdrop"><section className="application-confirm delete-application-confirm" role="dialog" aria-modal="true" aria-labelledby="delete-application-title"><button className="modal-x" onClick={() => setPendingDelete(null)} aria-label="关闭"><X /></button><span className="delete-confirm-icon"><Trash2 /></span><p className="eyebrow">删除投递记录</p><h3 id="delete-application-title">{pendingDelete.company} · {pendingDelete.title}</h3><p>删除后，这条申请会从看板、投递统计和进度列表中隐藏。以后重新投递该岗位时可以再次恢复。</p><div className="delete-application-actions"><button onClick={() => setPendingDelete(null)}>返回</button><button className="danger-button" disabled={busyId === pendingDelete.id} onClick={() => void deleteApplication()}>{busyId === pendingDelete.id ? "删除中…" : "确认删除"}</button></div></section></div>}
   </div>;
 }
 

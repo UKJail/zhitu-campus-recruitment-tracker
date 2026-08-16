@@ -69,7 +69,23 @@ describe("POST /api/auth/sign-in", () => {
     const body = await response.json();
 
     expect(response.status).toBe(401);
-    expect(body).toEqual({ error: "登录信息无效或已过期", code: "missing_session" });
+    expect(body).toEqual({ error: "认证服务未返回登录会话，请重新尝试", code: "missing_session" });
+  });
+
+  it("reports an unreachable auth provider instead of blaming credentials", async () => {
+    authMocks.signInWithPassword.mockResolvedValue({
+      data: { session: null },
+      error: { name: "AuthRetryableFetchError", message: "fetch failed", status: 0 },
+    });
+
+    const response = await POST(request({ method: "password", email: "user@example.com", password: "secret" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(body).toEqual({
+      error: "无法连接认证服务，请检查本地开发服务器网络后重试",
+      code: "auth_service_unreachable",
+    });
   });
 
   it("returns a safe, actionable message for invalid credentials", async () => {
