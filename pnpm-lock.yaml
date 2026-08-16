@@ -9,68 +9,68 @@ importers:
   .:
     dependencies:
       '@supabase/ssr':
-        specifier: latest
+        specifier: 0.12.4
         version: 0.12.4(@supabase/supabase-js@2.112.3)
       '@supabase/supabase-js':
-        specifier: latest
+        specifier: 2.112.3
         version: 2.112.3
       clsx:
-        specifier: latest
+        specifier: 2.1.1
         version: 2.1.1
       jszip:
         specifier: 3.10.1
         version: 3.10.1
       lucide-react:
-        specifier: latest
+        specifier: 1.31.0
         version: 1.31.0(react@19.2.8)
       mammoth:
         specifier: 1.12.1
         version: 1.12.1
       next:
-        specifier: latest
+        specifier: 16.3.0
         version: 16.3.0(@babel/core@7.29.7(supports-color@7.2.0))(@types/node@26.2.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       pdf-parse:
         specifier: 2.4.5
         version: 2.4.5
       react:
-        specifier: latest
+        specifier: 19.2.8
         version: 19.2.8
       react-dom:
-        specifier: latest
+        specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
       resend:
         specifier: 6.19.0
         version: 6.19.0
       zod:
-        specifier: latest
+        specifier: 4.4.3
         version: 4.4.3
     devDependencies:
       '@testing-library/react':
-        specifier: latest
+        specifier: 16.3.2
         version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@types/node':
-        specifier: latest
+        specifier: 26.2.0
         version: 26.2.0
       '@types/react':
-        specifier: latest
+        specifier: 19.2.18
         version: 19.2.18
       '@types/react-dom':
-        specifier: latest
+        specifier: 19.2.4
         version: 19.2.4(@types/react@19.2.18)
       eslint:
         specifier: ~9.39.1
         version: 9.39.5(supports-color@7.2.0)
       eslint-config-next:
-        specifier: latest
+        specifier: 16.3.0
         version: 16.3.0(@typescript-eslint/parser@8.67.0(eslint@9.39.5(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3))(eslint@9.39.5(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3)
       jsdom:
-        specifier: latest
+        specifier: 30.0.1
         version: 30.0.1
       typescript:
         specifier: ~5.9.3
         version: 5.9.3
       vitest:
-        specifier: latest
+        specifier: 4.1.10
         version: 4.1.10(@types/node@26.2.0)(jsdom@30.0.1)(vite@8.2.1(@types/node@26.2.0))
 
 packages:
