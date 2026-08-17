@@ -11,6 +11,8 @@ type ResetPasswordProps = {
   recoveryAuthorized: boolean;
 };
 
+const SHOW_AUTH_BRAND_LOGO = false;
+
 export function ResetPassword({ recoveryAuthorized }: ResetPasswordProps) {
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
@@ -48,10 +50,10 @@ export function ResetPassword({ recoveryAuthorized }: ResetPasswordProps) {
 
   return <main className="login-page">
     <section className="login-story">
-      <div className="brand brand-large">
+      {SHOW_AUTH_BRAND_LOGO && <div className="brand brand-large">
         <BrandMascot />
         <span className="login-brand-lockup"><strong>职途<em>tracker</em></strong><small>一个一站式求职助手网站。</small></span>
-      </div>
+      </div>}
       <div className="story-copy"><p className="eyebrow">密码更新后，所有求职记录保持不变</p><h1>重新拿好钥匙，<br />继续走下一步。</h1><p className="story-lead">你的简历、岗位收藏、投递进度和面试记录不会因为修改密码而改变。</p><div className="route-preview" aria-hidden="true"><span><FileSearch size={17} /> 简历</span><i /><span><Sparkles size={17} /> 匹配</span><i /><span><Mail size={17} /> 面试</span><i /><span><Check size={17} /> Offer</span></div></div>
       <p className="login-note">安全重置 · 链接仅可在有效期内使用</p>
     </section>

@@ -44,7 +44,7 @@ export type OfferstarCatalogQuery = {
   company?: string;
   recruitmentType?: "all" | "graduate" | "internship";
   savedOnly?: boolean;
-  sort?: "match" | "published" | "company";
+  sort?: "offerstar" | "match" | "published" | "company";
   page?: number;
   pageSize?: number;
   preferredOnly?: boolean;
@@ -73,6 +73,10 @@ function recruitmentType(record: OfferstarRecord) {
   return record.recruitmentType === "实习" ? "internship" : "graduate";
 }
 
+function inferBatchFromTitle(title: string) {
+  return title.match(/20\d{2}\s*届/)?.[0].replace(/\s+/g, "") || "";
+}
+
 export function offerstarRecordToJob(record: OfferstarRecord, interaction: OfferstarInteraction = {}): Job {
   const tags = [record.recruitmentType === "实习" ? "实习" : "校招", record.industry, record.category].filter(Boolean);
   return {
@@ -98,6 +102,11 @@ export function offerstarRecordToJob(record: OfferstarRecord, interaction: Offer
     discovery: true,
     deadline: record.deadline || undefined,
     industry: record.industry || undefined,
+    batch: record.offerstarType || inferBatchFromTitle(record.title) || record.category || (record.recruitmentType === "实习" ? "实习" : "校招"),
+    role: record.position || undefined,
+    category: record.category || undefined,
+    postDate: record.postDate || undefined,
+    recruitmentTypeLabel: record.recruitmentType || undefined,
   };
 }
 
@@ -121,16 +130,8 @@ export function searchOfferstarRecords(records: OfferstarRecord[], input: Offers
     if (input.preferredOnly && input.preferences && hasJobPreferences(input.preferences) && !preferenceMatchFor(record).eligible) return false;
     return true;
   });
-  const secondarySort = (a: OfferstarRecord, b: OfferstarRecord) => {
-    if (input.sort === "company") return a.company.localeCompare(b.company, "zh-CN");
-    if (input.sort === "published") return b.postDate.localeCompare(a.postDate, "zh-CN");
-    return 0;
-  };
-  if (input.preferredOnly && input.preferences && hasJobPreferences(input.preferences)) {
-    filtered.sort((a, b) => preferenceMatchFor(b).score - preferenceMatchFor(a).score || secondarySort(a, b));
-  } else if (input.sort === "company" || input.sort === "published") {
-    filtered.sort(secondarySort);
-  }
+  // records 的数组顺序就是 WorkBuddy 按 OfferStar 页面采集到的默认顺序。
+  // 不按 postDate/公司/偏好分二次排序，避免把跨年的 12-31 等页面日期误判为最新岗位。
   const pageSize = Math.min(50, Math.max(1, input.pageSize || 10));
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const page = Math.min(pageCount, Math.max(1, input.page || 1));

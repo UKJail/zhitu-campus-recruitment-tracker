@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
+const SHOW_AUTH_BRAND_LOGO = false;
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -137,10 +139,10 @@ export default function LoginPage() {
 
   return <main className="login-page">
     <section className="login-story">
-      <div className="brand brand-large">
+      {SHOW_AUTH_BRAND_LOGO && <div className="brand brand-large">
         <BrandMascot />
         <span className="login-brand-lockup"><strong>职途<em>tracker</em></strong><small>一个一站式求职助手网站。</small></span>
-      </div>
+      </div>}
       <div className="story-copy"><p className="eyebrow">你的求职旅程，不再散落各处</p><h1>把每一次尝试，<br />都变成下一步的方向。</h1><p className="story-lead">从简历优化、职位发现到面试复盘，职途陪你把复杂的求职过程整理成一条清晰的路。</p><div className="route-preview" aria-hidden="true"><span><FileSearch size={17} /> 简历</span><i /><span><Sparkles size={17} /> 匹配</span><i /><span><Mail size={17} /> 面试</span><i /><span><Check size={17} /> Offer</span></div></div>
       <p className="login-note">邀请制内测 · 你的数据只属于你</p>
     </section>

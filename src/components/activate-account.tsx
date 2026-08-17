@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
+const SHOW_AUTH_BRAND_LOGO = false;
+
 export function ActivateAccount({ token }: { token: string }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -48,7 +50,7 @@ export function ActivateAccount({ token }: { token: string }) {
 
   return <main className="login-page">
     <section className="login-story">
-      <div className="brand brand-large"><BrandMascot /><span>职途<em>tracker</em></span></div>
+      {SHOW_AUTH_BRAND_LOGO && <div className="brand brand-large"><BrandMascot /><span>职途<em>tracker</em></span></div>}
       <div className="story-copy"><p className="eyebrow">接受邀请，开始整理你的求职旅程</p><h1>设置一个密码，<br />下一次回来更简单。</h1><p className="story-lead">激活链接只用于确认管理员邀请。设置完成后，你将使用受邀邮箱和密码登录，不需要等待邮件验证码。</p><div className="route-preview" aria-hidden="true"><span><FileSearch size={17} /> 简历</span><i /><span><Sparkles size={17} /> 匹配</span><i /><span><Mail size={17} /> 面试</span><i /><span><Check size={17} /> Offer</span></div></div>
       <p className="login-note">邀请制内测 · 激活链接仅可使用一次</p>
     </section>

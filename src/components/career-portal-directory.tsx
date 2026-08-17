@@ -41,7 +41,7 @@ export function CareerPortalDirectory({ notify }: { notify: (message: string) =>
 
   return <>
     <section className="portal-directory-intro">
-      <div><p className="eyebrow">企业校招入口</p><h3>从官网开始找机会</h3><span>收录 {portals.length || 690} 家企业的官方招聘入口。具体岗位请以企业官网实时信息为准。</span></div>
+      <div><p className="eyebrow">企业校招入口</p><h3>从官网开始找机会</h3><span>收录 {portals.length || 690} 家企业的官方招聘入口。具体岗位请以企业官网实时信息为准；若企业官网链接失效，可自行搜索企业名称并前往官方渠道投递。</span></div>
       <span className="portal-directory-mark"><Building2 size={20} /></span>
     </section>
     <section className="portal-filter-card">

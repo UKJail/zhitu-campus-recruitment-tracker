@@ -70,23 +70,33 @@ describe("OfferStar catalog", () => {
     expect(result.records[0].externalId).toBe("offerstar-1");
   });
 
-  it("keeps preference score first when the visible sort uses page date", () => {
+  it("preserves OfferStar source order instead of sorting by page date", () => {
+    const result = catalog.searchOfferstarRecords(records, { page: 1, pageSize: 10, sort: "published" });
+    expect(result.records.map((item) => item.externalId)).toEqual(["offerstar-1", "offerstar-2", "offerstar-3", "offerstar-4"]);
+  });
+
+  it("filters preferences without reordering OfferStar source order", () => {
     const result = catalog.searchOfferstarRecords(records, {
       preferredOnly: true,
       preferences: {
         graduationYear: "",
         roleKeywords: [],
-        cities: [],
+        cities: ["北京"],
         recruitmentTypes: [],
-        focusCompanies: ["丙公司"],
+        focusCompanies: [],
         excludedKeywords: [],
       },
       page: 1,
       pageSize: 10,
-      sort: "published",
+      sort: "match",
     });
-    expect(result.records[0].externalId).toBe("offerstar-3");
-    expect(result.records[1].externalId).toBe("offerstar-1");
+    expect(result.records.map((item) => item.externalId)).toEqual(["offerstar-2", "offerstar-3"]);
+  });
+
+  it("infers a missing batch from the OfferStar title but does not fabricate a role", () => {
+    const job = catalog.offerstarRecordToJob({ ...records[1], title: "2027届校园招聘正式启动", offerstarType: "", position: "" });
+    expect(job.batch).toBe("2027届");
+    expect(job.role).toBeUndefined();
   });
 
   it("offers frequently occurring catalog companies as preference suggestions", () => {

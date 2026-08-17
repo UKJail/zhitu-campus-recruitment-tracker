@@ -37,6 +37,12 @@ C:\Users\k'k\WorkBuddy\zhitu-career-jobs\
 
 若岗位总数相较上周下降超过 5%，或必填字段缺失、来源 ID 重复、URL 非法，则本次任务标记失败，不覆盖 `latest`。
 
+## OfferStar 页面顺序要求
+
+`offerstar-to-zhitu.json` 的数组顺序必须严格保留 OfferStar 页面默认顺序。不要按 `postDate`、公司名称、岗位名称、偏好分或本地解析日期重新排序。
+
+原因：OfferStar 的 `postDate` 是页面展示字段，可能出现跨年日期，例如 `12-31` 实际属于上一年。如果二次排序，会把旧岗位错误排到最前。职途会直接按 JSON 数组顺序展示岗位。
+
 ## OfferStar 文件契约
 
 `offerstar-to-zhitu.json` 必须为 JSON 数组，每项至少包含：
@@ -58,6 +64,23 @@ C:\Users\k'k\WorkBuddy\zhitu-career-jobs\
 ```
 
 没有 JD 属于允许状态。不要用标题或通用文案伪造 description。
+
+职途岗位列表要严格显示以下 10 列。WorkBuddy 每周采集也必须尽量提供对应字段：
+
+| 职途列名 | JSON 字段 | 规则 |
+| --- | --- | --- |
+| 公司名称 | `company` | 必填，来自 OfferStar 页面 |
+| 标题 | `title` | 必填，来自 OfferStar 页面 |
+| 批次 | `offerstarType` | 优先采集页面批次；如页面没有，可从标题里的 `2027届` 等明确文字提取；不要猜测 |
+| 更新时间 | `postDate` | 页面原样展示字段，仅展示，不用于排序 |
+| 招聘岗位 | `position` | 优先采集页面“招聘岗位”列；没有就留空并在报告中提示，不用标题伪造 |
+| 工作地点 | `location` | 中文城市或“地点请查看原文” |
+| 行业 | `industry` | 页面行业；无法确认可为空 |
+| 招聘类型 | `recruitmentType` | `应届生`、`实习` 或 `其他` |
+| 截止时间 | `deadline` | 页面截止时间；无法确认时保留“尽快投递”或空值 |
+| 操作 | `applyUrl` | http(s) 详情或投递链接，必填 |
+
+报告必须输出上述字段覆盖率。如果 `position`、`offerstarType` 等字段覆盖率下降，要在 `displayContractWarnings` 里明确写出，不能静默覆盖旧 `latest`。
 
 `offerstar-run-summary.json` 至少记录：运行时间、源记录数、有效数、重复数、拒绝数、与上周相比新增/消失/变化数量、失败来源和错误摘要。
 

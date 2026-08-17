@@ -1,17 +1,92 @@
 {
   "source": "offerstar",
   "sourcePath": "C:\\Users\\k'k\\WorkBuddy\\zhitu-career-jobs\\latest\\offerstar-to-zhitu.json",
-  "syncedAt": "2026-08-16T20:11:50.770Z",
+  "syncedAt": "2026-08-17T13:29:25.469Z",
   "dryRun": false,
-  "received": 20479,
-  "accepted": 20479,
+  "received": 20544,
+  "accepted": 20544,
   "duplicates": 0,
   "rejected": 0,
-  "wechatApplyUrls": 18475,
+  "wechatApplyUrls": 18530,
   "byRecruitmentType": {
     "其他": 9,
-    "实习": 262,
-    "应届生": 20208
+    "实习": 264,
+    "校招": 20271
   },
+  "fieldCoverage": [
+    {
+      "label": "公司名称",
+      "key": "company",
+      "filled": 20544,
+      "total": 20544,
+      "coverage": 1
+    },
+    {
+      "label": "标题",
+      "key": "title",
+      "filled": 20544,
+      "total": 20544,
+      "coverage": 1
+    },
+    {
+      "label": "批次",
+      "key": "offerstarType",
+      "filled": 20544,
+      "total": 20544,
+      "coverage": 1
+    },
+    {
+      "label": "更新时间",
+      "key": "postDate",
+      "filled": 20544,
+      "total": 20544,
+      "coverage": 1
+    },
+    {
+      "label": "招聘岗位",
+      "key": "position",
+      "filled": 20521,
+      "total": 20544,
+      "coverage": 0.9989
+    },
+    {
+      "label": "工作地点",
+      "key": "location",
+      "filled": 20544,
+      "total": 20544,
+      "coverage": 1
+    },
+    {
+      "label": "行业",
+      "key": "industry",
+      "filled": 20544,
+      "total": 20544,
+      "coverage": 1
+    },
+    {
+      "label": "招聘类型",
+      "key": "recruitmentType",
+      "filled": 20544,
+      "total": 20544,
+      "coverage": 1
+    },
+    {
+      "label": "截止时间",
+      "key": "deadline",
+      "filled": 20544,
+      "total": 20544,
+      "coverage": 1
+    },
+    {
+      "label": "操作链接",
+      "key": "applyUrl",
+      "filled": 20544,
+      "total": 20544,
+      "coverage": 1
+    }
+  ],
+  "displayContractWarnings": [
+    "招聘岗位(position) 覆盖 20521/20544"
+  ],
   "rejectedSamples": []
 }

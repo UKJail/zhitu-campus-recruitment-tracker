@@ -32,6 +32,11 @@ export type Job = {
   discovery?: boolean;
   deadline?: string;
   industry?: string;
+  batch?: string;
+  role?: string;
+  category?: string;
+  postDate?: string;
+  recruitmentTypeLabel?: string;
 };
 
 export type ApplicationEvent = {

@@ -46,6 +46,35 @@ function isWechatUrl(value) {
   }
 }
 
+function inferBatchFromTitle(title) {
+  return title.match(/20\d{2}\s*届/)?.[0]?.replace(/\s+/g, "") || "";
+}
+
+function fieldCoverage(records) {
+  const displayFields = [
+    ["公司名称", "company"],
+    ["标题", "title"],
+    ["批次", "offerstarType"],
+    ["更新时间", "postDate"],
+    ["招聘岗位", "position"],
+    ["工作地点", "location"],
+    ["行业", "industry"],
+    ["招聘类型", "recruitmentType"],
+    ["截止时间", "deadline"],
+    ["操作链接", "applyUrl"],
+  ];
+  return displayFields.map(([label, key]) => {
+    const filled = records.filter((record) => text(record[key])).length;
+    return {
+      label,
+      key,
+      filled,
+      total: records.length,
+      coverage: records.length ? Number((filled / records.length).toFixed(4)) : 0,
+    };
+  });
+}
+
 const raw = JSON.parse(await readFile(sourcePath, "utf8"));
 if (!Array.isArray(raw)) throw new Error("OfferStar 交付文件必须是 JSON 数组");
 
@@ -72,6 +101,7 @@ for (const [index, item] of raw.entries()) {
   const rawData = item?.rawData && typeof item.rawData === "object" ? item.rawData : {};
   const recruitmentType = firstText(item?.recruitmentType, rawData.zhituRecruitmentType) || "其他";
   const industry = firstText(item?.industry, rawData.industry) || "其他";
+  const offerstarType = firstText(item?.offerstarType, rawData.offerstarType, inferBatchFromTitle(title));
   records.push({
     externalId,
     company,
@@ -82,7 +112,7 @@ for (const [index, item] of raw.entries()) {
     normalizedUrl: text(item?.normalizedUrl) || applyUrl,
     businessFingerprint: businessFingerprint(company, title, location),
     recruitmentType,
-    offerstarType: firstText(item?.offerstarType, rawData.offerstarType),
+    offerstarType,
     position: firstText(item?.position, rawData.position),
     industry,
     category: firstText(item?.category, rawData.category),
@@ -113,6 +143,10 @@ const report = {
     counts[item.recruitmentType] = (counts[item.recruitmentType] || 0) + 1;
     return counts;
   }, {})).sort(([a], [b]) => a.localeCompare(b, "zh-CN"))),
+  fieldCoverage: fieldCoverage(records),
+  displayContractWarnings: fieldCoverage(records)
+    .filter((item) => item.filled < item.total)
+    .map((item) => `${item.label}(${item.key}) 覆盖 ${item.filled}/${item.total}`),
   rejectedSamples: rejected.slice(0, 20),
 };
 

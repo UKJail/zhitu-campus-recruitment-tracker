@@ -420,7 +420,6 @@ function JobsPage({ refreshActivity, notify, preferences, onPreferencesUpdated }
   const [company, setCompany] = useState("");
   const [education, setEducation] = useState("全部学历");
   const [recruitmentType, setRecruitmentType] = useState<"all" | "graduate" | "internship">("all");
-  const [sortBy, setSortBy] = useState<"published" | "company">("published");
   const [pageNumber, setPageNumber] = useState(1);
   const [savedOnly, setSavedOnly] = useState(false);
   const [preferredOnly, setPreferredOnly] = useState(false);
@@ -432,7 +431,7 @@ function JobsPage({ refreshActivity, notify, preferences, onPreferencesUpdated }
   const loadCatalog = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ scope: "catalog", page: String(pageNumber), pageSize: "10", recruitmentType, savedOnly: String(savedOnly), sort: sortBy });
+      const params = new URLSearchParams({ scope: "catalog", page: String(pageNumber), pageSize: "10", recruitmentType, savedOnly: String(savedOnly) });
       if (query.trim()) params.set("query", query.trim());
       if (city !== "全部城市") params.set("city", city);
       if (company.trim()) params.set("company", company.trim());
@@ -455,7 +454,7 @@ function JobsPage({ refreshActivity, notify, preferences, onPreferencesUpdated }
     } finally {
       setLoading(false);
     }
-  }, [city, company, notify, pageNumber, preferences, preferredOnly, query, recruitmentType, savedOnly, sortBy]);
+  }, [city, company, notify, pageNumber, preferences, preferredOnly, query, recruitmentType, savedOnly]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void loadCatalog(); }, query || company ? 260 : 0);
@@ -541,7 +540,7 @@ function JobsPage({ refreshActivity, notify, preferences, onPreferencesUpdated }
     {view === "portals" ? <CareerPortalDirectory notify={notify} /> : <>
     <section className="preference-strip">
       <span className="preference-orbit"><Target size={18} /></span>
-      <div><p className="eyebrow">我的求职偏好</p><strong>{hasJobPreferences(preferences) ? [preferences.roleKeywords.slice(0, 2).join(" / "), preferences.cities.slice(0, 2).join(" / "), preferences.graduationYear ? `${preferences.graduationYear} 届` : ""].filter(Boolean).join(" · ") || "已设置偏好" : "先告诉职途你想找什么"}</strong><small>{hasJobPreferences(preferences) ? "偏好只用于筛选与排序，不会改变简历匹配分。" : "设置岗位方向、城市和届别，职位库会优先呈现更合适的机会。"}</small></div>
+      <div><p className="eyebrow">我的求职偏好</p><strong>{hasJobPreferences(preferences) ? [preferences.roleKeywords.slice(0, 2).join(" / "), preferences.cities.slice(0, 2).join(" / "), preferences.graduationYear ? `${preferences.graduationYear} 届` : ""].filter(Boolean).join(" · ") || "已设置偏好" : "先告诉职途你想找什么"}</strong><small>{hasJobPreferences(preferences) ? "偏好只用于筛选与识别，不改变 OfferStar 原始顺序。" : "设置岗位方向、城市和届别，职位库会帮你识别更合适的机会。"}</small></div>
       <button type="button" className="preference-edit" onClick={() => setPreferenceOpen(true)}><PenLine size={15} />{hasJobPreferences(preferences) ? "调整偏好" : "设置偏好"}</button>
     </section>
     <section className="filter-card">
@@ -556,15 +555,20 @@ function JobsPage({ refreshActivity, notify, preferences, onPreferencesUpdated }
       </div>
     </section>
     <section className="jobs-card">
-      <div className="table-toolbar"><span>共找到 <strong>{catalogMeta.total}</strong> 个职位</span><span>{compare.length > 0 && <button className="compare-button" onClick={() => setCompareOpen(true)}>比较职位 ({compare.length})</button>}<label className="sort-control"><select aria-label="职位排序" value={sortBy} onChange={(event) => { setSortBy(event.target.value as typeof sortBy); setPageNumber(1); }}><option value="published">页面日期优先</option><option value="company">公司名称排序</option></select><ChevronDown size={14} /></label></span></div>
-      <div className="job-table" role="table">
-        <div className="job-table-head" role="row"><span>职位与公司</span><span>职位要求</span><span>发布时间</span><span>匹配度</span><span>操作</span></div>
-        {loading ? <div className="jobs-empty"><span className="loading-dot" />正在加载职位…</div> : filtered.length === 0 ? <div className="jobs-empty"><Search size={22} /><strong>没有符合条件的职位</strong><span>调整关键词或筛选条件后再试试。</span></div> : pagedJobs.map((job) => <div className="job-table-row" role="row" key={job.id}>
-          <div className="job-main"><label className="check"><input type="checkbox" checked={compare.includes(job.id)} onChange={() => setCompare(compare.includes(job.id) ? compare.filter((id) => id !== job.id) : [...compare, job.id])} /><span /></label><span className="company-logo big">{job.company.slice(0, 1)}</span><span><strong>{job.title}</strong><small>{job.company} · {job.location}</small><em>{hasJobPreferences(preferences) && preferenceMatches.get(job.id)?.eligible && <i className={`preference-rank rank-${preferenceMatches.get(job.id)?.level.toLowerCase()}`}>{preferenceMatches.get(job.id)?.level} 偏好</i>}{job.tags.slice(0, 2).map((tag) => <i key={tag}>{tag}</i>)}</em></span></div>
-          <div className="requirements"><strong>{job.salary}</strong><span>{job.experience} · {job.education}</span></div>
-          <div className="source-cell"><span>{job.publishedAt}</span></div>
-          <div className={`match-score ${job.match >= 85 ? "high" : ""}`}>{job.match > 0 ? <><strong>{job.match}<small>%</small></strong><span>较匹配</span></> : <><strong>—</strong><span>待分析</span></>}</div>
-          <div className="job-actions"><button className={`save-button ${job.saved ? "saved" : ""}`} aria-label={job.saved ? "取消收藏" : "收藏"} onClick={() => toggleSave(job)}><Bookmark size={17} fill={job.saved ? "currentColor" : "none"} /></button><button className="apply-button" disabled={busyId === job.id} onClick={() => prepare(job)}>{job.status === "preparing" ? "继续投递" : job.status && !["saved", "closed"].includes(job.status) ? "查看岗位" : "去投递"} <ArrowUpRight size={15} /></button></div>
+      <div className="table-toolbar"><span>共找到 <strong>{catalogMeta.total}</strong> 个职位</span>{compare.length > 0 && <button className="compare-button" onClick={() => setCompareOpen(true)}>比较职位 ({compare.length})</button>}</div>
+      <div className="job-table offerstar-job-table" role="table">
+        <div className="job-table-head offerstar-job-table-head" role="row"><span>公司名称</span><span>标题</span><span>批次</span><span>更新时间</span><span>招聘岗位</span><span>工作地点</span><span>行业</span><span>招聘类型</span><span>截止时间</span><span>操作</span></div>
+        {loading ? <div className="jobs-empty"><span className="loading-dot" />正在加载职位…</div> : filtered.length === 0 ? <div className="jobs-empty"><Search size={22} /><strong>没有符合条件的职位</strong><span>调整关键词或筛选条件后再试试。</span></div> : pagedJobs.map((job) => <div className="job-table-row offerstar-job-table-row" role="row" key={job.id}>
+          <div className="offerstar-company-cell"><span className="company-logo big">{job.company.slice(0, 1)}</span><strong>{job.company}</strong></div>
+          <div className="offerstar-title-cell"><strong>{job.title}</strong>{hasJobPreferences(preferences) && preferenceMatches.get(job.id)?.eligible && <i className={`preference-rank rank-${preferenceMatches.get(job.id)?.level.toLowerCase()}`}>{preferenceMatches.get(job.id)?.level} 偏好</i>}</div>
+          <div><span className="offerstar-pill offerstar-pill-green">{offerstarBatchLabel(job)}</span></div>
+          <div className="offerstar-date-cell"><span>{offerstarDateLabel(job)}</span>{offerstarIsNew(job) && <em>new</em>}</div>
+          <div className="offerstar-role-cell">{offerstarRoleLabel(job)}</div>
+          <div className="offerstar-location-cell">{offerstarLocationTags(job.location).map((item) => <span key={item.label} className={item.more ? "offerstar-location-more" : ""}>{item.label}</span>)}</div>
+          <div className="offerstar-industry-cell">{job.industry || job.category || "待确认"}</div>
+          <div><span className="offerstar-pill offerstar-pill-blue">{job.recruitmentTypeLabel || job.tags[0] || "校招"}</span></div>
+          <div className="offerstar-deadline-cell">{offerstarDeadlineLabel(job)}</div>
+          <div className="job-actions offerstar-actions"><button className={`save-button ${job.saved ? "saved" : ""}`} aria-label={job.saved ? "取消收藏" : "收藏"} onClick={() => toggleSave(job)}><Bookmark size={17} fill={job.saved ? "currentColor" : "none"} /></button><button className="apply-button" disabled={busyId === job.id} onClick={() => prepare(job)}>{job.status === "preparing" ? "继续投递" : job.status && !["saved", "closed"].includes(job.status) ? "查看岗位" : "去投递"} <ArrowUpRight size={15} /></button></div>
         </div>)}
       </div>
       {catalogMeta.total > catalogMeta.pageSize && <div className="pagination"><button disabled={visiblePage === 1} onClick={() => setPageNumber((value) => Math.max(1, value - 1))}>上一页</button><span>{visiblePage} / {pageCount}</span><button disabled={visiblePage === pageCount} onClick={() => setPageNumber((value) => Math.min(pageCount, value + 1))}>下一页</button></div>}
@@ -578,6 +582,41 @@ function JobsPage({ refreshActivity, notify, preferences, onPreferencesUpdated }
 
 function splitPreferenceInput(value: string) {
   return [...new Set(value.split(/[,，、\n]/).map((item) => item.trim()).filter(Boolean))].slice(0, 12);
+}
+
+function offerstarBatchLabel(job: Job) {
+  return job.batch || (job.recruitmentTypeLabel === "实习" ? "实习" : "校招");
+}
+
+function offerstarDateLabel(job: Job) {
+  const value = job.postDate || job.publishedAt;
+  const match = value.match(/\d{1,2}-\d{1,2}/);
+  return match?.[0] || value.replace(/\s*更新$/, "") || "待确认";
+}
+
+function offerstarIsNew(job: Job) {
+  const value = offerstarDateLabel(job);
+  const today = new Date();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return value === `${month}-${day}`;
+}
+
+function offerstarRoleLabel(job: Job) {
+  return job.role || job.category || "岗位请查看原文";
+}
+
+function offerstarDeadlineLabel(job: Job) {
+  const value = job.deadline?.trim();
+  if (!value || value === "截止时间未知") return "尽快投递";
+  return value;
+}
+
+function offerstarLocationTags(location: string) {
+  const items = [...new Set(location.split(/[;；,，、/｜|]/).map((item) => item.trim()).filter(Boolean))];
+  const visible = items.slice(0, 2).map((label) => ({ label, more: false }));
+  if (items.length > visible.length) visible.push({ label: `+${items.length - visible.length}`, more: true });
+  return visible.length > 0 ? visible : [{ label: "地点待确认", more: false }];
 }
 
 function JobPreferenceDialog({ preferences, notify, onClose, onSaved }: { preferences: JobPreferences; notify: (text: string) => void; onClose: () => void; onSaved: (preferences: JobPreferences) => void }) {

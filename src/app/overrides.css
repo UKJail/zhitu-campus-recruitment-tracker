@@ -874,3 +874,206 @@
     grid-row: auto;
   }
 }
+
+.offerstar-job-table {
+  overflow-x: auto;
+}
+
+.offerstar-job-table-head,
+.offerstar-job-table-row {
+  min-width: 1180px;
+  grid-template-columns:
+    minmax(108px, 0.72fr)
+    minmax(210px, 1.24fr)
+    76px
+    82px
+    minmax(235px, 1.38fr)
+    minmax(132px, 0.86fr)
+    90px
+    86px
+    92px
+    118px;
+  gap: 14px;
+}
+
+.offerstar-job-table-head {
+  height: 50px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink);
+  background: #fff;
+}
+
+.offerstar-job-table-row {
+  min-height: 104px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  background: #fff;
+}
+
+.offerstar-company-cell,
+.offerstar-title-cell,
+.offerstar-date-cell,
+.offerstar-role-cell,
+.offerstar-location-cell,
+.offerstar-actions {
+  min-width: 0;
+}
+
+.offerstar-company-cell {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  align-items: center;
+  gap: 10px;
+}
+
+.offerstar-company-cell strong,
+.offerstar-title-cell strong {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.offerstar-company-cell strong {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.offerstar-title-cell strong {
+  font-size: 13px;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
+}
+
+.offerstar-title-cell .preference-rank {
+  display: inline-flex;
+  margin-top: 6px;
+  font-style: normal;
+}
+
+.offerstar-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 27px;
+  padding: 0 12px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.offerstar-pill-green {
+  color: #238f72;
+  background: #e8f7f1;
+  border: 1px solid #bfe9d9;
+}
+
+.offerstar-pill-blue {
+  color: #2871d9;
+  background: #edf5ff;
+  border: 1px solid #cbe1ff;
+}
+
+.offerstar-date-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.offerstar-date-cell em {
+  align-self: flex-start;
+  margin-top: -6px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  color: #fff;
+  background: #55c22d;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.offerstar-role-cell {
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.7;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.offerstar-location-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.offerstar-location-cell span {
+  max-width: 86px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 5px 10px;
+  border-radius: 999px;
+  color: #188ca9;
+  background: #e9f9fc;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.offerstar-location-cell span:nth-child(2n) {
+  color: #78a43d;
+  background: #f0f7df;
+}
+
+.offerstar-location-cell .offerstar-location-more {
+  color: var(--muted);
+  background: var(--mist);
+}
+
+.offerstar-industry-cell {
+  color: #74808a;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.offerstar-deadline-cell {
+  color: #ff5a1f;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.offerstar-actions {
+  justify-content: flex-end;
+}
+
+@media (max-width: 1050px) {
+  .offerstar-job-table-head {
+    display: grid;
+  }
+
+  .offerstar-job-table-row {
+    grid-template-columns:
+      minmax(108px, 0.72fr)
+      minmax(210px, 1.24fr)
+      76px
+      82px
+      minmax(235px, 1.38fr)
+      minmax(132px, 0.86fr)
+      90px
+      86px
+      92px
+      118px;
+  }
+
+  .offerstar-actions {
+    grid-column: auto;
+  }
+}

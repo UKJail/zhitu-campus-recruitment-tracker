@@ -1,28 +1,59 @@
-# 每日更新与增量同步
+# 每周更新与全量同步
 
-每日轮转一小批官方招聘入口，收集公开校招与实习岗位，并把新增或内容有变化的记录交给职途复核。流程不读取个人偏好，不对岗位排序。
+每周更新一次 OfferStar 全量岗位快照，并核验企业校招入口目录。流程不读取个人偏好，不对岗位做二次排序。
 
-## 轮转计划
+## 固定目录
 
-运行 `build_daily_plan.py`。状态文件保存入口游标；同一天重复执行默认复用相同计划，避免误推进。确需同日处理下一批时才使用 `--force-next`。
+所有输出写入：
 
-入口库较大，默认每批 5 家。可在一天内执行多个批次，但每批仍需完成来源状态和人工抽样。没有专用适配器的动态站点不能假定已实现自动采集。
+```text
+C:\Users\k'k\WorkBuddy\zhitu-career-jobs\
+├─ latest\
+│  ├─ offerstar-to-zhitu.json
+│  ├─ offerstar-to-zhitu-report.json
+│  ├─ offerstar-run-summary.json
+│  ├─ career-portals.json
+│  ├─ career-portals-report.md
+│  └─ career-portals-run-summary.json
+├─ history\YYYY-MM-DD\
+└─ failed-runs\YYYY-MM-DD-HHmmss\
+```
 
-## 增量包
+先写临时文件并校验。只有完整通过校验后，才覆盖 `latest`；失败时保留旧 `latest`，把失败结果放入 `failed-runs`。
 
-`build_sync_bundle.py` 比较岗位稳定字段，不把采集时间当成岗位更新。输出：
+## OfferStar 全量包
 
-- `zhitu-jobs.json`：本批合并去重后的全部岗位。
-- `zhitu-upserts.json`：相对上次快照新增或内容变化的岗位。
-- `catalog-snapshot.json`：供下次比较的本批快照。
-- `sync-manifest.json`：数量、输入和零删除策略。
-- `collection-report.md`：人工复核摘要。
+输出：
 
-每日计划只覆盖部分来源，因此“上次有、本批没有”不能判定下架。同步器不产生删除动作。岗位下架必须由同一来源连续复核后另行处理。
+- `offerstar-to-zhitu.json`：OfferStar 全量岗位数组，顺序必须等于 OfferStar 页面默认顺序。
+- `offerstar-to-zhitu-report.json`：字段覆盖率、去重、异常和样本检查。
+- `offerstar-run-summary.json`：运行时间、源记录数、有效数、重复数、拒绝数、与上周相比新增/消失/变化数量。
+
+职途会用最新 OfferStar 全量快照作为具体岗位展示目录。不要因为缺少 JD 丢弃岗位；缺失 `position`、`offerstarType` 等展示字段时写入报告。
+
+## 企业入口包
+
+输出：
+
+- `career-portals.json`：企业名称、行业、官方招聘入口、状态。
+- `career-portals-report.md`：本周新增、失效、受限和需要人工复核的入口。
+- `career-portals-run-summary.json`：运行摘要。
+
+企业入口不是岗位，不要把入口拆成虚构岗位。
+
+## 失败判定
+
+出现以下情况时，本周任务标记失败，不覆盖 `latest`：
+
+- OfferStar 总有效岗位数比上周下降超过 5%，且没有明确解释。
+- `externalId`、`company`、`title` 或 `applyUrl` 大量缺失。
+- URL 非法或重复来源 ID 明显异常。
+- 10 列展示字段覆盖率明显下降但报告未说明。
+- 页面顺序被二次排序。
 
 ## 失败恢复
 
-- 官网受限：`source-status.json` 标记 `restricted`，保留原因，不重试绕过。
-- 官网结构变化：标记 `adapter_changed`，暂停该来源，不影响其他公司。
+- OfferStar 结构变化：标记 `adapter_changed`，暂停覆盖 `latest`。
+- 官网入口受限：在企业入口报告中标记 `restricted`，保留原因，不重试绕过。
 - 空结果：区分 `no_valid_jobs`、`no_campus_jobs` 和 `parse_failed`。
-- 同日重跑：复用 `daily-plan.json` 和原始响应；不要用示例岗位替代失败结果。
+- 同周重跑：复用原始响应或重新抓取均可，但最终必须重新校验；不要用示例岗位替代失败结果。
