@@ -42,6 +42,8 @@ export type OfferstarCatalogQuery = {
   query?: string;
   city?: string;
   company?: string;
+  batch?: string;
+  industry?: string;
   recruitmentType?: "all" | "graduate" | "internship";
   savedOnly?: boolean;
   sort?: "offerstar" | "match" | "published" | "company";
@@ -77,6 +79,10 @@ function inferBatchFromTitle(title: string) {
   return title.match(/20\d{2}\s*届/)?.[0].replace(/\s+/g, "") || "";
 }
 
+export function offerstarBatchLabel(record: OfferstarRecord) {
+  return record.offerstarType || inferBatchFromTitle(record.title) || record.category || (record.recruitmentType === "实习" ? "实习" : "校招");
+}
+
 export function offerstarRecordToJob(record: OfferstarRecord, interaction: OfferstarInteraction = {}): Job {
   const tags = [record.recruitmentType === "实习" ? "实习" : "校招", record.industry, record.category].filter(Boolean);
   return {
@@ -102,7 +108,7 @@ export function offerstarRecordToJob(record: OfferstarRecord, interaction: Offer
     discovery: true,
     deadline: record.deadline || undefined,
     industry: record.industry || undefined,
-    batch: record.offerstarType || inferBatchFromTitle(record.title) || record.category || (record.recruitmentType === "实习" ? "实习" : "校招"),
+    batch: offerstarBatchLabel(record),
     role: record.position || undefined,
     category: record.category || undefined,
     postDate: record.postDate || undefined,
@@ -126,6 +132,9 @@ export function searchOfferstarRecords(records: OfferstarRecord[], input: Offers
     if (input.city && input.city !== "全部城市" && !normalizeOfferstarCities(record.location).includes(input.city)) return false;
     const normalizedCompany = input.company?.trim().toLocaleLowerCase("zh-CN") || "";
     if (normalizedCompany && !record.company.toLocaleLowerCase("zh-CN").includes(normalizedCompany)) return false;
+    if (input.batch && input.batch !== "全部批次" && offerstarBatchLabel(record) !== input.batch) return false;
+    const normalizedIndustry = input.industry?.trim() || "";
+    if (normalizedIndustry && normalizedIndustry !== "全部行业" && (record.industry || "待确认") !== normalizedIndustry) return false;
     if (input.recruitmentType && input.recruitmentType !== "all" && recruitmentType(record) !== input.recruitmentType) return false;
     if (input.preferredOnly && input.preferences && hasJobPreferences(input.preferences) && !preferenceMatchFor(record).eligible) return false;
     return true;
@@ -151,6 +160,8 @@ export function offerstarFilterOptions(records: OfferstarRecord[]) {
       return a.localeCompare(b, "zh-CN");
     }),
     companies: [...companyCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "zh-CN")).slice(0, 40).map(([company]) => company),
+    batches: [...new Set(records.map(offerstarBatchLabel))].filter(Boolean).sort((a, b) => a.localeCompare(b, "zh-CN", { numeric: true })),
+    industries: [...new Set(records.map((record) => record.industry || "待确认"))].filter(Boolean).sort((a, b) => a.localeCompare(b, "zh-CN")),
   };
 }
 

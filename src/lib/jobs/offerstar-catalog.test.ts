@@ -51,6 +51,12 @@ describe("OfferStar catalog", () => {
     expect(catalog.searchOfferstarRecords(records, { company: "甲" }).records.map((item) => item.company)).toEqual(["甲公司"]);
   });
 
+  it("filters by the OfferStar batch and industry fields", () => {
+    const result = catalog.searchOfferstarRecords(records, { batch: "校招", industry: "金融", page: 1, pageSize: 10 });
+    expect(result.total).toBe(1);
+    expect(result.records[0].externalId).toBe("offerstar-2");
+  });
+
   it("filters the whole catalog by preferences before pagination", () => {
     const result = catalog.searchOfferstarRecords(records, {
       preferredOnly: true,
@@ -102,5 +108,7 @@ describe("OfferStar catalog", () => {
   it("offers frequently occurring catalog companies as preference suggestions", () => {
     const options = catalog.offerstarFilterOptions([...records, { ...records[0], externalId: "offerstar-5" }]);
     expect(options.companies[0]).toBe("甲公司");
+    expect(options.batches).toContain("校招");
+    expect(options.industries).toContain("金融");
   });
 });

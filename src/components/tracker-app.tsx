@@ -408,16 +408,18 @@ function CalendarAgendaItem({ event }: { event: RecruitingCalendarEvent }) {
   </article>;
 }
 
-type JobCatalogMeta = { catalogTotal: number; total: number; page: number; pageSize: number; pageCount: number; generatedAt: string; cities: string[]; companies: string[] };
+type JobCatalogMeta = { catalogTotal: number; total: number; page: number; pageSize: number; pageCount: number; generatedAt: string; cities: string[]; companies: string[]; batches: string[]; industries: string[] };
 
 function JobsPage({ refreshActivity, notify, preferences, onPreferencesUpdated }: { refreshActivity: () => Promise<void>; notify: (text: string) => void; preferences: JobPreferences; onPreferencesUpdated: (preferences: JobPreferences) => void }) {
   const [view, setView] = useState<"jobs" | "portals">("jobs");
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
-  const [catalogMeta, setCatalogMeta] = useState<JobCatalogMeta>({ catalogTotal: 0, total: 0, page: 1, pageSize: 10, pageCount: 1, generatedAt: "", cities: [], companies: [] });
+  const [catalogMeta, setCatalogMeta] = useState<JobCatalogMeta>({ catalogTotal: 0, total: 0, page: 1, pageSize: 10, pageCount: 1, generatedAt: "", cities: [], companies: [], batches: [], industries: [] });
   const [query, setQuery] = useState("");
   const [city, setCity] = useState("全部城市");
   const [company, setCompany] = useState("");
+  const [batch, setBatch] = useState("全部批次");
+  const [industry, setIndustry] = useState("全部行业");
   const [education, setEducation] = useState("全部学历");
   const [recruitmentType, setRecruitmentType] = useState<"all" | "graduate" | "internship">("all");
   const [pageNumber, setPageNumber] = useState(1);
@@ -435,6 +437,8 @@ function JobsPage({ refreshActivity, notify, preferences, onPreferencesUpdated }
       if (query.trim()) params.set("query", query.trim());
       if (city !== "全部城市") params.set("city", city);
       if (company.trim()) params.set("company", company.trim());
+      if (batch !== "全部批次") params.set("batch", batch);
+      if (industry !== "全部行业") params.set("industry", industry);
       if (preferredOnly) {
         params.set("preferredOnly", "true");
         if (preferences.graduationYear) params.set("preferenceGraduationYear", preferences.graduationYear);
@@ -454,7 +458,7 @@ function JobsPage({ refreshActivity, notify, preferences, onPreferencesUpdated }
     } finally {
       setLoading(false);
     }
-  }, [city, company, notify, pageNumber, preferences, preferredOnly, query, recruitmentType, savedOnly]);
+  }, [batch, city, company, industry, notify, pageNumber, preferences, preferredOnly, query, recruitmentType, savedOnly]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void loadCatalog(); }, query || company ? 260 : 0);
@@ -464,6 +468,8 @@ function JobsPage({ refreshActivity, notify, preferences, onPreferencesUpdated }
   const preferenceMatches = useMemo(() => new Map(jobs.map((job) => [job.id, matchJobPreferences(job, preferences)])), [jobs, preferences]);
   const filtered = useMemo(() => jobs.filter((job) => education === "全部学历" || job.education === education), [jobs, education]);
   const cities = catalogMeta.cities;
+  const batches = catalogMeta.batches;
+  const industries = catalogMeta.industries;
   const educations = useMemo(() => Array.from(new Set(jobs.map((job) => job.education))).sort(), [jobs]);
   const pageCount = catalogMeta.pageCount;
   const visiblePage = catalogMeta.page;
@@ -548,7 +554,9 @@ function JobsPage({ refreshActivity, notify, preferences, onPreferencesUpdated }
       <div className="filter-row">
         <label className="select-filter company-filter"><span>公司</span><input aria-label="公司" placeholder="全部公司 / 输入名称" value={company} onChange={(e) => { setCompany(e.target.value); setPageNumber(1); }} /></label>
         <label className="select-filter"><span>学历</span><select aria-label="学历" value={education} onChange={(e) => setEducation(e.target.value)}><option>全部学历</option>{educations.map((item) => <option key={item}>{item}</option>)}</select></label>
-        <label className="select-filter"><span>城市</span><select aria-label="城市" value={city} onChange={(e) => { setCity(e.target.value); setPageNumber(1); }}><option>全部城市</option>{cities.map((item) => <option key={item}>{item}</option>)}</select></label>
+        <label className="select-filter"><span>工作地点</span><select aria-label="工作地点" value={city} onChange={(e) => { setCity(e.target.value); setPageNumber(1); }}><option>全部城市</option>{cities.map((item) => <option key={item}>{item}</option>)}</select></label>
+        <label className="select-filter"><span>批次</span><select aria-label="批次" value={batch} onChange={(e) => { setBatch(e.target.value); setPageNumber(1); }}><option>全部批次</option>{batches.map((item) => <option key={item}>{item}</option>)}</select></label>
+        <label className="select-filter"><span>行业</span><select aria-label="行业" value={industry} onChange={(e) => { setIndustry(e.target.value); setPageNumber(1); }}><option>全部行业</option>{industries.map((item) => <option key={item}>{item}</option>)}</select></label>
         <label className="select-filter"><span>招聘类型</span><select aria-label="招聘类型" value={recruitmentType} onChange={(e) => { setRecruitmentType(e.target.value as typeof recruitmentType); setPageNumber(1); }}><option value="all">全部</option><option value="graduate">校招</option><option value="internship">实习</option></select></label>
         <button type="button" aria-pressed={preferredOnly} className={preferredOnly ? "filter-active preference-filter" : "preference-filter"} onClick={() => { if (!hasJobPreferences(preferences)) return setPreferenceOpen(true); setPreferredOnly(!preferredOnly); setPageNumber(1); }}><Target size={14} />符合我的偏好</button>
         <button type="button" aria-pressed={savedOnly} className={savedOnly ? "filter-active" : ""} onClick={() => { setSavedOnly(!savedOnly); setPageNumber(1); }}><Bookmark size={14} />仅看收藏</button>

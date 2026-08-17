@@ -107,6 +107,8 @@ export async function GET(request: NextRequest) {
       query: query.get("query") || undefined,
       city: query.get("city") || undefined,
       company: query.get("company") || undefined,
+      batch: query.get("batch") || undefined,
+      industry: query.get("industry") || undefined,
       recruitmentType: (query.get("recruitmentType") || "all") as "all" | "graduate" | "internship",
       sort: "offerstar",
       page: Number(query.get("page") || 1),
