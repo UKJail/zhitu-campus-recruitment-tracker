@@ -6,7 +6,7 @@ import {
   Copy, Download, ExternalLink, FileText, Inbox, KeyRound, LayoutDashboard, Link2, LogOut, Mail, Menu, MessageSquareText, MoreHorizontal,
   PenLine, Plus, RefreshCw, Save, Search, Send, ShieldCheck, Sparkles, Star, Target, Trash2, Upload, UserPlus, X, XCircle, MailCheck, MessageCircleMore,
 } from "lucide-react";
-import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { type ChangeEvent, type Dispatch, type FormEvent, type SetStateAction, useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { applicationStatuses, applySuggestion, canTransition, confirmedApplicationCount, confirmedApplicationCountOnDate } from "@/lib/business";
@@ -56,6 +56,8 @@ export function TrackerApp() {
   const [reviews, setReviews] = useState<InterviewReview[]>(isDemoMode ? seedReviews : []);
   const [toast, setToast] = useState("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(!isDemoMode);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
@@ -102,6 +104,28 @@ export function TrackerApp() {
     }
   }, [notify]);
 
+  const loadNotifications = useCallback(async () => {
+    if (isDemoMode) {
+      setNotifications([
+        { id: "demo-assessment", kind: "email_assessment", title: "线上测评即将截止", body: "蚂蚁集团 · 今天 18:00", read_at: null, scheduled_for: null, created_at: new Date().toISOString(), metadata: null, action_status: null },
+        { id: "demo-interview", kind: "email_interview", title: "明天有一场业务面试", body: "字节跳动 · 14:30", read_at: null, scheduled_for: null, created_at: new Date().toISOString(), metadata: null, action_status: null },
+      ]);
+      setNotificationsLoading(false);
+      return;
+    }
+    setNotificationsLoading(true);
+    try {
+      const response = await fetch("/api/notifications", { cache: "no-store" });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "通知加载失败");
+      setNotifications(Array.isArray(payload.notifications) ? payload.notifications : []);
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "通知加载失败");
+    } finally {
+      setNotificationsLoading(false);
+    }
+  }, [notify]);
+
   useEffect(() => {
     const timer = window.setTimeout(() => { void loadJobs(); }, 0);
     return () => window.clearTimeout(timer);
@@ -111,6 +135,11 @@ export function TrackerApp() {
     const timer = window.setTimeout(() => { void loadProfile(); }, 0);
     return () => window.clearTimeout(timer);
   }, [loadProfile]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void loadNotifications(); }, 0);
+    return () => window.clearTimeout(timer);
+  }, [loadNotifications]);
 
   useEffect(() => {
     const updateClock = () => setProgressClock(new Date());
@@ -188,8 +217,11 @@ export function TrackerApp() {
           <div className="topbar-actions">
             <label className="global-search"><Search size={17} /><input aria-label="全局搜索" placeholder="搜索职位、公司或记录" /><kbd>⌘ K</kbd></label>
             <div className="notification-wrap">
-              <button className="icon-button has-dot" aria-label="通知" onClick={() => setNotificationsOpen(!notificationsOpen)}><Bell size={19} /></button>
-              {notificationsOpen && <Notifications onClose={() => setNotificationsOpen(false)} notify={notify} onChanged={loadJobs} />}
+              <button className={`icon-button ${notifications.length > 0 ? "has-count" : ""}`} aria-label={`通知${notifications.length > 0 ? `，${notifications.length} 条` : ""}`} onClick={() => setNotificationsOpen(!notificationsOpen)}>
+                <Bell size={19} />
+                {notifications.length > 0 && <span className="notification-count">{notifications.length > 99 ? "99+" : notifications.length}</span>}
+              </button>
+              {notificationsOpen && <Notifications items={notifications} setItems={setNotifications} loading={notificationsLoading} onClose={() => setNotificationsOpen(false)} notify={notify} onChanged={loadJobs} />}
             </div>
             <button className="icon-button" aria-label="面试邮件自动转发设置" title="面试邮件自动转发设置" onClick={() => setSettingsOpen(true)}><Mail size={19} /></button>
           </div>
@@ -585,12 +617,16 @@ function JobPreferenceDialog({ preferences, notify, onClose, onSaved }: { prefer
     <button className="modal-x" type="button" onClick={onClose} aria-label="关闭求职偏好"><X /></button>
     <div className="preference-dialog-heading"><span className="preference-dialog-icon"><Target size={20} /></span><p className="eyebrow">职位库筛选</p><h3 id="job-preference-title">填写我的求职偏好</h3><p className="dialog-copy">填写你关心的条件即可，职途会在后台自动识别相关关键词并推荐岗位。</p></div>
     <form onSubmit={save} className="preference-form">
-      <label><span>毕业届别</span><select value={graduationYear} onChange={(event) => setGraduationYear(event.target.value)}><option value="">不限届别</option>{[2026, 2027, 2028, 2029, 2030].map((year) => <option key={year} value={year}>{year} 届</option>)}</select></label>
-      <label><span>招聘类型</span><select value={recruitmentType} onChange={(event) => setRecruitmentType(event.target.value as typeof recruitmentType)}><option value="">校招和实习均可</option><option value="graduate">只看校招</option><option value="internship">只看实习</option></select></label>
-      <label className="wide"><span>岗位方向</span><input placeholder="例如 数据分析、产品、运营" value={roleKeywords} onChange={(event) => setRoleKeywords(event.target.value)} /><small>可填写多个方向，用逗号分隔；相关岗位写法由后台自动匹配。</small></label>
-      <label className="wide"><span>意向城市</span><input placeholder="例如 北京、上海、深圳" value={cities} onChange={(event) => setCities(event.target.value)} /></label>
-      <label className="wide"><span>关注公司 <small>可不填</small></span><input placeholder="例如 腾讯、字节跳动" value={focusCompanies} onChange={(event) => setFocusCompanies(event.target.value)} /></label>
-      <div className="preference-actions wide"><button type="button" onClick={() => { setGraduationYear(""); setRoleKeywords(""); setCities(""); setFocusCompanies(""); setRecruitmentType(""); }}>清空</button><button type="submit" className="primary-button" disabled={saving}><Save size={16} />{saving ? "保存中…" : "保存偏好"}</button></div>
+      <div className="preference-grid">
+        <label><span>毕业届别</span><select value={graduationYear} onChange={(event) => setGraduationYear(event.target.value)}><option value="">不限届别</option>{[2026, 2027, 2028, 2029, 2030].map((year) => <option key={year} value={year}>{year} 届</option>)}</select></label>
+        <label><span>招聘类型</span><select value={recruitmentType} onChange={(event) => setRecruitmentType(event.target.value as typeof recruitmentType)}><option value="">校招和实习均可</option><option value="graduate">只看校招</option><option value="internship">只看实习</option></select></label>
+      </div>
+      <div className="preference-fields">
+        <label><span>岗位方向</span><input placeholder="例如 数据分析、产品、运营" value={roleKeywords} onChange={(event) => setRoleKeywords(event.target.value)} /><small>可填写多个方向，用逗号分隔；相关岗位写法由后台自动匹配。</small></label>
+        <label><span>意向城市</span><input placeholder="例如 北京、上海、深圳" value={cities} onChange={(event) => setCities(event.target.value)} /></label>
+        <label><span>关注公司 <small>可不填</small></span><input placeholder="例如 腾讯、字节跳动" value={focusCompanies} onChange={(event) => setFocusCompanies(event.target.value)} /></label>
+      </div>
+      <div className="preference-actions"><button type="button" onClick={() => { setGraduationYear(""); setRoleKeywords(""); setCities(""); setFocusCompanies(""); setRecruitmentType(""); }}>清空</button><button type="submit" className="primary-button" disabled={saving}><Save size={16} />{saving ? "保存中…" : "保存偏好"}</button></div>
     </form>
   </section></div>;
 }
@@ -1045,36 +1081,22 @@ function ReviewsPage({ reviews, setReviews, notify }: { reviews: InterviewReview
 
 function ReviewBlock({ title, content, tone }: { title: string; content?: string; tone: string }) { return <div className={`review-block ${tone}`}><h4>{title}</h4>{content?.split("\n").map((line, i) => <p key={i}>{line}</p>)}</div>; }
 
-function Notifications({ onClose, notify, onChanged }: { onClose: () => void; notify: (text: string) => void; onChanged: () => Promise<void> }) {
-  const [items, setItems] = useState<NotificationItem[]>([]);
-  const [loading, setLoading] = useState(true);
+function Notifications({
+  items,
+  setItems,
+  loading,
+  onClose,
+  notify,
+  onChanged,
+}: {
+  items: NotificationItem[];
+  setItems: Dispatch<SetStateAction<NotificationItem[]>>;
+  loading: boolean;
+  onClose: () => void;
+  notify: (text: string) => void;
+  onChanged: () => Promise<void>;
+}) {
   const [busyId, setBusyId] = useState("");
-
-  useEffect(() => {
-    let active = true;
-    async function load() {
-      if (isDemoMode) {
-        setItems([
-          { id: "demo-assessment", kind: "email_assessment", title: "线上测评即将截止", body: "蚂蚁集团 · 今天 18:00", read_at: null, scheduled_for: null, created_at: new Date().toISOString(), metadata: null, action_status: null },
-          { id: "demo-interview", kind: "email_interview", title: "明天有一场业务面试", body: "字节跳动 · 14:30", read_at: null, scheduled_for: null, created_at: new Date().toISOString(), metadata: null, action_status: null },
-        ]);
-        setLoading(false);
-        return;
-      }
-      try {
-        const response = await fetch("/api/notifications", { cache: "no-store" });
-        const payload = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(payload.error || "通知加载失败");
-        if (active) setItems(Array.isArray(payload.notifications) ? payload.notifications : []);
-      } catch (error) {
-        if (active) notify(error instanceof Error ? error.message : "通知加载失败");
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-    void load();
-    return () => { active = false; };
-  }, [notify]);
 
   async function decide(id: string, accept: boolean) {
     setBusyId(id);
@@ -1096,6 +1118,23 @@ function Notifications({ onClose, notify, onChanged }: { onClose: () => void; no
     }
   }
 
+  async function deleteNotification(id: string) {
+    setBusyId(id);
+    try {
+      if (!isDemoMode) {
+        const response = await fetch(`/api/notifications/${id}`, { method: "DELETE" });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.error || "通知删除失败");
+      }
+      setItems((current) => current.filter((item) => item.id !== id));
+      notify("通知已删除");
+    } catch (error) {
+      notify(error instanceof Error ? error.message : "通知删除失败");
+    } finally {
+      setBusyId("");
+    }
+  }
+
   return <div className="notifications" role="dialog" aria-label="通知中心">
     <header><h3>通知</h3><button onClick={onClose} aria-label="关闭通知"><X size={17} /></button></header>
     {loading && <p className="notice-empty">正在读取通知…</p>}
@@ -1107,7 +1146,7 @@ function Notifications({ onClose, notify, onChanged }: { onClose: () => void; no
       const role = typeof metadata.role === "string" ? metadata.role : "";
       return <div className="notice-row" key={item.id}>
         <span className={`notice-icon ${isInterview ? "sage" : "apricot"}`}>{isInterview ? <CalendarDays /> : <ClipboardCheck />}</span>
-        <p><strong>{item.title}</strong><small>{[company, role, item.body].filter(Boolean).join(" · ")}</small>{item.action_status === "pending" && <span className="notice-actions"><button disabled={busyId === item.id} onClick={() => decide(item.id, false)}>忽略</button><button disabled={busyId === item.id} onClick={() => decide(item.id, true)}>确认更新</button></span>}{item.action_status === "accepted" && <em className="notice-resolved">已确认</em>}{item.action_status === "rejected" && <em className="notice-resolved">已忽略</em>}</p>
+        <p><span className="notice-title-line"><strong>{item.title}</strong><button className="notice-delete" type="button" disabled={busyId === item.id} onClick={() => void deleteNotification(item.id)} aria-label={`删除通知：${item.title}`} title="删除通知"><Trash2 size={13} /></button></span><small>{[company, role, item.body].filter(Boolean).join(" · ")}</small>{item.action_status === "pending" && <span className="notice-actions"><button disabled={busyId === item.id} onClick={() => decide(item.id, false)}>忽略</button><button disabled={busyId === item.id} onClick={() => decide(item.id, true)}>确认更新</button></span>}{item.action_status === "accepted" && <em className="notice-resolved">已确认</em>}{item.action_status === "rejected" && <em className="notice-resolved">已忽略</em>}</p>
       </div>;
     })}
   </div>;

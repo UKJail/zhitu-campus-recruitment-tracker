@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET as getInboundEmails } from "./inbound-emails/route";
 import { GET as getNotifications } from "./notifications/route";
+import { DELETE as deleteNotification } from "./notifications/[id]/route";
 
 const authMock = vi.hoisted(() => vi.fn());
 
@@ -19,8 +20,11 @@ function queryResult(data: unknown[] = []) {
     or: vi.fn(),
     order: vi.fn(),
     limit: vi.fn(),
+    delete: vi.fn(),
+    maybeSingle: vi.fn(),
   };
-  for (const method of [query.select, query.eq, query.is, query.or, query.order, query.limit]) method.mockReturnValue(query);
+  for (const method of [query.select, query.eq, query.is, query.or, query.order, query.limit, query.delete]) method.mockReturnValue(query);
+  query.maybeSingle.mockResolvedValue({ data: data[0] ?? null, error: null });
   return query;
 }
 
@@ -48,5 +52,19 @@ describe("authenticated mail API ownership", () => {
 
     expect((await getInboundEmails()).status).toBe(401);
     expect((await getNotifications()).status).toBe(401);
+  });
+
+  it("deletes notifications only for the current user", async () => {
+    const query = queryResult([{ id: "notice-1" }]);
+    authMock.mockResolvedValue({ supabase: { from: vi.fn(() => query) }, userId: "testing-user" });
+
+    const response = await deleteNotification(new Request("http://localhost/api/notifications/notice-1"), {
+      params: Promise.resolve({ id: "notice-1" }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(query.delete).toHaveBeenCalled();
+    expect(query.eq).toHaveBeenCalledWith("id", "notice-1");
+    expect(query.eq).toHaveBeenCalledWith("user_id", "testing-user");
   });
 });
