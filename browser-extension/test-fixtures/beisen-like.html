@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>北森风格 React / Ant Design · 脱敏验收</title><link rel="stylesheet" href="styles.css"></head>
+<body><main class="page">
+  <nav class="fixture-nav"><a href="generic.html">普通表单</a><a href="beisen-like.html">北森风格</a><a href="moka-like.html">Moka 风格</a></nav>
+  <p class="fixture-note">北森风格模拟页：受控输入、Ant Design 下拉、级联省市和进入下一步后重新扫描。不是北森官网。</p>
+  <section class="sheet"><header><h1>校园招聘 · 应聘登记</h1><p>React / Ant Design 风格控件模拟</p></header><form>
+    <section class="step" id="beisen-step-1"><h2>01 基本资料</h2><div class="grid">
+      <div class="ant-form-item"><div class="ant-form-item-label">姓名</div><input class="ant-input controlled" name="name"></div>
+      <div class="ant-form-item"><div class="ant-form-item-label">手机号码</div><input class="ant-input controlled" name="mobile"></div>
+      <div class="ant-form-item"><div class="ant-form-item-label">电子邮箱</div><input class="ant-input controlled" name="email"></div>
+      <div class="ant-form-item"><div class="ant-form-item-label">政治面貌</div><div class="ant-select-selector" role="combobox" aria-label="政治面貌" data-options="中共党员|共青团员|群众" tabindex="0">请选择政治面貌</div></div>
+      <div class="ant-form-item"><div class="ant-form-item-label">学历</div><div class="ant-select-selector" role="combobox" aria-label="学历" data-options="本科|硕士" tabindex="0">请选择学历</div></div>
+      <div class="ant-form-item"><div class="ant-form-item-label">省份</div><select id="province"><option value="">请选择</option><option>广东省</option><option>香港特别行政区</option></select></div>
+      <div class="ant-form-item"><div class="ant-form-item-label">城市</div><select id="cascade-city"><option value="">请先选择省份</option></select></div>
+    </div><div class="actions"><button type="button" id="beisen-next">下一步（动态加载）</button></div></section>
+    <section class="step hidden" id="beisen-step-2"><h2>02 教育与实习</h2><div class="grid">
+      <div class="ant-form-item"><div class="ant-form-item-label">毕业学校</div><input class="ant-input controlled ant-select-search" role="combobox" aria-label="毕业学校" data-options="示例研究生院|示例大学|其他院校" placeholder="请填写毕业学校"></div>
+      <div class="ant-form-item"><div class="ant-form-item-label">专业名称</div><input class="ant-input controlled"></div>
+      <div class="ant-form-item"><div class="ant-form-item-label">入学时间</div><input class="ant-input controlled ant-picker-input" aria-label="入学时间" data-dates="2022-09|2023-09|2024-09" placeholder="请选择入学时间" readonly></div>
+      <div class="ant-form-item"><div class="ant-form-item-label">毕业时间</div><input class="ant-input controlled ant-picker-input" aria-label="毕业时间" data-dates="2026-06|2027-06|2028-06" placeholder="请选择毕业时间" readonly></div>
+      <div class="ant-form-item"><div class="ant-form-item-label">是否海外院校毕业</div><div class="choices"><label><input type="radio" value="yes">是</label><label><input type="radio" value="no">否</label></div></div>
+      <div class="ant-form-item"><div class="ant-form-item-label">公司名称</div><input class="ant-input controlled"></div>
+      <div class="ant-form-item"><div class="ant-form-item-label">职位</div><input class="ant-input controlled"></div>
+      <div class="ant-form-item wide"><div class="ant-form-item-label">工作内容</div><textarea class="ant-input controlled"></textarea></div>
+    </div><div class="actions"><button type="button" id="beisen-back" class="secondary">上一步</button><button type="submit">提交（已拦截）</button></div></section>
+  </form></section>
+</main><script>
+const state = new WeakMap(); document.querySelectorAll('.controlled').forEach((element) => { state.set(element, ''); element.addEventListener('input', (event) => state.set(element, event.target.value)); element.addEventListener('blur', (event) => { event.target.value = state.get(element); }); });
+document.querySelectorAll('[role="combobox"]').forEach((combo) => { const openMenu = () => { document.querySelector('.dropdown')?.remove(); const menu = document.createElement('div'); menu.className = 'dropdown'; const rect = combo.getBoundingClientRect(); menu.style.cssText = `left:${rect.left}px;top:${rect.bottom + 4}px`; const render = () => { const query = combo instanceof HTMLInputElement ? combo.value.trim() : ''; const values = combo.dataset.options.split('|').filter((value) => !query || value.includes(query)); menu.innerHTML = values.map((value) => `<div class="ant-select-item-option" role="option">${value}</div>`).join(''); }; render(); menu.addEventListener('click', (event) => { const value = event.target.textContent; if (combo instanceof HTMLInputElement) { combo.value = value; combo.dispatchEvent(new InputEvent('input', { bubbles: true, data: value })); } else { combo.textContent = value; combo.dataset.value = value; } menu.remove(); }); combo.addEventListener('input', render, { once: true }); document.body.append(menu); }; combo.addEventListener('click', openMenu); });
+document.querySelectorAll('.ant-picker-input').forEach((input) => input.addEventListener('click', () => { document.querySelector('.dropdown')?.remove(); const menu = document.createElement('div'); menu.className = 'dropdown'; const rect = input.getBoundingClientRect(); menu.style.cssText = `left:${rect.left}px;top:${rect.bottom + 4}px`; menu.innerHTML = input.dataset.dates.split('|').map((value) => `<div class="ant-picker-cell" role="option" title="${value}">${value}</div>`).join(''); menu.addEventListener('click', (event) => { input.removeAttribute('readonly'); input.value = event.target.title; input.dispatchEvent(new InputEvent('input', { bubbles: true, data: input.value })); input.setAttribute('readonly', ''); menu.remove(); }); document.body.append(menu); }));
+document.querySelector('#province').addEventListener('change', (event) => { const city = document.querySelector('#cascade-city'); city.innerHTML = event.target.value === '广东省' ? '<option value="">请选择</option><option>深圳市</option><option>广州市</option>' : '<option value="">请选择</option><option>香港</option>'; });
+document.querySelector('#beisen-next').addEventListener('click', () => { document.querySelector('#beisen-step-1').classList.add('hidden'); document.querySelector('#beisen-step-2').classList.remove('hidden'); });
+document.querySelector('#beisen-back').addEventListener('click', () => { document.querySelector('#beisen-step-2').classList.add('hidden'); document.querySelector('#beisen-step-1').classList.remove('hidden'); });
+document.querySelector('form').addEventListener('submit', (event) => { event.preventDefault(); alert('测试页已阻止提交'); });
+</script></body></html>

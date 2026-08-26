@@ -1,5 +1,6 @@
 packages:
   - "."
+  - "browser-extension"
 
 allowBuilds:
   unrs-resolver: true

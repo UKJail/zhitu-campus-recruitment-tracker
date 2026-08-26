@@ -174,6 +174,10 @@ export default function LoginPage() {
       {screen === "recovery-sent" && <div className="recovery-sent-state">
         <span className="mail-orbit"><MailCheck size={27} /></span><h2>请检查邮箱</h2><p>如果该邮箱已注册，你会收到密码重置邮件。请在邮件有效期内打开链接并设置新密码。</p><button className="secondary-button wide" type="button" onClick={returnToLogin}><ArrowLeft size={15} />返回登录</button>
       </div>}
-    </div></section>
+    </div>
+      <footer className="icp-footer">
+        <a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer">湘ICP备2026036134号</a>
+      </footer>
+    </section>
   </main>;
 }

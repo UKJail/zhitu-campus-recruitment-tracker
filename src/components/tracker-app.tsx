@@ -546,7 +546,7 @@ function JobsPage({ refreshActivity, notify, preferences, onPreferencesUpdated }
     {view === "portals" ? <CareerPortalDirectory notify={notify} /> : <>
     <section className="preference-strip">
       <span className="preference-orbit"><Target size={18} /></span>
-      <div><p className="eyebrow">我的求职偏好</p><strong>{hasJobPreferences(preferences) ? [preferences.roleKeywords.slice(0, 2).join(" / "), preferences.cities.slice(0, 2).join(" / "), preferences.graduationYear ? `${preferences.graduationYear} 届` : ""].filter(Boolean).join(" · ") || "已设置偏好" : "先告诉职途你想找什么"}</strong><small>{hasJobPreferences(preferences) ? "偏好只用于筛选与识别，不改变 OfferStar 原始顺序。" : "设置岗位方向、城市和届别，职位库会帮你识别更合适的机会。"}</small></div>
+      <div><p className="eyebrow">我的求职偏好</p><strong>{hasJobPreferences(preferences) ? [preferences.roleKeywords.slice(0, 2).join(" / "), preferences.cities.slice(0, 2).join(" / "), preferences.graduationYear ? `${preferences.graduationYear} 届` : ""].filter(Boolean).join(" · ") || "已设置偏好" : "先告诉职途你想找什么"}</strong></div>
       <button type="button" className="preference-edit" onClick={() => setPreferenceOpen(true)}><PenLine size={15} />{hasJobPreferences(preferences) ? "调整偏好" : "设置偏好"}</button>
     </section>
     <section className="filter-card">

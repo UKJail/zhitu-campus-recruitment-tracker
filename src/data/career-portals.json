@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-17T13:03:15Z",
+  "generatedAt": "2026-08-24T04:44:18Z",
   "count": 690,
   "portals": [
     {
@@ -969,700 +969,10 @@
       "url": "https://careers.fedex.com/"
     },
     {
-      "key": "zhaoshangzhengquan",
-      "name": "招商证券",
-      "industry": "金融/银行/证券/保险",
-      "url": "https://www.newone.com.cn/careers"
-    },
-    {
-      "key": "yuehaisiliao",
-      "name": "粤海饲料",
-      "industry": "农牧 / 饲料 / 养殖",
-      "url": "https://www.yuehaifeed.com/jryh"
-    },
-    {
-      "key": "tuniu",
-      "name": "途牛",
-      "industry": "互联网/科技/游戏",
-      "url": "https://job.tuniu.com/"
-    },
-    {
-      "key": "weilaiqiche",
-      "name": "蔚来汽车",
-      "industry": "互联网/科技/游戏",
-      "url": "https://www.nio.cn/careers"
-    },
-    {
-      "key": "yifangdajijin",
-      "name": "易方达基金",
-      "industry": "金融（补充：资管/证券/基金）",
-      "url": "http://job.efunds.com.cn"
-    },
-    {
-      "key": "meidezhiye",
-      "name": "美的置业",
-      "industry": "地产/建筑/物业",
-      "url": "https://www.midea.com.cn/careers"
-    },
-    {
-      "key": "laobandianqi",
-      "name": "老板电器",
-      "industry": "家电/轻工制造",
-      "url": "https://campus.robam.com/"
-    },
-    {
-      "key": "ruixinwei",
-      "name": "瑞芯微",
-      "industry": "半导体设计与制造（补充）",
-      "url": "https://hr.rock-chips.com/campus-recruitment"
-    },
-    {
-      "key": "xuhuijituan",
-      "name": "旭辉集团",
-      "industry": "地产/建筑/物业",
-      "url": "https://cifixz.hotjob.cn"
-    },
-    {
-      "key": "guojiadianwang",
-      "name": "国家电网",
-      "industry": "能源/电网/石油石化央企",
-      "url": "https://zhaopin.sgcc.com.cn/"
-    },
-    {
-      "key": "guangfazhengquan",
-      "name": "广发证券",
-      "industry": "金融/银行/证券/保险",
-      "url": "https://www.gf.com.cn/careers"
-    },
-    {
-      "key": "zhengrongjituan",
-      "name": "正荣集团",
-      "industry": "地产/建筑/物业",
-      "url": "https://www.zhenro.com/join/campus.html"
-    },
-    {
-      "key": "huaxiajijin",
-      "name": "华夏基金",
-      "industry": "金融（补充：资管/证券/基金）",
-      "url": "http://chinaamc.zhiye.com/"
-    },
-    {
-      "key": "nanfangdianwang",
-      "name": "南方电网",
-      "industry": "能源/电网/石油石化央企",
-      "url": "https://zhaopin.csg.cn/"
-    },
-    {
-      "key": "yuewenjituan",
-      "name": "阅文集团",
-      "industry": "互联网/科技/游戏",
-      "url": "https://join.yuewen.com/"
-    },
-    {
-      "key": "xiantangufen",
-      "name": "仙坛股份",
-      "industry": "农牧 / 饲料 / 养殖",
-      "url": "https://www.sdxiantan.com/index/job/index.html?cate=23"
-    },
-    {
-      "key": "jiashijijin",
-      "name": "嘉实基金",
-      "industry": "金融（补充：资管/证券/基金）",
-      "url": "https://www.jsfund.cn/jobs"
-    },
-    {
-      "key": "shanghaijiangong",
-      "name": "上海建工",
-      "industry": "地方基建工程国企",
-      "url": "https://ideal.51job.com/scg/"
-    },
-    {
-      "key": "beijingjunzheng",
-      "name": "北京君正",
-      "industry": "半导体设计与制造（补充）",
-      "url": "https://www.ingenic.com.cn/join"
-    },
-    {
-      "key": "huawei",
-      "name": "华为",
-      "industry": "互联网/科技/游戏",
-      "url": "https://career.huawei.com/"
-    },
-    {
-      "key": "zhongguoyouzheng",
-      "name": "中国邮政",
-      "industry": "烟草/邮政/铁路/交通",
-      "url": "https://chinapost2026.zhaopin.com/"
-    },
-    {
-      "key": "lanqikeji",
-      "name": "澜起科技",
-      "industry": "半导体设计与制造（补充）",
-      "url": "https://www.montage-tech.com/cn/Open_Positions"
-    },
-    {
-      "key": "sailisi-wenjie",
-      "name": "赛力斯(问界)",
-      "industry": "汽车产业链（补充）与地产补漏",
-      "url": "https://sokon.zhiye.com/"
-    },
-    {
-      "key": "suidaogufen-shanghaisuidaogongcheng",
-      "name": "隧道股份(上海隧道工程)",
-      "industry": "地方基建工程国企",
-      "url": "https://zhaopin.stec.net"
-    },
-    {
-      "key": "dajiangchuangxindji",
-      "name": "大疆创新DJI",
-      "industry": "互联网/科技/游戏",
-      "url": "https://we.dji.com/zh-CN/"
-    },
-    {
-      "key": "zhongguotielu",
-      "name": "中国铁路",
-      "industry": "烟草/邮政/铁路/交通",
-      "url": "https://rczp.china-railway.com.cn/"
-    },
-    {
-      "key": "zhongguoshihua",
-      "name": "中国石化",
-      "industry": "能源/电网/石油石化央企",
-      "url": "https://job.sinopec.com/"
-    },
-    {
-      "key": "zhongnanjianshe",
-      "name": "中南建设",
-      "industry": "汽车产业链（补充）与地产补漏",
-      "url": "http://campus.51job.com/zoina"
-    },
-    {
-      "key": "guangqiaian",
-      "name": "广汽埃安",
-      "industry": "汽车产业链（补充）与地产补漏",
-      "url": "https://www.gacne.com.cn/show/join"
-    },
-    {
-      "key": "shangtangkeji",
-      "name": "商汤科技",
-      "industry": "AI/大模型与互联网新势力",
-      "url": "http://hr.sensetime.com/"
-    },
-    {
-      "key": "sichuanluqiao",
-      "name": "四川路桥",
-      "industry": "地方基建工程国企",
-      "url": "https://hr.shudaojt.com/SU6468728f0dcad45af142832e/pb/index.htm"
-    },
-    {
-      "key": "zhongguoshiyou",
-      "name": "中国石油",
-      "industry": "能源/电网/石油石化央企",
-      "url": "https://zhaopin.cnpc.com.cn/"
-    },
-    {
-      "key": "zhaoshangjujituan",
-      "name": "招商局集团",
-      "industry": "烟草/邮政/铁路/交通",
-      "url": "http://cmhk.zhiye.com/index"
-    },
-    {
-      "key": "kedaxunfei",
-      "name": "科大讯飞",
-      "industry": "AI/大模型与互联网新势力",
-      "url": "https://iflytek.zhiye.com/"
-    },
-    {
-      "key": "beiqijituan",
-      "name": "北汽集团",
-      "industry": "汽车产业链（补充）与地产补漏",
-      "url": "https://baicgroup.zhiye.com/"
-    },
-    {
-      "key": "guojiayancaozhuanmaiju",
-      "name": "国家烟草专卖局",
-      "industry": "烟草/邮政/铁路/交通",
-      "url": "http://www.tobacco.gov.cn/gjyc/zpxx/list.shtml"
-    },
-    {
-      "key": "guojianengyuanjituan",
-      "name": "国家能源集团",
-      "industry": "能源/电网/石油石化央企",
-      "url": "https://zhaopin.chnenergy.com.cn/"
-    },
-    {
-      "key": "yangguangcheng",
-      "name": "阳光城",
-      "industry": "地产/建筑/物业",
-      "url": "https://www.yango.com.cn/"
-    },
-    {
-      "key": "anhuijiangong",
-      "name": "安徽建工",
-      "industry": "地方基建工程国企",
-      "url": "http://aceg.com.cn/list/zpxx"
-    },
-    {
-      "key": "zhongguohaiyou",
-      "name": "中国海油",
-      "industry": "能源/电网/石油石化央企",
-      "url": "https://cnooc.zhiye.com/"
-    },
-    {
-      "key": "chaojubian",
-      "name": "超聚变",
-      "industry": "互联网/科技/游戏",
-      "url": "https://career.xfusion.com/"
-    },
-    {
-      "key": "zhongyuanhaiyun",
-      "name": "中远海运",
-      "industry": "烟草/邮政/铁路/交通",
-      "url": "https://coscoshipping.iguopin.com"
-    },
-    {
-      "key": "zhongchuangxinhang",
-      "name": "中创新航",
-      "industry": "汽车产业链（补充）与地产补漏",
-      "url": "http://calbjs.zhiye.com/"
-    },
-    {
-      "key": "zhejiangjiantou-zhejiangshengjianshetouzijituan",
-      "name": "浙江建投(浙江省建设投资集团)",
-      "industry": "地方基建工程国企",
-      "url": "https://www.cnzgc.com/"
-    },
-    {
-      "key": "sanqihuyu",
-      "name": "三七互娱",
-      "industry": "互联网/科技/游戏",
-      "url": "https://37wan.zhiye.com/"
-    },
-    {
-      "key": "yuanyangjituan",
-      "name": "远洋集团",
-      "industry": "地产/建筑/物业",
-      "url": "https://sinoocean.zhiye.com/"
-    },
-    {
-      "key": "dipingxian",
-      "name": "地平线",
-      "industry": "AI/大模型与互联网新势力",
-      "url": "https://horizon-campus.hotjob.cn/"
-    },
-    {
-      "key": "zhongguohuaneng",
-      "name": "中国华能",
-      "industry": "能源/电网/石油石化央企",
-      "url": "https://zhaopin.chng.com.cn/"
-    },
-    {
-      "key": "tianqiliye",
-      "name": "天齐锂业",
-      "industry": "汽车产业链（补充）与地产补漏",
-      "url": "https://tianqilithium-hr.zhiye.com/jobs"
-    },
-    {
-      "key": "jinkegufen",
-      "name": "金科股份",
-      "industry": "地产/建筑/物业",
-      "url": "https://www.jinke.com/join/campus"
-    },
-    {
-      "key": "dongfanghangkong",
-      "name": "东方航空",
-      "industry": "烟草/邮政/铁路/交通",
-      "url": "https://job.ceair.com/"
-    },
-    {
-      "key": "shanxijiangong",
-      "name": "陕西建工",
-      "industry": "地方基建工程国企",
-      "url": "https://sjkghr.sxjgkg.com:2081/zhaopin"
-    },
-    {
-      "key": "wanmeishijie",
-      "name": "完美世界",
-      "industry": "互联网/科技/游戏",
-      "url": "https://jobs.games.wanmei.com/"
-    },
-    {
-      "key": "nanfanghangkong",
-      "name": "南方航空",
-      "industry": "烟草/邮政/铁路/交通",
-      "url": "https://job.csair.com/"
-    },
-    {
-      "key": "jindijituan",
-      "name": "金地集团",
-      "industry": "地产/建筑/物业",
-      "url": "https://hr.gemdale.com/"
-    },
-    {
-      "key": "kuangshikeji",
-      "name": "旷视科技",
-      "industry": "AI/大模型与互联网新势力",
-      "url": "http://zhaopin.megvii.com/"
-    },
-    {
-      "key": "ganfengliye",
-      "name": "赣锋锂业",
-      "industry": "汽车产业链（补充）与地产补漏",
-      "url": "https://www.ganfenglithium.com/career1.html"
-    },
-    {
-      "key": "jinshanruanjian",
-      "name": "金山软件",
-      "industry": "互联网/科技/游戏",
-      "url": "https://www.kingsoft.com/iksnet/recruit"
-    },
-    {
-      "key": "hanwuji",
-      "name": "寒武纪",
-      "industry": "AI/大模型与互联网新势力",
-      "url": "https://www.cambricon.com/"
-    },
-    {
-      "key": "zhongguoguohang",
-      "name": "中国国航",
-      "industry": "烟草/邮政/铁路/交通",
-      "url": "https://zhaopin.airchina.com.cn/"
-    },
-    {
-      "key": "zhongguohuadian",
-      "name": "中国华电",
-      "industry": "能源/电网/石油石化央企",
-      "url": "https://rencaishichang.chd.com.cn/"
-    },
-    {
-      "key": "enjiegufen",
-      "name": "恩捷股份",
-      "industry": "汽车产业链（补充）与地产补漏",
-      "url": "https://jobs.51job.com/jianzhizp/co2568971.html"
-    },
-    {
-      "key": "zhongguodatang",
-      "name": "中国大唐",
-      "industry": "能源/电网/石油石化央企",
-      "url": "https://zhaopin.china-cdt.com/"
-    },
-    {
-      "key": "chongqingjiangong",
-      "name": "重庆建工",
-      "industry": "地方基建工程国企",
-      "url": "https://www.ccegc.cn/jjjg/zpxx/"
-    },
-    {
-      "key": "yuncongkeji",
-      "name": "云从科技",
-      "industry": "AI/大模型与互联网新势力",
-      "url": "https://cloudwalk.com/Join"
-    },
-    {
-      "key": "zhongguanghe",
-      "name": "中广核",
-      "industry": "能源/电网/石油石化央企",
-      "url": "https://cgn.hotjob.cn/"
-    },
-    {
-      "key": "shandongluqiao",
-      "name": "山东路桥",
-      "industry": "地方基建工程国企",
-      "url": "http://zhaopin.sdhsg.com/"
-    },
-    {
-      "key": "souhu",
-      "name": "搜狐",
-      "industry": "互联网/科技/游戏",
-      "url": "https://hr.sohu.com"
-    },
-    {
-      "key": "zhongtongkuaidi",
-      "name": "中通快递",
-      "industry": "物流/快递/供应链",
-      "url": "https://hr.zto.com/"
-    },
-    {
-      "key": "chunqiuhangkong",
-      "name": "春秋航空",
-      "industry": "烟草/邮政/铁路/交通",
-      "url": "https://job.ch.com/"
-    },
-    {
-      "key": "shunfengkonggu",
-      "name": "顺丰控股",
-      "industry": "物流/快递/供应链",
-      "url": "https://hr.sf-express.com/"
-    },
-    {
-      "key": "zhipuai",
-      "name": "智谱AI",
-      "industry": "AI/大模型与互联网新势力",
-      "url": "https://zhipu-ai.jobs.feishu.cn/"
-    },
-    {
-      "key": "huayouguye",
-      "name": "华友钴业",
-      "industry": "汽车产业链（补充）与地产补漏",
-      "url": "http://campus.huayou.com/index.html"
-    },
-    {
-      "key": "shanxijianshetouzijituan",
-      "name": "山西建设投资集团",
-      "industry": "地方基建工程国企",
-      "url": "https://www.sxcig.com/xxgk/rczp.htm"
-    },
-    {
-      "key": "zhijiqiche",
-      "name": "智己汽车",
-      "industry": "互联网/科技/游戏",
-      "url": "https://www.immotors.com/website/join_us"
-    },
-    {
-      "key": "zhongguohegongyejituan",
-      "name": "中国核工业集团",
-      "industry": "能源/电网/石油石化央企",
-      "url": "https://hr.cnnc.com.cn/"
-    },
-    {
-      "key": "haihangjituan",
-      "name": "海航集团",
-      "industry": "烟草/邮政/铁路/交通",
-      "url": "https://hna.zhiye.com/"
-    },
-    {
-      "key": "yuezhianmian-kimi",
-      "name": "月之暗面(Kimi)",
-      "industry": "AI/大模型与互联网新势力",
-      "url": "https://careers.kimi.com/"
-    },
-    {
-      "key": "jingdongwuliu",
-      "name": "京东物流",
-      "industry": "物流/快递/供应链",
-      "url": "https://zhaopin.jd.com/"
-    },
-    {
-      "key": "beiterui",
-      "name": "贝特瑞",
-      "industry": "汽车产业链（补充）与地产补漏",
-      "url": "https://btrchina.zhiye.com/campus"
-    },
-    {
-      "key": "hunanjiangong",
-      "name": "湖南建工",
-      "industry": "地方基建工程国企",
-      "url": "https://www.hnceg.com/news/37/"
-    },
-    {
-      "key": "jikeqiche",
-      "name": "极氪汽车",
-      "industry": "互联网/科技/游戏",
-      "url": "https://www.zeekrgroup.com/join-us"
-    },
-    {
-      "key": "huarunjituan",
-      "name": "华润集团",
-      "industry": "商贸/供应链/综合央企",
-      "url": "https://careers.crc.com.cn/"
-    },
-    {
-      "key": "yuantongsudi",
-      "name": "圆通速递",
-      "industry": "物流/快递/供应链",
-      "url": "https://www.yto.net.cn/"
-    },
-    {
-      "key": "zhonglvguoji",
-      "name": "中铝国际",
-      "industry": "地方基建工程国企",
-      "url": "https://zlgj2026.zhaopin.com/"
-    },
-    {
-      "key": "baichuanzhineng",
-      "name": "百川智能",
-      "industry": "AI/大模型与互联网新势力",
-      "url": "https://campus.baichuan-inc.com/"
-    },
-    {
-      "key": "beijingyinhang",
-      "name": "北京银行",
-      "industry": "城商行",
-      "url": "https://bankofbeijing.zhiye.com"
-    },
-    {
-      "key": "mihayou",
-      "name": "米哈游",
-      "industry": "互联网/科技/游戏",
-      "url": "https://mihooyo.zhiye.com/"
-    },
-    {
-      "key": "zhongliangjituan",
-      "name": "中粮集团",
-      "industry": "商贸/供应链/综合央企",
-      "url": "https://cofco.zhiye.com/"
-    },
-    {
-      "key": "zhongguochubeiliangguanlijituan",
-      "name": "中国储备粮管理集团",
-      "industry": "能源/电网/石油石化央企",
-      "url": "https://sinograin.iguopin.com/"
-    },
-    {
-      "key": "debangwuliu",
-      "name": "德邦物流",
-      "industry": "物流/快递/供应链",
-      "url": "https://deppon.zhiye.com/"
-    },
-    {
-      "key": "shanghaiyinhang",
-      "name": "上海银行",
-      "industry": "城商行",
-      "url": "https://bosc.zhiye.com"
-    },
-    {
-      "key": "zhongguohejian-zhongguohegongyejianshejituan",
-      "name": "中国核建(中国核工业建设集团)",
-      "industry": "地方基建工程国企",
-      "url": "https://cnecc.zhiye.com/"
-    },
-    {
-      "key": "yingjiaowangluo",
-      "name": "鹰角网络",
-      "industry": "互联网/科技/游戏",
-      "url": "https://hypergryph.zhiye.com/"
-    },
-    {
-      "key": "guoyaojituan",
-      "name": "国药集团",
-      "industry": "商贸/供应链/综合央企",
-      "url": "https://sinopharm.zhiye.com/"
-    },
-    {
-      "key": "zhongguogongxiaojituan",
-      "name": "中国供销集团",
-      "industry": "能源/电网/石油石化央企",
-      "url": "https://zggxjt.iguopin.com/"
-    },
-    {
-      "key": "jitusudi",
-      "name": "极兔速递",
-      "industry": "物流/快递/供应链",
-      "url": "https://www.jtexpress.com/"
-    },
-    {
-      "key": "minimax",
-      "name": "MiniMax",
-      "industry": "AI/大模型与互联网新势力",
-      "url": "https://www.minimax.io/careers"
-    },
-    {
-      "key": "jiangsuyinhang",
-      "name": "江苏银行",
-      "industry": "城商行",
-      "url": "https://hr.jsbchina.cn/zp"
-    },
-    {
-      "key": "zhongguonanshuibeidiaojituan",
-      "name": "中国南水北调集团",
-      "industry": "能源/电网/石油石化央企",
-      "url": "https://www.csnwd.com.cn/"
-    },
-    {
-      "key": "lilisiyouxi",
-      "name": "莉莉丝游戏",
-      "industry": "互联网/科技/游戏",
-      "url": "https://lilith.zhiye.com/"
-    },
-    {
-      "key": "jieyuexingchen",
-      "name": "阶跃星辰",
-      "industry": "AI/大模型与互联网新势力",
-      "url": "https://app.mokahr.com/campus-recruitment/step/141903"
-    },
-    {
-      "key": "dewu-du",
-      "name": "得物(毒)",
-      "industry": "互联网垂直 / 电商 / 内容",
-      "url": "https://campus.dewu.com"
-    },
-    {
-      "key": "zhongguoyanyejituan",
-      "name": "中国盐业集团",
-      "industry": "能源/电网/石油石化央企",
-      "url": "https://www.chinasalt.com.cn/"
-    },
-    {
-      "key": "xiamenjianfa",
-      "name": "厦门建发",
-      "industry": "商贸/供应链/综合央企",
-      "url": "http://chinacdc.zhiye.com/campus"
-    },
-    {
-      "key": "tongweigufen",
-      "name": "通威股份",
-      "industry": "新能源/电力装备",
-      "url": "https://tongwei.zhiye.com"
-    },
-    {
-      "key": "kuayuesuyun",
-      "name": "跨越速运",
-      "industry": "物流/快递/供应链",
-      "url": "https://www.ky-express.com/"
-    },
-    {
       "key": "funplus",
       "name": "FunPlus",
       "industry": "互联网/科技/游戏",
       "url": "https://funplus.zhiye.com/"
-    },
-    {
-      "key": "yundasudi",
-      "name": "韵达速递",
-      "industry": "物流/快递/供应链",
-      "url": "https://www.yundaex.com/"
-    },
-    {
-      "key": "shandongnengyuanjituan",
-      "name": "山东能源集团",
-      "industry": "能源/电网/石油石化央企",
-      "url": "https://zhaopin.shandong-energy.com/recruit"
-    },
-    {
-      "key": "weipinhui",
-      "name": "唯品会",
-      "industry": "互联网垂直 / 电商 / 内容",
-      "url": "https://campus.vip.com/"
-    },
-    {
-      "key": "ningboyinhang",
-      "name": "宁波银行",
-      "industry": "城商行",
-      "url": "https://zhaopin.nbcb.com.cn/"
-    },
-    {
-      "key": "xiexinjituan",
-      "name": "协鑫集团",
-      "industry": "新能源/电力装备",
-      "url": "https://campus.51job.com/gcl-power/"
-    },
-    {
-      "key": "nanjingyinhang",
-      "name": "南京银行",
-      "industry": "城商行",
-      "url": "https://job.njcb.com.cn/"
-    },
-    {
-      "key": "wuchanzhongda",
-      "name": "物产中大",
-      "industry": "商贸/供应链/综合央企",
-      "url": "https://campus.wzgroup.cn/"
-    },
-    {
-      "key": "keep-yundongkeji",
-      "name": "Keep(运动科技)",
-      "industry": "互联网垂直 / 电商 / 内容",
-      "url": "https://hr.keep.com/campus/jobs"
     },
     {
       "key": "yuanfudao",
@@ -1671,10 +981,40 @@
       "url": "https://yuanfudao.zhiye.com/"
     },
     {
-      "key": "guomaokonggu",
-      "name": "国贸控股",
+      "key": "shandongnengyuanjituan",
+      "name": "山东能源集团",
+      "industry": "能源/电网/石油石化央企",
+      "url": "https://zhaopin.shandong-energy.com/recruit"
+    },
+    {
+      "key": "yundasudi",
+      "name": "韵达速递",
+      "industry": "物流/快递/供应链",
+      "url": "https://www.yundaex.com/"
+    },
+    {
+      "key": "keep-yundongkeji",
+      "name": "Keep(运动科技)",
+      "industry": "互联网垂直 / 电商 / 内容",
+      "url": "https://hr.keep.com/campus/jobs"
+    },
+    {
+      "key": "nanjingyinhang",
+      "name": "南京银行",
+      "industry": "城商行",
+      "url": "https://job.njcb.com.cn/"
+    },
+    {
+      "key": "xiexinjituan",
+      "name": "协鑫集团",
+      "industry": "新能源/电力装备",
+      "url": "https://campus.51job.com/gcl-power/"
+    },
+    {
+      "key": "wuchanzhongda",
+      "name": "物产中大",
       "industry": "商贸/供应链/综合央企",
-      "url": "https://itg.zhiye.com/"
+      "url": "https://campus.wzgroup.cn/"
     },
     {
       "key": "yankuangnengyuan",
@@ -1695,6 +1035,12 @@
       "url": "https://dec2026.iguopin.com/"
     },
     {
+      "key": "guomaokonggu",
+      "name": "国贸控股",
+      "industry": "商贸/供应链/综合央企",
+      "url": "https://itg.zhiye.com/"
+    },
+    {
       "key": "hangzhouyinhang",
       "name": "杭州银行",
       "industry": "城商行",
@@ -1707,22 +1053,16 @@
       "url": "https://jobs.ximalaya.com/"
     },
     {
-      "key": "annengwuliu",
-      "name": "安能物流",
-      "industry": "物流/快递/供应链",
-      "url": "https://www.ane56.com/"
-    },
-    {
-      "key": "suzhouyinhang",
-      "name": "苏州银行",
-      "industry": "城商行",
-      "url": "https://suzhoubank.zhiye.com/"
-    },
-    {
       "key": "zuoyebang",
       "name": "作业帮",
       "industry": "互联网/科技/游戏",
       "url": "https://job.zuoyebang.com/"
+    },
+    {
+      "key": "annengwuliu",
+      "name": "安能物流",
+      "industry": "物流/快递/供应链",
+      "url": "https://www.ane56.com/"
     },
     {
       "key": "shanxijiaomei",
@@ -1737,10 +1077,10 @@
       "url": "https://campus.51job.com/huafa"
     },
     {
-      "key": "shengwang-agora",
-      "name": "声网(Agora)",
-      "industry": "互联网垂直 / 电商 / 内容",
-      "url": "https://app.mokahr.com/campus_apply/agora"
+      "key": "suzhouyinhang",
+      "name": "苏州银行",
+      "industry": "城商行",
+      "url": "https://suzhoubank.zhiye.com/"
     },
     {
       "key": "haerbindianqi",
@@ -1749,10 +1089,22 @@
       "url": "https://www.harbin-electric.com/zxns/xyzp.htm"
     },
     {
+      "key": "shengwang-agora",
+      "name": "声网(Agora)",
+      "industry": "互联网垂直 / 电商 / 内容",
+      "url": "https://app.mokahr.com/campus_apply/agora"
+    },
+    {
       "key": "shanximeiye",
       "name": "陕西煤业",
       "industry": "能源/电网/石油石化央企",
       "url": "https://webhr.shccig.com/webhrN2-zp"
+    },
+    {
+      "key": "shanghaidianqi",
+      "name": "上海电气",
+      "industry": "新能源/电力装备",
+      "url": "https://sec.hotjob.cn/SU60de8350bef57c519874bd36/pb/school.html"
     },
     {
       "key": "lvdijituan",
@@ -1761,10 +1113,10 @@
       "url": "http://ldjt.51job.com/"
     },
     {
-      "key": "shanghaidianqi",
-      "name": "上海电气",
-      "industry": "新能源/电力装备",
-      "url": "https://sec.hotjob.cn/SU60de8350bef57c519874bd36/pb/school.html"
+      "key": "xiamenyinhang",
+      "name": "厦门银行",
+      "industry": "城商行",
+      "url": "http://xmccb.zhaopin.com/"
     },
     {
       "key": "yimidida",
@@ -1777,12 +1129,6 @@
       "name": "360集团",
       "industry": "互联网/科技/游戏",
       "url": "https://hr.360.cn/"
-    },
-    {
-      "key": "xiamenyinhang",
-      "name": "厦门银行",
-      "industry": "城商行",
-      "url": "http://xmccb.zhaopin.com/"
     },
     {
       "key": "weimeng",
@@ -1809,12 +1155,6 @@
       "url": "https://campus.qianxin.com/"
     },
     {
-      "key": "tebiandiangong",
-      "name": "特变电工",
-      "industry": "新能源/电力装备",
-      "url": "https://tbea.hotjob.cn/"
-    },
-    {
       "key": "changshayinhang",
       "name": "长沙银行",
       "industry": "城商行",
@@ -1833,16 +1173,22 @@
       "url": "https://youzan.zhiye.com/campus/jobs"
     },
     {
-      "key": "anhengxinxi",
-      "name": "安恒信息",
-      "industry": "互联网/科技/游戏",
-      "url": "https://ahzp.dbappsecurity.com.cn/"
+      "key": "tebiandiangong",
+      "name": "特变电工",
+      "industry": "新能源/电力装备",
+      "url": "https://tbea.hotjob.cn/"
     },
     {
       "key": "xiangyujituan",
       "name": "象屿集团",
       "industry": "商贸/供应链/综合央企",
       "url": "https://xygroup.zhiye.com/"
+    },
+    {
+      "key": "anhengxinxi",
+      "name": "安恒信息",
+      "industry": "互联网/科技/游戏",
+      "url": "https://ahzp.dbappsecurity.com.cn/"
     },
     {
       "key": "xugongjituan",
@@ -1881,12 +1227,6 @@
       "url": "https://crcci.zhiye.com/"
     },
     {
-      "key": "delixi",
-      "name": "德力西",
-      "industry": "新能源/电力装备",
-      "url": "https://delixi-electric3.zhiye.com/campus/jobs"
-    },
-    {
       "key": "zhonglianzhongke",
       "name": "中联重科",
       "industry": "装备/机械/工业",
@@ -1899,10 +1239,10 @@
       "url": "https://yili.hotjob.cn/wt/yili/web/index/CompyiliPageindex"
     },
     {
-      "key": "chongqingyinhang",
-      "name": "重庆银行",
-      "industry": "城商行",
-      "url": "https://cqcbank2026.zhaopin.com/"
+      "key": "delixi",
+      "name": "德力西",
+      "industry": "新能源/电力装备",
+      "url": "https://delixi-electric3.zhiye.com/campus/jobs"
     },
     {
       "key": "zhihu",
@@ -1911,28 +1251,16 @@
       "url": "https://www.zhihu.com/careers"
     },
     {
+      "key": "chongqingyinhang",
+      "name": "重庆银行",
+      "industry": "城商行",
+      "url": "https://cqcbank2026.zhaopin.com/"
+    },
+    {
       "key": "58tongcheng",
       "name": "58同城",
       "industry": "互联网垂直 / 电商 / 内容",
       "url": "https://campus.58.com"
-    },
-    {
-      "key": "mengniujituan",
-      "name": "蒙牛集团",
-      "industry": "食品饮料/消费零售",
-      "url": "https://mengniu.zhiye.com/"
-    },
-    {
-      "key": "zhongguojiaojian",
-      "name": "中国交建",
-      "industry": "建筑/工程/冶金央企",
-      "url": "https://zhaopin.ccccltd.cn/"
-    },
-    {
-      "key": "bosszhipin",
-      "name": "BOSS直聘",
-      "industry": "互联网/科技/游戏",
-      "url": "https://www.zhipin.com/campus/"
     },
     {
       "key": "liugongjituan",
@@ -1941,16 +1269,34 @@
       "url": "https://liugong.zhiye.com/"
     },
     {
-      "key": "zhongguoxidian",
-      "name": "中国西电",
-      "industry": "新能源/电力装备",
-      "url": "https://campus.51job.com/m/zgxdjt/"
+      "key": "zhongguojiaojian",
+      "name": "中国交建",
+      "industry": "建筑/工程/冶金央企",
+      "url": "https://zhaopin.ccccltd.cn/"
+    },
+    {
+      "key": "mengniujituan",
+      "name": "蒙牛集团",
+      "industry": "食品饮料/消费零售",
+      "url": "https://mengniu.zhiye.com/"
+    },
+    {
+      "key": "bosszhipin",
+      "name": "BOSS直聘",
+      "industry": "互联网/科技/游戏",
+      "url": "https://www.zhipin.com/campus/"
     },
     {
       "key": "anjuke",
       "name": "安居客",
       "industry": "互联网垂直 / 电商 / 内容",
       "url": "https://pages.anjukestatic.com/html/jobs/jobindex.html"
+    },
+    {
+      "key": "zhongguoxidian",
+      "name": "中国西电",
+      "industry": "新能源/电力装备",
+      "url": "https://campus.51job.com/m/zgxdjt/"
     },
     {
       "key": "qingdaoyinhang",
@@ -1983,46 +1329,16 @@
       "url": "https://heros.shrcb.com/recruit/talent/official.html#/shrcb"
     },
     {
-      "key": "nongfushanquan",
-      "name": "农夫山泉",
-      "industry": "食品饮料/消费零售",
-      "url": "https://jobs.yst.com.cn/campus"
-    },
-    {
       "key": "xujidianqi",
       "name": "许继电气",
       "industry": "新能源/电力装备",
       "url": "https://xjec.com/contact/campus"
     },
     {
-      "key": "pinggaodianqi",
-      "name": "平高电气",
-      "industry": "新能源/电力装备",
-      "url": "https://campus.51job.com/pgjt2026/"
-    },
-    {
-      "key": "wahaha",
-      "name": "娃哈哈",
+      "key": "nongfushanquan",
+      "name": "农夫山泉",
       "industry": "食品饮料/消费零售",
-      "url": "https://apply.wahaha.com.cn/"
-    },
-    {
-      "key": "chongqingnongcunshangyeyinhang",
-      "name": "重庆农村商业银行",
-      "industry": "农商行 / 信托 / 保险资管补充",
-      "url": "https://www.cqrcb.com/cqrcb/aboutus/job/index.html"
-    },
-    {
-      "key": "zhongguonengjian",
-      "name": "中国能建",
-      "industry": "建筑/工程/冶金央企",
-      "url": "https://zhaopin.ceec.net.cn/"
-    },
-    {
-      "key": "pingguozhongguo",
-      "name": "苹果中国",
-      "industry": "外资跨国企业",
-      "url": "https://www.apple.com/careers/cn"
+      "url": "https://jobs.yst.com.cn/campus"
     },
     {
       "key": "zhongxinguoji",
@@ -2031,16 +1347,46 @@
       "url": "https://smics.zhiye.com/"
     },
     {
-      "key": "hema",
-      "name": "盒马",
-      "industry": "互联网垂直 / 电商 / 内容",
-      "url": "https://hire.freshippo.com/campus/home"
+      "key": "wahaha",
+      "name": "娃哈哈",
+      "industry": "食品饮料/消费零售",
+      "url": "https://apply.wahaha.com.cn/"
+    },
+    {
+      "key": "weiruanzhongguo",
+      "name": "微软中国",
+      "industry": "外资跨国企业",
+      "url": "https://www.microsoft.com/zh-cn/aprd/recruitment"
+    },
+    {
+      "key": "pingguozhongguo",
+      "name": "苹果中国",
+      "industry": "外资跨国企业",
+      "url": "https://www.apple.com/careers/cn"
+    },
+    {
+      "key": "pinggaodianqi",
+      "name": "平高电气",
+      "industry": "新能源/电力装备",
+      "url": "https://campus.51job.com/pgjt2026/"
+    },
+    {
+      "key": "chongqingnongcunshangyeyinhang",
+      "name": "重庆农村商业银行",
+      "industry": "农商行 / 信托 / 保险资管补充",
+      "url": "https://www.cqrcb.com/cqrcb/aboutus/job/index.html"
     },
     {
       "key": "shennandianlu",
       "name": "深南电路",
       "industry": "半导体/电子/硬科技",
       "url": "https://www.scc.com.cn/scc/jrsn/index.html"
+    },
+    {
+      "key": "hema",
+      "name": "盒马",
+      "industry": "互联网垂直 / 电商 / 内容",
+      "url": "https://hire.freshippo.com/campus/home"
     },
     {
       "key": "tongyiqiye",
@@ -2079,12 +1425,6 @@
       "url": "https://zhaopin.tcl.com/"
     },
     {
-      "key": "yonghuichaoshi",
-      "name": "永辉超市",
-      "industry": "食品饮料/消费零售",
-      "url": "https://yhchaoshi.zhiye.com/"
-    },
-    {
       "key": "zhongguohuaxue",
       "name": "中国化学",
       "industry": "建筑/工程/冶金央企",
@@ -2097,16 +1437,16 @@
       "url": "https://coca-cola.zhiye.com/"
     },
     {
+      "key": "yonghuichaoshi",
+      "name": "永辉超市",
+      "industry": "食品饮料/消费零售",
+      "url": "https://yhchaoshi.zhiye.com/"
+    },
+    {
       "key": "mingyangzhineng",
       "name": "明阳智能",
       "industry": "新能源/电力装备",
       "url": "https://mywind.zhiye.com/campus"
-    },
-    {
-      "key": "weiruanzhongguo",
-      "name": "微软中国",
-      "industry": "外资跨国企业",
-      "url": "https://www.microsoft.com/zh-cn/aprd/recruitment"
     },
     {
       "key": "changshunongcunshangyeyinhang",
@@ -2115,34 +1455,10 @@
       "url": "https://www.csrcbank.com/tb/rczp/xyzp_360/"
     },
     {
-      "key": "baojiezhongguo",
-      "name": "宝洁中国",
-      "industry": "外资跨国企业",
-      "url": "https://careers.pg.com.cn/"
-    },
-    {
       "key": "haixin",
       "name": "海信",
       "industry": "半导体/电子/硬科技",
       "url": "https://jobs.hisense.com/"
-    },
-    {
-      "key": "zhongguojiancai",
-      "name": "中国建材",
-      "industry": "建筑/工程/冶金央企",
-      "url": "https://zhaopin.cnbm.com.cn/"
-    },
-    {
-      "key": "suningyigou",
-      "name": "苏宁易购",
-      "industry": "食品饮料/消费零售",
-      "url": "https://campus.suning.cn/rps-campus/"
-    },
-    {
-      "key": "zhangjiagangnongcunshangyeyinhang",
-      "name": "张家港农村商业银行",
-      "industry": "农商行 / 信托 / 保险资管补充",
-      "url": "https://zrcbank.zhiye.com"
     },
     {
       "key": "jiliqiche",
@@ -2151,16 +1467,40 @@
       "url": "http://campus.geely.com/"
     },
     {
+      "key": "zhongguojiancai",
+      "name": "中国建材",
+      "industry": "建筑/工程/冶金央企",
+      "url": "https://zhaopin.cnbm.com.cn/"
+    },
+    {
+      "key": "baojiezhongguo",
+      "name": "宝洁中国",
+      "industry": "外资跨国企业",
+      "url": "https://careers.pg.com.cn/"
+    },
+    {
+      "key": "zhongguonengjian",
+      "name": "中国能建",
+      "industry": "建筑/工程/冶金央企",
+      "url": "https://zhaopin.ceec.net.cn/"
+    },
+    {
+      "key": "zhangjiagangnongcunshangyeyinhang",
+      "name": "张家港农村商业银行",
+      "industry": "农商行 / 信托 / 保险资管补充",
+      "url": "https://zrcbank.zhiye.com"
+    },
+    {
+      "key": "suningyigou",
+      "name": "苏宁易购",
+      "industry": "食品饮料/消费零售",
+      "url": "https://campus.suning.cn/rps-campus/"
+    },
+    {
       "key": "yiqijituan-zhongguoyiqi",
       "name": "一汽集团(中国一汽)",
       "industry": "电池 / 汽车零部件补充",
       "url": "https://faw-zhaopin.hotjob.cn/"
-    },
-    {
-      "key": "zhongguobaowugangtie",
-      "name": "中国宝武钢铁",
-      "industry": "建筑/工程/冶金央企",
-      "url": "http://campus.51job.com/baowugroup/"
     },
     {
       "key": "shagangjituan",
@@ -2173,6 +1513,12 @@
       "name": "海康威视",
       "industry": "半导体/电子/硬科技",
       "url": "https://talent.hikvision.com"
+    },
+    {
+      "key": "zhongguobaowugangtie",
+      "name": "中国宝武钢铁",
+      "industry": "建筑/工程/冶金央企",
+      "url": "http://campus.51job.com/baowugroup/"
     },
     {
       "key": "ruixingkafei",
@@ -2199,6 +1545,24 @@
       "url": "https://www.amazon.jobs/zh/"
     },
     {
+      "key": "dahuagufen",
+      "name": "大华股份",
+      "industry": "半导体/电子/硬科技",
+      "url": "https://job.dahuatech.com/"
+    },
+    {
+      "key": "xingbakezhongguo",
+      "name": "星巴克中国",
+      "industry": "食品饮料/消费零售",
+      "url": "https://starbucks.m.zhiye.com/all.html"
+    },
+    {
+      "key": "chuangwei",
+      "name": "创维",
+      "industry": "家电 / 消费电子补充",
+      "url": "https://skyworth.hotjob.cn/"
+    },
+    {
       "key": "zhongguowukuang",
       "name": "中国五矿",
       "industry": "建筑/工程/冶金央企",
@@ -2209,30 +1573,6 @@
       "name": "平安信托",
       "industry": "农商行 / 信托 / 保险资管补充",
       "url": "https://talent.pingan.com/position.html"
-    },
-    {
-      "key": "xingbakezhongguo",
-      "name": "星巴克中国",
-      "industry": "食品饮料/消费零售",
-      "url": "https://starbucks.m.zhiye.com/all.html"
-    },
-    {
-      "key": "yundagufen",
-      "name": "运达股份",
-      "industry": "新能源/电力装备",
-      "url": "https://hr.chinawindey.com"
-    },
-    {
-      "key": "dahuagufen",
-      "name": "大华股份",
-      "industry": "半导体/电子/硬科技",
-      "url": "https://job.dahuatech.com/"
-    },
-    {
-      "key": "chuangwei",
-      "name": "创维",
-      "industry": "家电 / 消费电子补充",
-      "url": "https://skyworth.hotjob.cn/"
     },
     {
       "key": "huichuanjishu",
@@ -2259,22 +1599,22 @@
       "url": "https://haitian.zhiye.com/"
     },
     {
-      "key": "jianxinxintuo",
-      "name": "建信信托",
-      "industry": "农商行 / 信托 / 保险资管补充",
-      "url": "https://job2.ccb.com/cn/job/announcement.html"
-    },
-    {
-      "key": "aokesi",
-      "name": "奥克斯",
-      "industry": "家电 / 消费电子补充",
-      "url": "https://auxgroup.zhiye.com/campus"
+      "key": "yundagufen",
+      "name": "运达股份",
+      "industry": "新能源/电力装备",
+      "url": "https://hr.chinawindey.com"
     },
     {
       "key": "nanshanjituan",
       "name": "南山集团",
       "industry": "钢铁/有色/材料龙头",
       "url": "https://www.nanshan.com.cn/talent-development-society.html?loc=1"
+    },
+    {
+      "key": "aokesi",
+      "name": "奥克斯",
+      "industry": "家电 / 消费电子补充",
+      "url": "https://auxgroup.zhiye.com/campus"
     },
     {
       "key": "lansikeji",
@@ -2289,10 +1629,10 @@
       "url": "https://qiaqia.zhiye.com/"
     },
     {
-      "key": "tongyongqichezhongguo",
-      "name": "通用汽车中国",
-      "industry": "外资跨国企业",
-      "url": "https://search-careers.gm.com/en/jobs/?location=Shanghai"
+      "key": "jianxinxintuo",
+      "name": "建信信托",
+      "industry": "农商行 / 信托 / 保险资管补充",
+      "url": "https://job2.ccb.com/cn/job/announcement.html"
     },
     {
       "key": "beijingchengjian",
@@ -2301,34 +1641,16 @@
       "url": "https://si.bucg.com/e/zp/"
     },
     {
+      "key": "tongyongqichezhongguo",
+      "name": "通用汽车中国",
+      "industry": "外资跨国企业",
+      "url": "https://search-careers.gm.com/en/jobs/?location=Shanghai"
+    },
+    {
       "key": "zhongtiangangtie",
       "name": "中天钢铁",
       "industry": "钢铁/有色/材料龙头",
       "url": "http://www.zt.net.cn/index.php?a=lists&c=index&catid=36&m=content"
-    },
-    {
-      "key": "huarunxintuo",
-      "name": "华润信托",
-      "industry": "农商行 / 信托 / 保险资管补充",
-      "url": "http://careers.crctrust.com/index.html"
-    },
-    {
-      "key": "lixunjingmi",
-      "name": "立讯精密",
-      "industry": "半导体/电子/硬科技",
-      "url": "https://luxshare.zhiye.com/"
-    },
-    {
-      "key": "supoer",
-      "name": "苏泊尔",
-      "industry": "家电 / 消费电子补充",
-      "url": "https://xyzp.51job.com/supor"
-    },
-    {
-      "key": "hangtiankejijituan",
-      "name": "航天科技集团",
-      "industry": "航空航天/军工/电子央企",
-      "url": "https://www.spacetalent.com.cn/"
     },
     {
       "key": "futeqichezhongguo",
@@ -2337,16 +1659,28 @@
       "url": "https://www.ford.com.cn/careers"
     },
     {
+      "key": "hangtiankejijituan",
+      "name": "航天科技集团",
+      "industry": "航空航天/军工/电子央企",
+      "url": "https://www.spacetalent.com.cn/"
+    },
+    {
+      "key": "lixunjingmi",
+      "name": "立讯精密",
+      "industry": "半导体/电子/硬科技",
+      "url": "https://luxshare.zhiye.com/"
+    },
+    {
       "key": "polaiya",
       "name": "珀莱雅",
       "industry": "食品饮料/消费零售",
       "url": "https://proya.zhiye.com/"
     },
     {
-      "key": "weiqiaochuangye",
-      "name": "魏桥创业",
-      "industry": "钢铁/有色/材料龙头",
-      "url": "https://www.weiqiaocy.com/"
+      "key": "supoer",
+      "name": "苏泊尔",
+      "industry": "家电 / 消费电子补充",
+      "url": "https://xyzp.51job.com/supor"
     },
     {
       "key": "hailiangjituan",
@@ -2361,12 +1695,6 @@
       "url": "https://sinochem.hotjob.cn"
     },
     {
-      "key": "jiuyang",
-      "name": "九阳",
-      "industry": "家电 / 消费电子补充",
-      "url": "https://zhaopin.joyoung.com/campus"
-    },
-    {
       "key": "tuopujituan",
       "name": "拓普集团",
       "industry": "半导体/电子/硬科技",
@@ -2379,22 +1707,46 @@
       "url": "https://cas.ic.zhiye.com/"
     },
     {
+      "key": "jiuyang",
+      "name": "九阳",
+      "industry": "家电 / 消费电子补充",
+      "url": "https://zhaopin.joyoung.com/campus"
+    },
+    {
       "key": "guangmingruye",
       "name": "光明乳业",
       "industry": "食品饮料/消费零售",
       "url": "https://brightdairy.zhiye.com/"
     },
     {
-      "key": "shitoukeji",
-      "name": "石头科技",
-      "industry": "家电 / 消费电子补充",
-      "url": "https://roborock.zhiye.com/campus"
+      "key": "weiqiaochuangye",
+      "name": "魏桥创业",
+      "industry": "钢铁/有色/材料龙头",
+      "url": "https://www.weiqiaocy.com/"
+    },
+    {
+      "key": "qingshankonggu",
+      "name": "青山控股",
+      "industry": "钢铁/有色/材料龙头",
+      "url": "https://www.tssgroup.com.cn/"
     },
     {
       "key": "zhonghangxintuo",
       "name": "中航信托",
       "industry": "农商行 / 信托 / 保险资管补充",
       "url": "https://www.avictc.com/sycd/sy/db/cpjy/"
+    },
+    {
+      "key": "zhongguolvye",
+      "name": "中国铝业",
+      "industry": "建筑/工程/冶金央企",
+      "url": "https://www.chinalco.com.cn/"
+    },
+    {
+      "key": "shitoukeji",
+      "name": "石头科技",
+      "industry": "家电 / 消费电子补充",
+      "url": "https://roborock.zhiye.com/campus"
     },
     {
       "key": "xinwangda",
@@ -2409,34 +1761,22 @@
       "url": "https://www.avic.com.cn/"
     },
     {
-      "key": "baomazhongguo",
-      "name": "宝马中国",
-      "industry": "外资跨国企业",
-      "url": "https://www.bmwgroup.jobs/cn/en.html"
-    },
-    {
       "key": "sanzhisongshu",
       "name": "三只松鼠",
       "industry": "食品饮料/消费零售",
       "url": "https://www.3songshu.com/jobs/"
     },
     {
-      "key": "qingshankonggu",
-      "name": "青山控股",
-      "industry": "钢铁/有色/材料龙头",
-      "url": "https://www.tssgroup.com.cn/"
+      "key": "baomazhongguo",
+      "name": "宝马中国",
+      "industry": "外资跨国企业",
+      "url": "https://www.bmwgroup.jobs/cn/en.html"
     },
     {
-      "key": "shanghaiguojixintuo",
-      "name": "上海国际信托",
-      "industry": "农商行 / 信托 / 保险资管补充",
-      "url": "https://job.spdb.com.cn/campusJob"
-    },
-    {
-      "key": "zhongguolvye",
-      "name": "中国铝业",
-      "industry": "建筑/工程/冶金央企",
-      "url": "https://www.chinalco.com.cn/"
+      "key": "kewosi",
+      "name": "科沃斯",
+      "industry": "家电 / 消费电子补充",
+      "url": "https://hr.ecovacs.cn/"
     },
     {
       "key": "benchizhongguo",
@@ -2451,28 +1791,10 @@
       "url": "https://jobs.hengli.com"
     },
     {
-      "key": "kewosi",
-      "name": "科沃斯",
-      "industry": "家电 / 消费电子补充",
-      "url": "https://hr.ecovacs.cn/"
-    },
-    {
       "key": "zhongguochuanbo",
       "name": "中国船舶",
       "industry": "航空航天/军工/电子央企",
       "url": "https://cssc.zhaopin.com/"
-    },
-    {
-      "key": "zhongguobingqigongye",
-      "name": "中国兵器工业",
-      "industry": "航空航天/军工/电子央企",
-      "url": "https://zhaopin.nhrdc.cn/"
-    },
-    {
-      "key": "dazhongqichezhongguo",
-      "name": "大众汽车中国",
-      "industry": "外资跨国企业",
-      "url": "https://jobs.volkswagen-group.com/Volkswagen-Group"
     },
     {
       "key": "liangpinpuzi",
@@ -2481,16 +1803,46 @@
       "url": "http://lppz.zhiye.com/"
     },
     {
+      "key": "shanghaiguojixintuo",
+      "name": "上海国际信托",
+      "industry": "农商行 / 信托 / 保险资管补充",
+      "url": "https://job.spdb.com.cn/campusJob"
+    },
+    {
+      "key": "zhongguobingqigongye",
+      "name": "中国兵器工业",
+      "industry": "航空航天/军工/电子央企",
+      "url": "https://zhaopin.nhrdc.cn/"
+    },
+    {
       "key": "weiergufen",
       "name": "韦尔股份",
       "industry": "半导体/电子/硬科技",
       "url": "https://www.omnivision-group.com/"
     },
     {
+      "key": "quechaozhongguo",
+      "name": "雀巢中国",
+      "industry": "外资跨国企业",
+      "url": "https://www.nestle.com.cn/jobs"
+    },
+    {
+      "key": "dazhongqichezhongguo",
+      "name": "大众汽车中国",
+      "industry": "外资跨国企业",
+      "url": "https://jobs.volkswagen-group.com/Volkswagen-Group"
+    },
+    {
       "key": "mixuebingcheng",
       "name": "蜜雪冰城",
       "industry": "新消费 / 茶饮 / 餐饮",
       "url": "https://careers.mxbc.com/campus"
+    },
+    {
+      "key": "huarunxintuo",
+      "name": "华润信托",
+      "industry": "农商行 / 信托 / 保险资管补充",
+      "url": "http://careers.crctrust.com/index.html"
     },
     {
       "key": "gongniujituan",
@@ -2505,16 +1857,10 @@
       "url": "http://campus.51job.com/ansteel2026"
     },
     {
-      "key": "quechaozhongguo",
-      "name": "雀巢中国",
-      "industry": "外资跨国企业",
-      "url": "https://www.nestle.com.cn/jobs"
-    },
-    {
-      "key": "zhaoyichuangxin",
-      "name": "兆易创新",
-      "industry": "半导体/电子/硬科技",
-      "url": "https://app.mokahr.com/campus-recruitment/gigadevice/92215"
+      "key": "yanjinpuzi",
+      "name": "盐津铺子",
+      "industry": "食品饮料/消费零售",
+      "url": "https://www.yanjinpuzi.com/job.aspx?TypeId=1"
     },
     {
       "key": "paopaomate",
@@ -2523,10 +1869,16 @@
       "url": "https://popmart.zhiye.com/campus"
     },
     {
-      "key": "hegangjituan",
-      "name": "河钢集团",
-      "industry": "钢铁/有色/材料龙头",
-      "url": "https://www.hbisco.com/joinus"
+      "key": "zhaoyichuangxin",
+      "name": "兆易创新",
+      "industry": "半导体/电子/硬科技",
+      "url": "https://app.mokahr.com/campus-recruitment/gigadevice/92215"
+    },
+    {
+      "key": "oupuzhaoming",
+      "name": "欧普照明",
+      "industry": "家电 / 消费电子补充",
+      "url": "https://www.opple.com.cn/aboutus/personnel"
     },
     {
       "key": "zhongguobingqizhuangbei",
@@ -2535,22 +1887,16 @@
       "url": "https://csgczhaopin.zhiye.com/"
     },
     {
+      "key": "hegangjituan",
+      "name": "河钢集团",
+      "industry": "钢铁/有色/材料龙头",
+      "url": "https://www.hbisco.com/joinus"
+    },
+    {
       "key": "zhuoshengwei",
       "name": "卓胜微",
       "industry": "半导体/电子/硬科技",
       "url": "https://maxscend.zhiye.com/"
-    },
-    {
-      "key": "yanjinpuzi",
-      "name": "盐津铺子",
-      "industry": "食品饮料/消费零售",
-      "url": "https://www.yanjinpuzi.com/job.aspx?TypeId=1"
-    },
-    {
-      "key": "oupuzhaoming",
-      "name": "欧普照明",
-      "industry": "家电 / 消费电子补充",
-      "url": "https://www.opple.com.cn/aboutus/personnel"
     },
     {
       "key": "shanghaijiahua",
@@ -2569,6 +1915,12 @@
       "name": "达能中国",
       "industry": "外资跨国企业",
       "url": "https://careers.danone.com.cn/"
+    },
+    {
+      "key": "zhongweigongsi",
+      "name": "中微公司",
+      "industry": "半导体/电子/硬科技",
+      "url": "https://www.amec-inc.com/index/Lists/index/catid/100.html"
     },
     {
       "key": "zhongguodianke",
@@ -2607,24 +1959,6 @@
       "url": "https://careers.kfc.com.cn/"
     },
     {
-      "key": "zhongweigongsi",
-      "name": "中微公司",
-      "industry": "半导体/电子/硬科技",
-      "url": "https://www.amec-inc.com/index/Lists/index/catid/100.html"
-    },
-    {
-      "key": "jiangxitongye",
-      "name": "江西铜业",
-      "industry": "钢铁/有色/材料龙头",
-      "url": "https://www.jxcc.com/recruitmentAnnouncement"
-    },
-    {
-      "key": "guotoujituan",
-      "name": "国投集团",
-      "industry": "航空航天/军工/电子央企",
-      "url": "https://sdic.zhiye.com/"
-    },
-    {
       "key": "haidilao",
       "name": "海底捞",
       "industry": "新消费 / 茶饮 / 餐饮",
@@ -2635,6 +1969,18 @@
       "name": "北方华创",
       "industry": "半导体/电子/硬科技",
       "url": "https://career.naura.com/jobs"
+    },
+    {
+      "key": "guotoujituan",
+      "name": "国投集团",
+      "industry": "航空航天/军工/电子央企",
+      "url": "https://sdic.zhiye.com/"
+    },
+    {
+      "key": "jiangxitongye",
+      "name": "江西铜业",
+      "industry": "钢铁/有色/材料龙头",
+      "url": "https://www.jxcc.com/recruitmentAnnouncement"
     },
     {
       "key": "baishengzhongguo-kendeji-bishengke",
@@ -2649,16 +1995,16 @@
       "url": "https://app.mokahr.com/campus-recruitment/botanee/95426"
     },
     {
-      "key": "xinbaogufen",
-      "name": "新宝股份",
-      "industry": "家电 / 消费电子补充",
-      "url": "https://xxgattbvct5.feishu.cn/share/base/form/shrcnfvJ1iHl01jIBu6Tq8y4EPb"
-    },
-    {
       "key": "zhangdiankeji",
       "name": "长电科技",
       "industry": "半导体/电子/硬科技",
       "url": "https://jcetglobal.com/en/site/join"
+    },
+    {
+      "key": "xinbaogufen",
+      "name": "新宝股份",
+      "industry": "家电 / 消费电子补充",
+      "url": "https://xxgattbvct5.feishu.cn/share/base/form/shrcnfvJ1iHl01jIBu6Tq8y4EPb"
     },
     {
       "key": "zhongguoyousejituan",
@@ -2667,22 +2013,16 @@
       "url": "https://hrcnmc.iguopin.com/"
     },
     {
-      "key": "xicha",
-      "name": "喜茶",
-      "industry": "新消费 / 茶饮 / 餐饮",
-      "url": "https://heytea.zhiye.com/campus"
-    },
-    {
       "key": "sanxingzhongguo",
       "name": "三星中国",
       "industry": "外资跨国企业",
       "url": "https://samsung.zhiye.com/"
     },
     {
-      "key": "huaxishengwu",
-      "name": "华熙生物",
-      "industry": "食品饮料/消费零售",
-      "url": "https://www.bloomagebioactive.com/Job/List/1"
+      "key": "xicha",
+      "name": "喜茶",
+      "industry": "新消费 / 茶饮 / 餐饮",
+      "url": "https://heytea.zhiye.com/campus"
     },
     {
       "key": "tongfuweidian",
@@ -2697,52 +2037,10 @@
       "url": "https://clg.zhiye.com/"
     },
     {
-      "key": "suonizhongguo",
-      "name": "索尼中国",
-      "industry": "外资跨国企业",
-      "url": "https://sony.zhiye.com/"
-    },
-    {
-      "key": "luzhoulaojiao",
-      "name": "泸州老窖",
+      "key": "huaxishengwu",
+      "name": "华熙生物",
       "industry": "食品饮料/消费零售",
-      "url": "https://job.lzlj.com/"
-    },
-    {
-      "key": "jinchuanjituan",
-      "name": "金川集团",
-      "industry": "钢铁/有色/材料龙头",
-      "url": "https://www.jnmc.com"
-    },
-    {
-      "key": "bawangchaji",
-      "name": "霸王茶姬",
-      "industry": "新消费 / 茶饮 / 餐饮",
-      "url": "https://jobs.chagee.com/640739/m"
-    },
-    {
-      "key": "baishikelezhongguo",
-      "name": "百事可乐中国",
-      "industry": "外资跨国企业",
-      "url": "https://careers.pepsico.com/china?lang=zh-CN"
-    },
-    {
-      "key": "zhongguoguangdian",
-      "name": "中国广电",
-      "industry": "航空航天/军工/电子央企",
-      "url": "https://www.cbn.cn/col/col80/index.html"
-    },
-    {
-      "key": "huatiankeji",
-      "name": "华天科技",
-      "industry": "半导体/电子/硬科技",
-      "url": "https://www.ht-tech.com/"
-    },
-    {
-      "key": "guizhoumaotai",
-      "name": "贵州茅台",
-      "industry": "食品饮料/消费零售",
-      "url": "https://zp.moutai.com.cn/"
+      "url": "https://www.bloomagebioactive.com/Job/List/1"
     },
     {
       "key": "beifangxitu",
@@ -2751,10 +2049,52 @@
       "url": "https://www.reht.com/"
     },
     {
-      "key": "chabaidao",
-      "name": "茶百道",
+      "key": "suonizhongguo",
+      "name": "索尼中国",
+      "industry": "外资跨国企业",
+      "url": "https://sony.zhiye.com/"
+    },
+    {
+      "key": "baishikelezhongguo",
+      "name": "百事可乐中国",
+      "industry": "外资跨国企业",
+      "url": "https://careers.pepsico.com/china?lang=zh-CN"
+    },
+    {
+      "key": "jinchuanjituan",
+      "name": "金川集团",
+      "industry": "钢铁/有色/材料龙头",
+      "url": "https://www.jnmc.com"
+    },
+    {
+      "key": "luzhoulaojiao",
+      "name": "泸州老窖",
+      "industry": "食品饮料/消费零售",
+      "url": "https://job.lzlj.com/"
+    },
+    {
+      "key": "huatiankeji",
+      "name": "华天科技",
+      "industry": "半导体/电子/硬科技",
+      "url": "https://www.ht-tech.com/"
+    },
+    {
+      "key": "bawangchaji",
+      "name": "霸王茶姬",
       "industry": "新消费 / 茶饮 / 餐饮",
-      "url": "http://campus.51job.com/chapanda"
+      "url": "https://jobs.chagee.com/640739/m"
+    },
+    {
+      "key": "zhongguoguangdian",
+      "name": "中国广电",
+      "industry": "航空航天/军工/电子央企",
+      "url": "https://www.cbn.cn/col/col80/index.html"
+    },
+    {
+      "key": "guizhoumaotai",
+      "name": "贵州茅台",
+      "industry": "食品饮料/消费零售",
+      "url": "https://zp.moutai.com.cn/"
     },
     {
       "key": "wanhuahuaxue",
@@ -2763,16 +2103,22 @@
       "url": "https://www.whchem.com/column/164/"
     },
     {
-      "key": "zijinkuangye",
-      "name": "紫金矿业",
-      "industry": "钢铁/有色/材料龙头",
-      "url": "https://www.zijinmining.com/join/join-us.htm"
+      "key": "chabaidao",
+      "name": "茶百道",
+      "industry": "新消费 / 茶饮 / 餐饮",
+      "url": "http://campus.51job.com/chapanda"
     },
     {
       "key": "longjilvneng",
       "name": "隆基绿能",
       "industry": "光伏/新能源/电力设备",
       "url": "https://www.longi.com/cn/career/"
+    },
+    {
+      "key": "zijinkuangye",
+      "name": "紫金矿业",
+      "industry": "钢铁/有色/材料龙头",
+      "url": "https://www.zijinmining.com/join/join-us.htm"
     },
     {
       "key": "oulaiyazhongguo",
@@ -2811,28 +2157,10 @@
       "url": "https://chinayanghe.zhiye.com/campus"
     },
     {
-      "key": "zhouheiya",
-      "name": "周黑鸭",
-      "industry": "新消费 / 茶饮 / 餐饮",
-      "url": "https://jobs.51job.com/all/co3221662.html"
-    },
-    {
-      "key": "henglishihua",
-      "name": "恒力石化",
-      "industry": "化工/材料与医药（补充）",
-      "url": "https://jobs.hengli.com"
-    },
-    {
       "key": "beijingguozigongsi",
       "name": "北京国资公司",
       "industry": "航空航天/军工/电子央企",
       "url": "https://zhaopin.bsam.com.cn/base/bsam"
-    },
-    {
-      "key": "tianheguangneng",
-      "name": "天合光能",
-      "industry": "光伏/新能源/电力设备",
-      "url": "https://www.trinasolar.com/cn/careers"
     },
     {
       "key": "jingkenengyuan",
@@ -2841,10 +2169,40 @@
       "url": "https://app.mokahr.com/campus-recruitment/jinkosolar/41896"
     },
     {
+      "key": "henglishihua",
+      "name": "恒力石化",
+      "industry": "化工/材料与医药（补充）",
+      "url": "https://jobs.hengli.com"
+    },
+    {
+      "key": "zhouheiya",
+      "name": "周黑鸭",
+      "industry": "新消费 / 茶饮 / 餐饮",
+      "url": "https://jobs.51job.com/all/co3221662.html"
+    },
+    {
+      "key": "tianheguangneng",
+      "name": "天合光能",
+      "industry": "光伏/新能源/电力设备",
+      "url": "https://www.trinasolar.com/cn/careers"
+    },
+    {
       "key": "zhongqinglv",
       "name": "中青旅",
       "industry": "文旅/教育/媒体/科研",
       "url": "https://www.cyts.com/hr/campus/"
+    },
+    {
+      "key": "shein-xiyin",
+      "name": "SHEIN(希音)",
+      "industry": "新消费 / 茶饮 / 餐饮",
+      "url": "https://careers.shein.cn/"
+    },
+    {
+      "key": "zhongguoyidong",
+      "name": "中国移动",
+      "industry": "通信运营商",
+      "url": "https://job.10086.cn/"
     },
     {
       "key": "shanxifenjiu",
@@ -2865,22 +2223,10 @@
       "url": "https://www.ctg.cn/careers-t46"
     },
     {
-      "key": "zhongguoyidong",
-      "name": "中国移动",
+      "key": "zhongguodianxin",
+      "name": "中国电信",
       "industry": "通信运营商",
-      "url": "https://job.10086.cn/"
-    },
-    {
-      "key": "gujinggongjiu",
-      "name": "古井贡酒",
-      "industry": "食品饮料/消费零售",
-      "url": "https://www.gujing.com/"
-    },
-    {
-      "key": "shein-xiyin",
-      "name": "SHEIN(希音)",
-      "industry": "新消费 / 茶饮 / 餐饮",
-      "url": "https://careers.shein.cn/"
+      "url": "https://job.chinatelecom.com.cn/"
     },
     {
       "key": "atesiyangguangdianli",
@@ -2889,16 +2235,16 @@
       "url": "https://recruit.csisolar.com/campus"
     },
     {
+      "key": "gujinggongjiu",
+      "name": "古井贡酒",
+      "industry": "食品饮料/消费零售",
+      "url": "https://www.gujing.com/"
+    },
+    {
       "key": "baofengnengyuan",
       "name": "宝丰能源",
       "industry": "化工/材料与医药（补充）",
       "url": "https://baofengzp.zhiye.com"
-    },
-    {
-      "key": "zhongguodianxin",
-      "name": "中国电信",
-      "industry": "通信运营商",
-      "url": "https://job.chinatelecom.com.cn/"
     },
     {
       "key": "songchengyanyi",
@@ -2913,10 +2259,10 @@
       "url": "https://www.pylontech.com.cn/careers"
     },
     {
-      "key": "zhongguoliantong",
-      "name": "中国联通",
-      "industry": "通信运营商",
-      "url": "https://zglt.zhaopin.com/"
+      "key": "jinshiyuan",
+      "name": "今世缘",
+      "industry": "食品饮料/消费零售",
+      "url": "https://www.jinshiyuan.com.cn/info.php?class_id=107104"
     },
     {
       "key": "xindongfang",
@@ -2925,28 +2271,10 @@
       "url": "https://zhaopin.xdf.cn/"
     },
     {
-      "key": "yuyueyiliao",
-      "name": "鱼跃医疗",
-      "industry": "医疗器械 / IVD",
-      "url": "https://yuwellhr.zhiye.com/"
-    },
-    {
-      "key": "jinshiyuan",
-      "name": "今世缘",
-      "industry": "食品饮料/消费零售",
-      "url": "https://www.jinshiyuan.com.cn/info.php?class_id=107104"
-    },
-    {
-      "key": "qingdaopijiu",
-      "name": "青岛啤酒",
-      "industry": "食品饮料/消费零售",
-      "url": "https://tsingtao.zhiye.com/"
-    },
-    {
-      "key": "jinfakeji",
-      "name": "金发科技",
-      "industry": "化工/材料与医药（补充）",
-      "url": "https://career.kingfa.com/"
+      "key": "zhongguoliantong",
+      "name": "中国联通",
+      "industry": "通信运营商",
+      "url": "https://zglt.zhaopin.com/"
     },
     {
       "key": "longbaijituan",
@@ -2955,10 +2283,10 @@
       "url": "http://www.lomonbillions.cn/"
     },
     {
-      "key": "lianyingyiliao",
-      "name": "联影医疗",
+      "key": "yuyueyiliao",
+      "name": "鱼跃医疗",
       "industry": "医疗器械 / IVD",
-      "url": "https://global.united-imaging.com/zh-cn/careers/"
+      "url": "https://yuwellhr.zhiye.com/"
     },
     {
       "key": "haoweilai",
@@ -2967,34 +2295,16 @@
       "url": "https://job.100tal.com/"
     },
     {
-      "key": "yangguangdianyuan",
-      "name": "阳光电源",
-      "industry": "光伏/新能源/电力设备",
-      "url": "https://sungrow.zhiye.com/"
+      "key": "jinfakeji",
+      "name": "金发科技",
+      "industry": "化工/材料与医药（补充）",
+      "url": "https://career.kingfa.com/"
     },
     {
-      "key": "tengxun",
-      "name": "腾讯",
-      "industry": "互联网/科技/游戏",
-      "url": "https://careers.tencent.com/"
-    },
-    {
-      "key": "nongyeyinhang",
-      "name": "农业银行",
-      "industry": "金融/银行/证券/保险",
-      "url": "https://career.abchina.com.cn/"
-    },
-    {
-      "key": "yanjingpijiu",
-      "name": "燕京啤酒",
+      "key": "qingdaopijiu",
+      "name": "青岛啤酒",
       "industry": "食品饮料/消费零售",
-      "url": "https://zhaopin.yanjing.com.cn/"
-    },
-    {
-      "key": "gongshangyinhang",
-      "name": "工商银行",
-      "industry": "金融/银行/证券/保险",
-      "url": "https://job.icbc.com.cn/"
+      "url": "https://tsingtao.zhiye.com/"
     },
     {
       "key": "lepuyiliao",
@@ -3003,10 +2313,10 @@
       "url": "https://www.lepumedical.com/join_lepu.html"
     },
     {
-      "key": "xinhuashe",
-      "name": "新华社",
-      "industry": "文旅/教育/媒体/科研",
-      "url": "https://www.news.cn/xhs/hr/index.htm"
+      "key": "gongshangyinhang",
+      "name": "工商银行",
+      "industry": "金融/银行/证券/保险",
+      "url": "https://job.icbc.com.cn/"
     },
     {
       "key": "gudewei",
@@ -3015,10 +2325,34 @@
       "url": "https://careers.goodwe.com"
     },
     {
+      "key": "yangguangdianyuan",
+      "name": "阳光电源",
+      "industry": "光伏/新能源/电力设备",
+      "url": "https://sungrow.zhiye.com/"
+    },
+    {
+      "key": "yanjingpijiu",
+      "name": "燕京啤酒",
+      "industry": "食品饮料/消费零售",
+      "url": "https://zhaopin.yanjing.com.cn/"
+    },
+    {
+      "key": "nongyeyinhang",
+      "name": "农业银行",
+      "industry": "金融/银行/证券/保险",
+      "url": "https://career.abchina.com.cn/"
+    },
+    {
       "key": "weichuangyiliao",
       "name": "微创医疗",
       "industry": "医疗器械 / IVD",
       "url": "https://www.microport.com.cn/join/index.html"
+    },
+    {
+      "key": "xinhuashe",
+      "name": "新华社",
+      "industry": "文旅/教育/媒体/科研",
+      "url": "https://www.news.cn/xhs/hr/index.htm"
     },
     {
       "key": "dongyangguangjituan",
@@ -3027,22 +2361,16 @@
       "url": "https://hec.zhiye.com/"
     },
     {
+      "key": "zhongguozhonghua",
+      "name": "中国中化",
+      "industry": "化工/材料与医药（补充）",
+      "url": "https://www.sinochem.com/sinochem/jrwm/rc11/A031008001Gone1.html"
+    },
+    {
       "key": "zhongguoyinhang",
       "name": "中国银行",
       "industry": "金融/银行/证券/保险",
       "url": "https://www.boc.cn/aboutboc/bi4/"
-    },
-    {
-      "key": "huarunpijiu",
-      "name": "华润啤酒",
-      "industry": "食品饮料/消费零售",
-      "url": "https://career.snowbeer.com.cn"
-    },
-    {
-      "key": "weigaogufen",
-      "name": "威高股份",
-      "industry": "医疗器械 / IVD",
-      "url": "http://weigao.zhiye.com/Campus"
     },
     {
       "key": "hengruiyiyao",
@@ -3057,6 +2385,24 @@
       "url": "http://hr.peopledaily.com.cn/"
     },
     {
+      "key": "lianyingyiliao",
+      "name": "联影医疗",
+      "industry": "医疗器械 / IVD",
+      "url": "https://global.united-imaging.com/zh-cn/careers/"
+    },
+    {
+      "key": "huarunpijiu",
+      "name": "华润啤酒",
+      "industry": "食品饮料/消费零售",
+      "url": "https://career.snowbeer.com.cn"
+    },
+    {
+      "key": "weigaogufen",
+      "name": "威高股份",
+      "industry": "医疗器械 / IVD",
+      "url": "http://weigao.zhiye.com/Campus"
+    },
+    {
       "key": "zhangfeiguangxian",
       "name": "长飞光纤",
       "industry": "光伏/新能源/电力设备",
@@ -3069,10 +2415,10 @@
       "url": "http://campus.51job.com/CMG2025"
     },
     {
-      "key": "xianzhengda",
-      "name": "先正达",
-      "industry": "化工/材料与医药（补充）",
-      "url": "https://jobs.syngenta.com"
+      "key": "xinhuayiliao",
+      "name": "新华医疗",
+      "industry": "医疗器械 / IVD",
+      "url": "https://hr.shinva.work"
     },
     {
       "key": "bozhongjinggong",
@@ -3081,10 +2427,22 @@
       "url": "https://bozhon3.zhiye.com/"
     },
     {
+      "key": "jiaotongyinhang",
+      "name": "交通银行",
+      "industry": "金融/银行/证券/保险",
+      "url": "https://job.bankcomm.com/"
+    },
+    {
       "key": "fuxingyiyao",
       "name": "复星医药",
       "industry": "医药/生物/医疗",
       "url": "https://career.fosunpharma.com"
+    },
+    {
+      "key": "zhongguokexueyuan",
+      "name": "中国科学院",
+      "industry": "文旅/教育/媒体/科研",
+      "url": "http://job.cas.cn"
     },
     {
       "key": "wosenshengwu",
@@ -3093,34 +2451,28 @@
       "url": "https://wecruit.hotjob.cn/SU65dedb821c240e4b11c7832d/mc/index"
     },
     {
-      "key": "jiaotongyinhang",
-      "name": "交通银行",
-      "industry": "金融/银行/证券/保险",
-      "url": "https://job.bankcomm.com/"
-    },
-    {
       "key": "antushengwu",
       "name": "安图生物",
       "industry": "医疗器械 / IVD",
       "url": "https://wecruit.hotjob.cn/SU62302d64bef57c4972f79a87/mc/position/campus"
     },
     {
-      "key": "zhongguozhonghua",
-      "name": "中国中化",
+      "key": "yingweiteng",
+      "name": "英威腾",
+      "industry": "光伏/新能源/电力设备",
+      "url": "https://www.invt.com.cn/campus-recruitment-c-56-1"
+    },
+    {
+      "key": "xianzhengda",
+      "name": "先正达",
       "industry": "化工/材料与医药（补充）",
-      "url": "https://www.sinochem.com/sinochem/jrwm/rc11/A031008001Gone1.html"
+      "url": "https://jobs.syngenta.com"
     },
     {
-      "key": "jiansheyinhang",
-      "name": "建设银行",
+      "key": "youchuyinhang",
+      "name": "邮储银行",
       "industry": "金融/银行/证券/保险",
-      "url": "https://job.ccb.com/"
-    },
-    {
-      "key": "xinhuayiliao",
-      "name": "新华医疗",
-      "industry": "医疗器械 / IVD",
-      "url": "https://hr.shinva.work"
+      "url": "https://www.psbc.com/cn/gyyc/rczp/xyzp/"
     },
     {
       "key": "zhongguoshehuikexueyuan",
@@ -3135,16 +2487,16 @@
       "url": "http://snibe.zhiye.com/Campus"
     },
     {
+      "key": "jiansheyinhang",
+      "name": "建设银行",
+      "industry": "金融/银行/证券/保险",
+      "url": "https://job.ccb.com/"
+    },
+    {
       "key": "kangxinuo",
       "name": "康希诺",
       "industry": "化工/材料与医药（补充）",
       "url": "http://cansinotech.zhiye.com/"
-    },
-    {
-      "key": "zhaoshangyinhang",
-      "name": "招商银行",
-      "industry": "金融/银行/证券/保险",
-      "url": "https://career.cmbchina.com/"
     },
     {
       "key": "biyadi",
@@ -3153,22 +2505,16 @@
       "url": "http://job.byd.com"
     },
     {
-      "key": "zhifeishengwu",
-      "name": "智飞生物",
-      "industry": "化工/材料与医药（补充）",
-      "url": "https://zp.zifibio.com"
+      "key": "zhaoshangyinhang",
+      "name": "招商银行",
+      "industry": "金融/银行/证券/保险",
+      "url": "https://career.cmbchina.com/"
     },
     {
       "key": "mairuiyiliao",
       "name": "迈瑞医疗",
       "industry": "医药/生物/医疗",
       "url": "https://career.mindray.com"
-    },
-    {
-      "key": "yingweiteng",
-      "name": "英威腾",
-      "industry": "光伏/新能源/电力设备",
-      "url": "https://www.invt.com.cn/campus-recruitment-c-56-1"
     },
     {
       "key": "zhongxingtongxun",
@@ -3189,16 +2535,10 @@
       "url": "http://saic-recruit.saicmotor.com/"
     },
     {
-      "key": "yaomingkangde",
-      "name": "药明康德",
-      "industry": "医药/生物/医疗",
-      "url": "https://wuxiapptec.zhiye.com/"
-    },
-    {
-      "key": "zhongguokexueyuan",
-      "name": "中国科学院",
-      "industry": "文旅/教育/媒体/科研",
-      "url": "http://job.cas.cn"
+      "key": "zhifeishengwu",
+      "name": "智飞生物",
+      "industry": "化工/材料与医药（补充）",
+      "url": "https://zp.zifibio.com"
     },
     {
       "key": "zhongxinyinhang",
@@ -3207,16 +2547,22 @@
       "url": "https://job.citicbank.com/"
     },
     {
+      "key": "yaomingkangde",
+      "name": "药明康德",
+      "industry": "医药/生物/医疗",
+      "url": "https://wuxiapptec.zhiye.com/"
+    },
+    {
       "key": "wantaishengwu",
       "name": "万泰生物",
       "industry": "化工/材料与医药（补充）",
       "url": "https://www.ystwt.com/career"
     },
     {
-      "key": "yunnanbaiyao",
-      "name": "云南白药",
-      "industry": "医药/生物/医疗",
-      "url": "https://zhaopin.ynby.cn"
+      "key": "yiqijituan",
+      "name": "一汽集团",
+      "industry": "汽车/新能源整车及零部件",
+      "url": "https://faw-zhaopin.hotjob.cn/"
     },
     {
       "key": "changchungaoxin",
@@ -3231,22 +2577,10 @@
       "url": "https://campus.dazd.cn/"
     },
     {
-      "key": "yiqijituan",
-      "name": "一汽集团",
-      "industry": "汽车/新能源整车及零部件",
-      "url": "https://faw-zhaopin.hotjob.cn/"
-    },
-    {
       "key": "pufayinhang",
       "name": "浦发银行",
       "industry": "金融/银行/证券/保险",
       "url": "https://job.spdb.com.cn/"
-    },
-    {
-      "key": "youchuyinhang",
-      "name": "邮储银行",
-      "industry": "金融/银行/证券/保险",
-      "url": "https://www.psbc.com/cn/gyyc/rczp/xyzp/"
     },
     {
       "key": "aieryanke",
@@ -3255,40 +2589,16 @@
       "url": "https://aier.zhiye.com/"
     },
     {
+      "key": "yunnanbaiyao",
+      "name": "云南白药",
+      "industry": "医药/生物/医疗",
+      "url": "https://zhaopin.ynby.cn"
+    },
+    {
       "key": "zhongguoxinke",
       "name": "中国信科",
       "industry": "通信/ICT设备与基础设施",
       "url": "https://campus.51job.com/cict2026/"
-    },
-    {
-      "key": "dongfengqiche",
-      "name": "东风汽车",
-      "industry": "电池 / 汽车零部件补充",
-      "url": "https://www.dfmc.com.cn/zhaopin/xiaoyuanzhaopin.html"
-    },
-    {
-      "key": "pianzaihuang",
-      "name": "片仔癀",
-      "industry": "医药/生物/医疗",
-      "url": "https://pzh.zhiye.com/"
-    },
-    {
-      "key": "minshengyinhang",
-      "name": "民生银行",
-      "industry": "金融/银行/证券/保险",
-      "url": "https://career.cmbc.com.cn/"
-    },
-    {
-      "key": "antatiyu",
-      "name": "安踏体育",
-      "industry": "消费/服装/食品",
-      "url": "https://jobs.anta.com/"
-    },
-    {
-      "key": "lining",
-      "name": "李宁",
-      "industry": "消费/服装/食品",
-      "url": "https://lining.hotjob.cn/"
     },
     {
       "key": "jinyuyixue",
@@ -3297,22 +2607,34 @@
       "url": "https://kingmed.zhiye.com/"
     },
     {
-      "key": "zhongguotieta",
-      "name": "中国铁塔",
-      "industry": "通信/ICT设备与基础设施",
-      "url": "https://zhaopin.chinatowercom.cn/"
-    },
-    {
-      "key": "xingyeyinhang",
-      "name": "兴业银行",
-      "industry": "金融/银行/证券/保险",
-      "url": "https://job.cib.com.cn/"
-    },
-    {
-      "key": "guangqijituan",
-      "name": "广汽集团",
+      "key": "dongfengqiche",
+      "name": "东风汽车",
       "industry": "电池 / 汽车零部件补充",
-      "url": "https://www.gacgroup.com/cn/talent"
+      "url": "https://www.dfmc.com.cn/zhaopin/xiaoyuanzhaopin.html"
+    },
+    {
+      "key": "antatiyu",
+      "name": "安踏体育",
+      "industry": "消费/服装/食品",
+      "url": "https://jobs.anta.com/"
+    },
+    {
+      "key": "pianzaihuang",
+      "name": "片仔癀",
+      "industry": "医药/生物/医疗",
+      "url": "https://pzh.zhiye.com/"
+    },
+    {
+      "key": "lining",
+      "name": "李宁",
+      "industry": "消费/服装/食品",
+      "url": "https://lining.hotjob.cn/"
+    },
+    {
+      "key": "minshengyinhang",
+      "name": "民生银行",
+      "industry": "金融/银行/证券/保险",
+      "url": "https://career.cmbc.com.cn/"
     },
     {
       "key": "kailiyiliao",
@@ -3327,16 +2649,16 @@
       "url": "https://qilupharma.zhiye.com/"
     },
     {
-      "key": "huacejiance",
-      "name": "华测检测",
-      "industry": "检验检测 / 科研服务",
-      "url": "https://www.cti-cert.com/join.html"
+      "key": "zhongguotieta",
+      "name": "中国铁塔",
+      "industry": "通信/ICT设备与基础设施",
+      "url": "https://zhaopin.chinatowercom.cn/"
     },
     {
-      "key": "tebu",
-      "name": "特步",
-      "industry": "消费/服装/食品",
-      "url": "https://app.mokahr.com/campus-recruitment/xtep/148871"
+      "key": "xingyeyinhang",
+      "name": "兴业银行",
+      "industry": "金融/银行/证券/保险",
+      "url": "https://job.cib.com.cn/"
     },
     {
       "key": "zhongguoshangfei-comac",
@@ -3345,16 +2667,16 @@
       "url": "https://zhaopin.comac.cc"
     },
     {
-      "key": "zhongguohangxin",
-      "name": "中国航信",
-      "industry": "通信/ICT设备与基础设施",
-      "url": "https://travelsky.hotjob.cn"
+      "key": "guangqijituan",
+      "name": "广汽集团",
+      "industry": "电池 / 汽车零部件补充",
+      "url": "https://www.gacgroup.com/cn/talent"
     },
     {
-      "key": "pinganyinhang",
-      "name": "平安银行",
-      "industry": "金融/银行/证券/保险",
-      "url": "https://campus.pingan.com/pab4"
+      "key": "huacejiance",
+      "name": "华测检测",
+      "industry": "检验检测 / 科研服务",
+      "url": "https://www.cti-cert.com/join.html"
     },
     {
       "key": "zhongguodianzi-cec",
@@ -3363,16 +2685,34 @@
       "url": "https://campus.cec.com.cn/"
     },
     {
-      "key": "guangdianjiliang",
-      "name": "广电计量",
-      "industry": "检验检测 / 科研服务",
-      "url": "https://join.grgtest.com/"
-    },
-    {
       "key": "changchengqiche",
       "name": "长城汽车",
       "industry": "电池 / 汽车零部件补充",
       "url": "https://zhaopin.gwm.cn"
+    },
+    {
+      "key": "tebu",
+      "name": "特步",
+      "industry": "消费/服装/食品",
+      "url": "https://app.mokahr.com/campus-recruitment/xtep/148871"
+    },
+    {
+      "key": "pinganyinhang",
+      "name": "平安银行",
+      "industry": "金融/银行/证券/保险",
+      "url": "https://campus.pingan.com/pab4"
+    },
+    {
+      "key": "zhongguohangxin",
+      "name": "中国航信",
+      "industry": "通信/ICT设备与基础设施",
+      "url": "https://travelsky.hotjob.cn"
+    },
+    {
+      "key": "guangdianjiliang",
+      "name": "广电计量",
+      "industry": "检验检测 / 科研服务",
+      "url": "https://join.grgtest.com/"
     },
     {
       "key": "361du",
@@ -3399,12 +2739,6 @@
       "url": "https://campus.51job.com/Innovent2026"
     },
     {
-      "key": "bosideng",
-      "name": "波司登",
-      "industry": "消费/服装/食品",
-      "url": "https://campus.51job.com/BSD2026/"
-    },
-    {
       "key": "jilijituan",
       "name": "吉利集团",
       "industry": "汽车/新能源整车及零部件",
@@ -3417,16 +2751,22 @@
       "url": "https://www.fiberhome.com/joinus.html"
     },
     {
+      "key": "baijishenzhou",
+      "name": "百济神州",
+      "industry": "医药/生物/医疗",
+      "url": "https://www.beigene.com/careers"
+    },
+    {
+      "key": "bosideng",
+      "name": "波司登",
+      "industry": "消费/服装/食品",
+      "url": "https://campus.51job.com/BSD2026/"
+    },
+    {
       "key": "hengtongguangdian",
       "name": "亨通光电",
       "industry": "通信/ICT设备与基础设施",
       "url": "https://hr.hengtonggroup.com/recruit/"
-    },
-    {
-      "key": "junshishengwu",
-      "name": "君实生物",
-      "industry": "医药/生物/医疗",
-      "url": "https://junshibiosciences.zhiye.com/campus/jobs"
     },
     {
       "key": "puniceshi",
@@ -3435,22 +2775,34 @@
       "url": "https://mq.51job.com/i1484/co2114629/xiaozhao"
     },
     {
+      "key": "junshishengwu",
+      "name": "君实生物",
+      "industry": "医药/生物/医疗",
+      "url": "https://junshibiosciences.zhiye.com/campus/jobs"
+    },
+    {
       "key": "hailanzhijia",
       "name": "海澜之家",
       "industry": "消费/服装/食品",
       "url": "http://campus.51job.com/heilan/"
     },
     {
-      "key": "ningdeshidai",
-      "name": "宁德时代",
-      "industry": "电池 / 汽车零部件补充",
-      "url": "https://talent.catl.com/"
+      "key": "guangdayinhang",
+      "name": "光大银行",
+      "industry": "金融/银行/证券/保险",
+      "url": "https://eoap.cebbank.com/uiap/wt/CEB/zpzh/campus"
     },
     {
       "key": "huaxiayinhang",
       "name": "华夏银行",
       "industry": "金融/银行/证券/保险",
       "url": "https://hxb.hotjob.cn/"
+    },
+    {
+      "key": "ningdeshidai",
+      "name": "宁德时代",
+      "industry": "电池 / 汽车零部件补充",
+      "url": "https://talent.catl.com/"
     },
     {
       "key": "yiweilineng",
@@ -3465,22 +2817,16 @@
       "url": "https://talent.baidu.com/"
     },
     {
-      "key": "baijishenzhou",
-      "name": "百济神州",
-      "industry": "医药/生物/医疗",
-      "url": "https://www.beigene.com/careers"
+      "key": "zhongtiankeji",
+      "name": "中天科技",
+      "industry": "通信/ICT设备与基础设施",
+      "url": "https://www.ztt.cn/job.html"
     },
     {
       "key": "yageer",
       "name": "雅戈尔",
       "industry": "消费/服装/食品",
       "url": "https://mq.51job.com/i1794/co2167269/xiaozhao"
-    },
-    {
-      "key": "zaidingyiyao",
-      "name": "再鼎医药",
-      "industry": "医药/生物/医疗",
-      "url": "https://cn.zailaboratory.com/careers"
     },
     {
       "key": "sushishiyan",
@@ -3495,28 +2841,10 @@
       "url": "https://changan.zhiye.com/campus"
     },
     {
-      "key": "guojianjituan-zhongguoguojianceshikonggu",
-      "name": "国检集团(中国国检测试控股)",
-      "industry": "检验检测 / 科研服务",
-      "url": "https://www.ctc.ac.cn/col/col22/index.html"
-    },
-    {
       "key": "haizhengyaoye",
       "name": "海正药业",
       "industry": "医药/生物/医疗",
       "url": "https://hisunpharm.zhiye.com/campus"
-    },
-    {
-      "key": "zhongtiankeji",
-      "name": "中天科技",
-      "industry": "通信/ICT设备与基础设施",
-      "url": "https://www.ztt.cn/job.html"
-    },
-    {
-      "key": "ruijiewangluo",
-      "name": "锐捷网络",
-      "industry": "通信/ICT设备与基础设施",
-      "url": "https://www.ruijie.com.cn/campus-recruiting/"
     },
     {
       "key": "gangyannake",
@@ -3525,10 +2853,28 @@
       "url": "https://gangyan.zhiye.com/custom/campus?hideAll=true"
     },
     {
+      "key": "zheshangyinhang",
+      "name": "浙商银行",
+      "industry": "金融/银行/证券/保险",
+      "url": "https://zp.czbank.com.cn/"
+    },
+    {
+      "key": "zaidingyiyao",
+      "name": "再鼎医药",
+      "industry": "医药/生物/医疗",
+      "url": "https://cn.zailaboratory.com/careers"
+    },
+    {
       "key": "senmafushi",
       "name": "森马服饰",
       "industry": "消费/服装/食品",
       "url": "https://app.mokahr.com/campus-recruitment/senma/142913"
+    },
+    {
+      "key": "ruijiewangluo",
+      "name": "锐捷网络",
+      "industry": "通信/ICT设备与基础设施",
+      "url": "https://www.ruijie.com.cn/campus-recruiting/"
     },
     {
       "key": "qiruiqiche",
@@ -3537,28 +2883,10 @@
       "url": "https://chery.zhiye.com/campus"
     },
     {
-      "key": "guangdayinhang",
-      "name": "光大银行",
-      "industry": "金融/银行/证券/保险",
-      "url": "https://eoap.cebbank.com/uiap/wt/CEB/zpzh/campus"
-    },
-    {
-      "key": "zheshangyinhang",
-      "name": "浙商银行",
-      "industry": "金融/银行/证券/保险",
-      "url": "https://zp.czbank.com.cn/"
-    },
-    {
       "key": "guojiakaifayinhang",
       "name": "国家开发银行",
       "industry": "金融/银行/证券/保险",
       "url": "https://cdb2026.zhaopin.com"
-    },
-    {
-      "key": "huadongyiyao",
-      "name": "华东医药",
-      "industry": "医药/生物/医疗",
-      "url": "https://www.huadongmedicine.com/careers"
     },
     {
       "key": "ziguanggufen-xinhuasan",
@@ -3567,10 +2895,16 @@
       "url": "https://career.h3c.com/"
     },
     {
-      "key": "jianghuaiqiche",
-      "name": "江淮汽车",
-      "industry": "汽车/新能源整车及零部件",
-      "url": "https://www.jac.com.cn/rczp/"
+      "key": "huadongyiyao",
+      "name": "华东医药",
+      "industry": "医药/生物/医疗",
+      "url": "https://www.huadongmedicine.com/careers"
+    },
+    {
+      "key": "guojianjituan-zhongguoguojianceshikonggu",
+      "name": "国检集团(中国国检测试控股)",
+      "industry": "检验检测 / 科研服务",
+      "url": "https://www.ctc.ac.cn/col/col22/index.html"
     },
     {
       "key": "taipingniao",
@@ -3583,6 +2917,12 @@
       "name": "苏交科",
       "industry": "检验检测 / 科研服务",
       "url": "https://app.mokahr.com/campus-recruitment/jsti/144121"
+    },
+    {
+      "key": "jianghuaiqiche",
+      "name": "江淮汽车",
+      "industry": "汽车/新能源整车及零部件",
+      "url": "https://www.jac.com.cn/rczp/"
     },
     {
       "key": "huarunyiyao",
@@ -3651,6 +2991,12 @@
       "url": "https://futurefoton.zhiye.com/campus"
     },
     {
+      "key": "lizhujituan",
+      "name": "丽珠集团",
+      "industry": "医药/生物/医疗",
+      "url": "https://www.livzon.com.cn/Recruitment_list/p-42-6.html"
+    },
+    {
       "key": "zhongguojinchukouyinhang",
       "name": "中国进出口银行",
       "industry": "金融/银行/证券/保险",
@@ -3663,22 +3009,16 @@
       "url": "https://talent.pingan.com/"
     },
     {
-      "key": "lizhujituan",
-      "name": "丽珠集团",
-      "industry": "医药/生物/医疗",
-      "url": "https://www.livzon.com.cn/Recruitment_list/p-42-6.html"
-    },
-    {
       "key": "dongruanjituan",
       "name": "东软集团",
       "industry": "通信/ICT设备与基础设施",
       "url": "https://neusoft-campus.zhiye.com/"
     },
     {
-      "key": "zhongguoqiyan",
-      "name": "中国汽研",
-      "industry": "检验检测 / 科研服务",
-      "url": "https://wecruit.hotjob.cn/SU660948141eb8053372f53b4d/mc/index"
+      "key": "tengxun",
+      "name": "腾讯",
+      "industry": "互联网/科技/游戏",
+      "url": "https://careers.tencent.com/"
     },
     {
       "key": "muyuangufen",
@@ -3687,10 +3027,16 @@
       "url": "https://www.muyuanfoods.com/#/recruitConsulting"
     },
     {
-      "key": "pinduoduo",
-      "name": "拼多多",
-      "industry": "互联网/科技/游戏",
-      "url": "https://careers.pinduoduo.com/"
+      "key": "zhongguoqiyan",
+      "name": "中国汽研",
+      "industry": "检验检测 / 科研服务",
+      "url": "https://wecruit.hotjob.cn/SU660948141eb8053372f53b4d/mc/index"
+    },
+    {
+      "key": "yutongkeche",
+      "name": "宇通客车",
+      "industry": "汽车/新能源整车及零部件",
+      "url": "http://join.yutong.com/"
     },
     {
       "key": "kelunyaoye",
@@ -3705,10 +3051,10 @@
       "url": "https://ymtc.zhiye.com/"
     },
     {
-      "key": "yutongkeche",
-      "name": "宇通客车",
-      "industry": "汽车/新能源整车及零部件",
-      "url": "http://join.yutong.com/"
+      "key": "pinduoduo",
+      "name": "拼多多",
+      "industry": "互联网/科技/游戏",
+      "url": "https://careers.pinduoduo.com/"
     },
     {
       "key": "zhongguorenshou",
@@ -3723,10 +3069,10 @@
       "url": "https://www.wens.com.cn/"
     },
     {
-      "key": "bilibili",
-      "name": "哔哩哔哩",
-      "industry": "互联网/科技/游戏",
-      "url": "https://www.bilibili.com/blackboard/join-list.html#/"
+      "key": "diankeyuan-suzhoudianqikexueyanjiuyuan",
+      "name": "电科院(苏州电器科学研究院)",
+      "industry": "检验检测 / 科研服务",
+      "url": "http://www.eeti.com.cn/Resource/Recruitment.htm"
     },
     {
       "key": "renfuyiyao",
@@ -3735,10 +3081,16 @@
       "url": "https://ihrs.mobi/renfuhr"
     },
     {
-      "key": "zhongguorenbao",
-      "name": "中国人保",
-      "industry": "金融/银行/证券/保险",
-      "url": "http://picc.zhiye.com/"
+      "key": "jinlongqiche",
+      "name": "金龙汽车",
+      "industry": "汽车/新能源整车及零部件",
+      "url": "https://www.king-long.com.cn/col44/"
+    },
+    {
+      "key": "bilibili",
+      "name": "哔哩哔哩",
+      "industry": "互联网/科技/游戏",
+      "url": "https://www.bilibili.com/blackboard/join-list.html#/"
     },
     {
       "key": "zhangxincunchu-cxmt",
@@ -3747,10 +3099,10 @@
       "url": "https://cxmt.zhiye.com/"
     },
     {
-      "key": "xinxiwang",
-      "name": "新希望",
-      "industry": "农牧 / 饲料 / 养殖",
-      "url": "http://newhope.zhiye.com"
+      "key": "zhongguorenbao",
+      "name": "中国人保",
+      "industry": "金融/银行/证券/保险",
+      "url": "http://picc.zhiye.com/"
     },
     {
       "key": "anjingshipin",
@@ -3759,16 +3111,10 @@
       "url": "https://www.anjoyfood.com/"
     },
     {
-      "key": "langchaojituan",
-      "name": "浪潮集团",
-      "industry": "通信/ICT设备与基础设施",
-      "url": "https://career.inspur.com/"
-    },
-    {
-      "key": "xiecheng",
-      "name": "携程",
-      "industry": "互联网/科技/游戏",
-      "url": "https://job.ctrip.com/"
+      "key": "xinxiwang",
+      "name": "新希望",
+      "industry": "农牧 / 饲料 / 养殖",
+      "url": "http://newhope.zhiye.com"
     },
     {
       "key": "fengchaonengyuan",
@@ -3777,10 +3123,10 @@
       "url": "https://svolt.zhiye.com/campus/jobs"
     },
     {
-      "key": "diankeyuan-suzhoudianqikexueyanjiuyuan",
-      "name": "电科院(苏州电器科学研究院)",
-      "industry": "检验检测 / 科研服务",
-      "url": "http://www.eeti.com.cn/Resource/Recruitment.htm"
+      "key": "xiecheng",
+      "name": "携程",
+      "industry": "互联网/科技/游戏",
+      "url": "https://job.ctrip.com/"
     },
     {
       "key": "taipingyangbaoxian",
@@ -3789,16 +3135,22 @@
       "url": "https://www.cpic.com.cn/jkx/gytbal/rczp/"
     },
     {
-      "key": "zhongguoyinlian",
-      "name": "中国银联",
-      "industry": "金融（补充：资管/证券/基金）",
-      "url": "https://join.unionpay.com"
+      "key": "langchaojituan",
+      "name": "浪潮集团",
+      "industry": "通信/ICT设备与基础设施",
+      "url": "https://career.inspur.com/"
     },
     {
       "key": "ziguangguowei",
       "name": "紫光国微",
       "industry": "半导体设计与制造（补充）",
       "url": "https://www.gosinoic.com/index.php?f=lists&catid=76"
+    },
+    {
+      "key": "zhongguoyinlian",
+      "name": "中国银联",
+      "industry": "金融（补充：资管/证券/基金）",
+      "url": "https://join.unionpay.com"
     },
     {
       "key": "haidajituan",
@@ -3819,16 +3171,10 @@
       "url": "http://nci.zhiye.com/"
     },
     {
-      "key": "aiqiyi",
-      "name": "爱奇艺",
-      "industry": "互联网/科技/游戏",
-      "url": "http://zhaopin.iqiyi.com/"
-    },
-    {
-      "key": "jinlongqiche",
-      "name": "金龙汽车",
-      "industry": "汽车/新能源整车及零部件",
-      "url": "https://www.king-long.com.cn/col44/"
+      "key": "shilanwei",
+      "name": "士兰微",
+      "industry": "半导体设计与制造（补充）",
+      "url": "https://www.silan.com.cn/index.php/about/join.html"
     },
     {
       "key": "zhongguozaibaoxian",
@@ -3843,16 +3189,10 @@
       "url": "https://rc.vanke.com/"
     },
     {
-      "key": "shilanwei",
-      "name": "士兰微",
-      "industry": "半导体设计与制造（补充）",
-      "url": "https://www.silan.com.cn/index.php/about/join.html"
-    },
-    {
-      "key": "taikangbaoxian",
-      "name": "泰康保险",
-      "industry": "金融/银行/证券/保险",
-      "url": "https://jobtaikang.zhiye.com/"
+      "key": "aiqiyi",
+      "name": "爱奇艺",
+      "industry": "互联网/科技/游戏",
+      "url": "http://zhaopin.iqiyi.com/"
     },
     {
       "key": "dabeinong",
@@ -3861,10 +3201,10 @@
       "url": "https://dbn.cn/ch/home"
     },
     {
-      "key": "baolifazhan",
-      "name": "保利发展",
-      "industry": "地产/建筑/物业",
-      "url": "https://polycn.zhiye.com/"
+      "key": "taikangbaoxian",
+      "name": "泰康保险",
+      "industry": "金融/银行/证券/保险",
+      "url": "https://jobtaikang.zhiye.com/"
     },
     {
       "key": "desaixiwei",
@@ -3873,10 +3213,10 @@
       "url": "https://yesv-desaysv.jobs.feishu.cn/campus/"
     },
     {
-      "key": "huarunwei",
-      "name": "华润微",
-      "industry": "半导体设计与制造（补充）",
-      "url": "https://runjob.crc.com.cn/"
+      "key": "baolifazhan",
+      "name": "保利发展",
+      "industry": "地产/建筑/物业",
+      "url": "https://polycn.zhiye.com/"
     },
     {
       "key": "xinlangweibo",
@@ -3885,16 +3225,22 @@
       "url": "https://career.sina.com.cn/"
     },
     {
-      "key": "zhongguohuarong",
-      "name": "中国华融",
-      "industry": "金融（补充：资管/证券/基金）",
-      "url": "https://www.famc.citic/rczp/zpxx/index.shtml"
+      "key": "huarunwei",
+      "name": "华润微",
+      "industry": "半导体设计与制造（补充）",
+      "url": "https://runjob.crc.com.cn/"
     },
     {
       "key": "zhengbangkeji",
       "name": "正邦科技",
       "industry": "农牧 / 饲料 / 养殖",
       "url": "https://zbjt.zhaopin.com"
+    },
+    {
+      "key": "zhongguohuarong",
+      "name": "中国华融",
+      "industry": "金融（补充：资管/证券/基金）",
+      "url": "https://www.famc.citic/rczp/zpxx/index.shtml"
     },
     {
       "key": "douban",
@@ -3915,12 +3261,6 @@
       "url": "http://www.foryougroup.com/"
     },
     {
-      "key": "shanghaiyiyao",
-      "name": "上海医药",
-      "industry": "医药/生物/医疗",
-      "url": "https://www.shph.com.cn/recruit/graduates"
-    },
-    {
       "key": "zhonghaidichan",
       "name": "中海地产",
       "industry": "地产/建筑/物业",
@@ -3939,22 +3279,16 @@
       "url": "https://www.cinda.com.cn/home/pc/cn/xdjt/xdjtpd/rczp/"
     },
     {
-      "key": "zhongguodongfangzichan",
-      "name": "中国东方资产",
-      "industry": "金融（补充：资管/证券/基金）",
-      "url": "https://coamc.zhiye.com/"
+      "key": "shengnongfazhan",
+      "name": "圣农发展",
+      "industry": "农牧 / 饲料 / 养殖",
+      "url": "http://www.sunnergp.com/recruitment_2.html"
     },
     {
-      "key": "zhongguochukouxinyongbaoxian",
-      "name": "中国出口信用保险",
-      "industry": "金融/银行/证券/保险",
-      "url": "https://sinosure.zhaopin.com/"
-    },
-    {
-      "key": "longhujituan",
-      "name": "龙湖集团",
-      "industry": "地产/建筑/物业",
-      "url": "https://longfor.zhaopin.com/"
+      "key": "shanghaiyiyao",
+      "name": "上海医药",
+      "industry": "医药/生物/医疗",
+      "url": "https://www.shph.com.cn/recruit/graduates"
     },
     {
       "key": "junshengdianzi",
@@ -3963,10 +3297,22 @@
       "url": "https://www.joyson.com/index.php/join.html?md=0"
     },
     {
+      "key": "zhongguochukouxinyongbaoxian",
+      "name": "中国出口信用保险",
+      "industry": "金融/银行/证券/保险",
+      "url": "https://sinosure.zhaopin.com/"
+    },
+    {
       "key": "sidabandao",
       "name": "斯达半导",
       "industry": "半导体设计与制造（补充）",
       "url": "https://www.powersemi.com/join.html"
+    },
+    {
+      "key": "longhujituan",
+      "name": "龙湖集团",
+      "industry": "地产/建筑/物业",
+      "url": "https://longfor.zhaopin.com/"
     },
     {
       "key": "didichuxing",
@@ -3975,16 +3321,28 @@
       "url": "https://talent.didiglobal.com/"
     },
     {
+      "key": "zhongguodongfangzichan",
+      "name": "中国东方资产",
+      "industry": "金融（补充：资管/证券/基金）",
+      "url": "https://coamc.zhiye.com/"
+    },
+    {
+      "key": "meidejituan",
+      "name": "美的集团",
+      "industry": "家电/轻工制造",
+      "url": "https://careers.midea.com/"
+    },
+    {
+      "key": "xinchengkonggu",
+      "name": "新城控股",
+      "industry": "地产/建筑/物业",
+      "url": "https://www.seazen.com.cn/"
+    },
+    {
       "key": "beikezhaofang",
       "name": "贝壳找房",
       "industry": "互联网/科技/游戏",
       "url": "https://campus.ke.com/"
-    },
-    {
-      "key": "shengnongfazhan",
-      "name": "圣农发展",
-      "industry": "农牧 / 饲料 / 养殖",
-      "url": "http://www.sunnergp.com/recruitment_2.html"
     },
     {
       "key": "yishenggufen",
@@ -3999,22 +3357,10 @@
       "url": "http://careers.citics.com/"
     },
     {
-      "key": "meidejituan",
-      "name": "美的集团",
-      "industry": "家电/轻工制造",
-      "url": "https://careers.midea.com/"
-    },
-    {
       "key": "wentaikeji",
       "name": "闻泰科技",
       "industry": "半导体设计与制造（补充）",
       "url": "https://jobs.wingtech.com/"
-    },
-    {
-      "key": "xinchengkonggu",
-      "name": "新城控股",
-      "industry": "地产/建筑/物业",
-      "url": "https://www.seazen.com.cn/"
     },
     {
       "key": "zhongguochangchengzichan",
@@ -4023,10 +3369,16 @@
       "url": "http://gwamcc.zhiye.com"
     },
     {
-      "key": "xiaohongshu",
-      "name": "小红书",
-      "industry": "互联网/科技/游戏",
-      "url": "https://job.xiaohongshu.com/"
+      "key": "hefenggufen",
+      "name": "禾丰股份",
+      "industry": "农牧 / 饲料 / 养殖",
+      "url": "https://wellhope-ag.com/p/jobee.html"
+    },
+    {
+      "key": "haierjituan",
+      "name": "海尔集团",
+      "industry": "家电/轻工制造",
+      "url": "https://maker.haier.net/"
     },
     {
       "key": "zhongjingongsi",
@@ -4041,22 +3393,22 @@
       "url": "https://www.crland.com.cn/"
     },
     {
+      "key": "xiaohongshu",
+      "name": "小红书",
+      "industry": "互联网/科技/游戏",
+      "url": "https://job.xiaohongshu.com/"
+    },
+    {
       "key": "sananguangdian",
       "name": "三安光电",
       "industry": "半导体设计与制造（补充）",
       "url": "https://sanan-e.zhiye.com/"
     },
     {
-      "key": "haierjituan",
-      "name": "海尔集团",
+      "key": "gelidianqi",
+      "name": "格力电器",
       "industry": "家电/轻工制造",
-      "url": "https://maker.haier.net/"
-    },
-    {
-      "key": "hefenggufen",
-      "name": "禾丰股份",
-      "industry": "农牧 / 饲料 / 养殖",
-      "url": "https://wellhope-ag.com/p/jobee.html"
+      "url": "https://www.gree.cn/list/22.html"
     },
     {
       "key": "tangrenshen",
@@ -4071,22 +3423,10 @@
       "url": "https://hr.gtht.com"
     },
     {
-      "key": "gelidianqi",
-      "name": "格力电器",
-      "industry": "家电/轻工制造",
-      "url": "https://www.gree.cn/list/22.html"
-    },
-    {
       "key": "geergufen",
       "name": "歌尔股份",
       "industry": "半导体设计与制造（补充）",
       "url": "https://goertek.hotjob.cn/"
-    },
-    {
-      "key": "huataizhengquan",
-      "name": "华泰证券",
-      "industry": "金融/银行/证券/保险",
-      "url": "http://job.htsc.com.cn/"
     },
     {
       "key": "rongchuangzhongguo",
@@ -4101,10 +3441,22 @@
       "url": "https://tianbang.zhiye.com/"
     },
     {
+      "key": "huataizhengquan",
+      "name": "华泰证券",
+      "industry": "金融/银行/证券/保险",
+      "url": "http://job.htsc.com.cn/"
+    },
+    {
       "key": "lihuagufen",
       "name": "立华股份",
       "industry": "农牧 / 饲料 / 养殖",
       "url": "https://lhgf.cheng95.cn/"
+    },
+    {
+      "key": "haitongzhengquan",
+      "name": "海通证券",
+      "industry": "金融（补充：资管/证券/基金）",
+      "url": "https://hr.gtht.com"
     },
     {
       "key": "fangtaijituan",
@@ -4117,12 +3469,6 @@
       "name": "碧桂园",
       "industry": "地产/建筑/物业",
       "url": "https://zhaopin.bgy.com.cn/"
-    },
-    {
-      "key": "haitongzhengquan",
-      "name": "海通证券",
-      "industry": "金融（补充：资管/证券/基金）",
-      "url": "https://hr.gtht.com"
     },
     {
       "key": "huguichanye",
@@ -4141,6 +3487,660 @@
       "name": "中信建投",
       "industry": "金融（补充：资管/证券/基金）",
       "url": "https://www.csc108.com/joinus/joinus"
+    },
+    {
+      "key": "meidezhiye",
+      "name": "美的置业",
+      "industry": "地产/建筑/物业",
+      "url": "https://www.midea.com.cn/careers"
+    },
+    {
+      "key": "zhaoshangzhengquan",
+      "name": "招商证券",
+      "industry": "金融/银行/证券/保险",
+      "url": "https://www.newone.com.cn/careers"
+    },
+    {
+      "key": "weilaiqiche",
+      "name": "蔚来汽车",
+      "industry": "互联网/科技/游戏",
+      "url": "https://www.nio.cn/careers"
+    },
+    {
+      "key": "laobandianqi",
+      "name": "老板电器",
+      "industry": "家电/轻工制造",
+      "url": "https://campus.robam.com/"
+    },
+    {
+      "key": "yuehaisiliao",
+      "name": "粤海饲料",
+      "industry": "农牧 / 饲料 / 养殖",
+      "url": "https://www.yuehaifeed.com/jryh"
+    },
+    {
+      "key": "ruixinwei",
+      "name": "瑞芯微",
+      "industry": "半导体设计与制造（补充）",
+      "url": "https://hr.rock-chips.com/campus-recruitment"
+    },
+    {
+      "key": "xuhuijituan",
+      "name": "旭辉集团",
+      "industry": "地产/建筑/物业",
+      "url": "https://cifixz.hotjob.cn"
+    },
+    {
+      "key": "guojiadianwang",
+      "name": "国家电网",
+      "industry": "能源/电网/石油石化央企",
+      "url": "https://zhaopin.sgcc.com.cn/"
+    },
+    {
+      "key": "yifangdajijin",
+      "name": "易方达基金",
+      "industry": "金融（补充：资管/证券/基金）",
+      "url": "http://job.efunds.com.cn"
+    },
+    {
+      "key": "tuniu",
+      "name": "途牛",
+      "industry": "互联网/科技/游戏",
+      "url": "https://job.tuniu.com/"
+    },
+    {
+      "key": "guangfazhengquan",
+      "name": "广发证券",
+      "industry": "金融/银行/证券/保险",
+      "url": "https://www.gf.com.cn/careers"
+    },
+    {
+      "key": "zhengrongjituan",
+      "name": "正荣集团",
+      "industry": "地产/建筑/物业",
+      "url": "https://www.zhenro.com/join/campus.html"
+    },
+    {
+      "key": "huaxiajijin",
+      "name": "华夏基金",
+      "industry": "金融（补充：资管/证券/基金）",
+      "url": "http://chinaamc.zhiye.com/"
+    },
+    {
+      "key": "xiantangufen",
+      "name": "仙坛股份",
+      "industry": "农牧 / 饲料 / 养殖",
+      "url": "https://www.sdxiantan.com/index/job/index.html?cate=23"
+    },
+    {
+      "key": "yuewenjituan",
+      "name": "阅文集团",
+      "industry": "互联网/科技/游戏",
+      "url": "https://join.yuewen.com/"
+    },
+    {
+      "key": "nanfangdianwang",
+      "name": "南方电网",
+      "industry": "能源/电网/石油石化央企",
+      "url": "https://zhaopin.csg.cn/"
+    },
+    {
+      "key": "beijingjunzheng",
+      "name": "北京君正",
+      "industry": "半导体设计与制造（补充）",
+      "url": "https://www.ingenic.com.cn/join"
+    },
+    {
+      "key": "jiashijijin",
+      "name": "嘉实基金",
+      "industry": "金融（补充：资管/证券/基金）",
+      "url": "https://www.jsfund.cn/jobs"
+    },
+    {
+      "key": "shanghaijiangong",
+      "name": "上海建工",
+      "industry": "地方基建工程国企",
+      "url": "https://ideal.51job.com/scg/"
+    },
+    {
+      "key": "huawei",
+      "name": "华为",
+      "industry": "互联网/科技/游戏",
+      "url": "https://career.huawei.com/"
+    },
+    {
+      "key": "zhongguoyouzheng",
+      "name": "中国邮政",
+      "industry": "烟草/邮政/铁路/交通",
+      "url": "https://chinapost2026.zhaopin.com/"
+    },
+    {
+      "key": "lanqikeji",
+      "name": "澜起科技",
+      "industry": "半导体设计与制造（补充）",
+      "url": "https://www.montage-tech.com/cn/Open_Positions"
+    },
+    {
+      "key": "sailisi-wenjie",
+      "name": "赛力斯(问界)",
+      "industry": "汽车产业链（补充）与地产补漏",
+      "url": "https://sokon.zhiye.com/"
+    },
+    {
+      "key": "suidaogufen-shanghaisuidaogongcheng",
+      "name": "隧道股份(上海隧道工程)",
+      "industry": "地方基建工程国企",
+      "url": "https://zhaopin.stec.net"
+    },
+    {
+      "key": "zhongguotielu",
+      "name": "中国铁路",
+      "industry": "烟草/邮政/铁路/交通",
+      "url": "https://rczp.china-railway.com.cn/"
+    },
+    {
+      "key": "dajiangchuangxindji",
+      "name": "大疆创新DJI",
+      "industry": "互联网/科技/游戏",
+      "url": "https://we.dji.com/zh-CN/"
+    },
+    {
+      "key": "zhongnanjianshe",
+      "name": "中南建设",
+      "industry": "汽车产业链（补充）与地产补漏",
+      "url": "http://campus.51job.com/zoina"
+    },
+    {
+      "key": "zhongguoshihua",
+      "name": "中国石化",
+      "industry": "能源/电网/石油石化央企",
+      "url": "https://job.sinopec.com/"
+    },
+    {
+      "key": "zhongguoshiyou",
+      "name": "中国石油",
+      "industry": "能源/电网/石油石化央企",
+      "url": "https://zhaopin.cnpc.com.cn/"
+    },
+    {
+      "key": "sichuanluqiao",
+      "name": "四川路桥",
+      "industry": "地方基建工程国企",
+      "url": "https://hr.shudaojt.com/SU6468728f0dcad45af142832e/pb/index.htm"
+    },
+    {
+      "key": "guangqiaian",
+      "name": "广汽埃安",
+      "industry": "汽车产业链（补充）与地产补漏",
+      "url": "https://www.gacne.com.cn/show/join"
+    },
+    {
+      "key": "guojiayancaozhuanmaiju",
+      "name": "国家烟草专卖局",
+      "industry": "烟草/邮政/铁路/交通",
+      "url": "http://www.tobacco.gov.cn/gjyc/zpxx/list.shtml"
+    },
+    {
+      "key": "guojianengyuanjituan",
+      "name": "国家能源集团",
+      "industry": "能源/电网/石油石化央企",
+      "url": "https://zhaopin.chnenergy.com.cn/"
+    },
+    {
+      "key": "zhaoshangjujituan",
+      "name": "招商局集团",
+      "industry": "烟草/邮政/铁路/交通",
+      "url": "http://cmhk.zhiye.com/index"
+    },
+    {
+      "key": "jinkegufen",
+      "name": "金科股份",
+      "industry": "地产/建筑/物业",
+      "url": "https://www.jinke.com/join/campus"
+    },
+    {
+      "key": "kedaxunfei",
+      "name": "科大讯飞",
+      "industry": "AI/大模型与互联网新势力",
+      "url": "https://iflytek.zhiye.com/"
+    },
+    {
+      "key": "beiqijituan",
+      "name": "北汽集团",
+      "industry": "汽车产业链（补充）与地产补漏",
+      "url": "https://baicgroup.zhiye.com/"
+    },
+    {
+      "key": "yangguangcheng",
+      "name": "阳光城",
+      "industry": "地产/建筑/物业",
+      "url": "https://www.yango.com.cn/"
+    },
+    {
+      "key": "anhuijiangong",
+      "name": "安徽建工",
+      "industry": "地方基建工程国企",
+      "url": "http://aceg.com.cn/list/zpxx"
+    },
+    {
+      "key": "chaojubian",
+      "name": "超聚变",
+      "industry": "互联网/科技/游戏",
+      "url": "https://career.xfusion.com/"
+    },
+    {
+      "key": "zhongguohaiyou",
+      "name": "中国海油",
+      "industry": "能源/电网/石油石化央企",
+      "url": "https://cnooc.zhiye.com/"
+    },
+    {
+      "key": "zhongyuanhaiyun",
+      "name": "中远海运",
+      "industry": "烟草/邮政/铁路/交通",
+      "url": "https://coscoshipping.iguopin.com"
+    },
+    {
+      "key": "zhongchuangxinhang",
+      "name": "中创新航",
+      "industry": "汽车产业链（补充）与地产补漏",
+      "url": "http://calbjs.zhiye.com/"
+    },
+    {
+      "key": "shangtangkeji",
+      "name": "商汤科技",
+      "industry": "AI/大模型与互联网新势力",
+      "url": "http://hr.sensetime.com/"
+    },
+    {
+      "key": "zhejiangjiantou-zhejiangshengjianshetouzijituan",
+      "name": "浙江建投(浙江省建设投资集团)",
+      "industry": "地方基建工程国企",
+      "url": "https://www.cnzgc.com/"
+    },
+    {
+      "key": "sanqihuyu",
+      "name": "三七互娱",
+      "industry": "互联网/科技/游戏",
+      "url": "https://37wan.zhiye.com/"
+    },
+    {
+      "key": "dipingxian",
+      "name": "地平线",
+      "industry": "AI/大模型与互联网新势力",
+      "url": "https://horizon-campus.hotjob.cn/"
+    },
+    {
+      "key": "yuanyangjituan",
+      "name": "远洋集团",
+      "industry": "地产/建筑/物业",
+      "url": "https://sinoocean.zhiye.com/"
+    },
+    {
+      "key": "zhongguohuaneng",
+      "name": "中国华能",
+      "industry": "能源/电网/石油石化央企",
+      "url": "https://zhaopin.chng.com.cn/"
+    },
+    {
+      "key": "tianqiliye",
+      "name": "天齐锂业",
+      "industry": "汽车产业链（补充）与地产补漏",
+      "url": "https://tianqilithium-hr.zhiye.com/jobs"
+    },
+    {
+      "key": "dongfanghangkong",
+      "name": "东方航空",
+      "industry": "烟草/邮政/铁路/交通",
+      "url": "https://job.ceair.com/"
+    },
+    {
+      "key": "shanxijiangong",
+      "name": "陕西建工",
+      "industry": "地方基建工程国企",
+      "url": "https://sjkghr.sxjgkg.com:2081/zhaopin"
+    },
+    {
+      "key": "wanmeishijie",
+      "name": "完美世界",
+      "industry": "互联网/科技/游戏",
+      "url": "https://jobs.games.wanmei.com/"
+    },
+    {
+      "key": "nanfanghangkong",
+      "name": "南方航空",
+      "industry": "烟草/邮政/铁路/交通",
+      "url": "https://job.csair.com/"
+    },
+    {
+      "key": "zhongguodatang",
+      "name": "中国大唐",
+      "industry": "能源/电网/石油石化央企",
+      "url": "https://zhaopin.china-cdt.com/"
+    },
+    {
+      "key": "jindijituan",
+      "name": "金地集团",
+      "industry": "地产/建筑/物业",
+      "url": "https://hr.gemdale.com/"
+    },
+    {
+      "key": "ganfengliye",
+      "name": "赣锋锂业",
+      "industry": "汽车产业链（补充）与地产补漏",
+      "url": "https://www.ganfenglithium.com/career1.html"
+    },
+    {
+      "key": "kuangshikeji",
+      "name": "旷视科技",
+      "industry": "AI/大模型与互联网新势力",
+      "url": "http://zhaopin.megvii.com/"
+    },
+    {
+      "key": "jinshanruanjian",
+      "name": "金山软件",
+      "industry": "互联网/科技/游戏",
+      "url": "https://www.kingsoft.com/iksnet/recruit"
+    },
+    {
+      "key": "shandongluqiao",
+      "name": "山东路桥",
+      "industry": "地方基建工程国企",
+      "url": "http://zhaopin.sdhsg.com/"
+    },
+    {
+      "key": "hanwuji",
+      "name": "寒武纪",
+      "industry": "AI/大模型与互联网新势力",
+      "url": "https://www.cambricon.com/"
+    },
+    {
+      "key": "enjiegufen",
+      "name": "恩捷股份",
+      "industry": "汽车产业链（补充）与地产补漏",
+      "url": "https://jobs.51job.com/jianzhizp/co2568971.html"
+    },
+    {
+      "key": "zhongguoguohang",
+      "name": "中国国航",
+      "industry": "烟草/邮政/铁路/交通",
+      "url": "https://zhaopin.airchina.com.cn/"
+    },
+    {
+      "key": "yuncongkeji",
+      "name": "云从科技",
+      "industry": "AI/大模型与互联网新势力",
+      "url": "https://cloudwalk.com/Join"
+    },
+    {
+      "key": "chongqingjiangong",
+      "name": "重庆建工",
+      "industry": "地方基建工程国企",
+      "url": "https://www.ccegc.cn/jjjg/zpxx/"
+    },
+    {
+      "key": "zhongguanghe",
+      "name": "中广核",
+      "industry": "能源/电网/石油石化央企",
+      "url": "https://cgn.hotjob.cn/"
+    },
+    {
+      "key": "souhu",
+      "name": "搜狐",
+      "industry": "互联网/科技/游戏",
+      "url": "https://hr.sohu.com"
+    },
+    {
+      "key": "zhongtongkuaidi",
+      "name": "中通快递",
+      "industry": "物流/快递/供应链",
+      "url": "https://hr.zto.com/"
+    },
+    {
+      "key": "chunqiuhangkong",
+      "name": "春秋航空",
+      "industry": "烟草/邮政/铁路/交通",
+      "url": "https://job.ch.com/"
+    },
+    {
+      "key": "zhipuai",
+      "name": "智谱AI",
+      "industry": "AI/大模型与互联网新势力",
+      "url": "https://zhipu-ai.jobs.feishu.cn/"
+    },
+    {
+      "key": "zhongguohuadian",
+      "name": "中国华电",
+      "industry": "能源/电网/石油石化央企",
+      "url": "https://rencaishichang.chd.com.cn/"
+    },
+    {
+      "key": "huayouguye",
+      "name": "华友钴业",
+      "industry": "汽车产业链（补充）与地产补漏",
+      "url": "http://campus.huayou.com/index.html"
+    },
+    {
+      "key": "shanxijianshetouzijituan",
+      "name": "山西建设投资集团",
+      "industry": "地方基建工程国企",
+      "url": "https://www.sxcig.com/xxgk/rczp.htm"
+    },
+    {
+      "key": "zhijiqiche",
+      "name": "智己汽车",
+      "industry": "互联网/科技/游戏",
+      "url": "https://www.immotors.com/website/join_us"
+    },
+    {
+      "key": "zhongguohegongyejituan",
+      "name": "中国核工业集团",
+      "industry": "能源/电网/石油石化央企",
+      "url": "https://hr.cnnc.com.cn/"
+    },
+    {
+      "key": "haihangjituan",
+      "name": "海航集团",
+      "industry": "烟草/邮政/铁路/交通",
+      "url": "https://hna.zhiye.com/"
+    },
+    {
+      "key": "jingdongwuliu",
+      "name": "京东物流",
+      "industry": "物流/快递/供应链",
+      "url": "https://zhaopin.jd.com/"
+    },
+    {
+      "key": "yuezhianmian-kimi",
+      "name": "月之暗面(Kimi)",
+      "industry": "AI/大模型与互联网新势力",
+      "url": "https://careers.kimi.com/"
+    },
+    {
+      "key": "beiterui",
+      "name": "贝特瑞",
+      "industry": "汽车产业链（补充）与地产补漏",
+      "url": "https://btrchina.zhiye.com/campus"
+    },
+    {
+      "key": "hunanjiangong",
+      "name": "湖南建工",
+      "industry": "地方基建工程国企",
+      "url": "https://www.hnceg.com/news/37/"
+    },
+    {
+      "key": "shunfengkonggu",
+      "name": "顺丰控股",
+      "industry": "物流/快递/供应链",
+      "url": "https://hr.sf-express.com/"
+    },
+    {
+      "key": "huarunjituan",
+      "name": "华润集团",
+      "industry": "商贸/供应链/综合央企",
+      "url": "https://careers.crc.com.cn/"
+    },
+    {
+      "key": "jikeqiche",
+      "name": "极氪汽车",
+      "industry": "互联网/科技/游戏",
+      "url": "https://www.zeekrgroup.com/join-us"
+    },
+    {
+      "key": "yuantongsudi",
+      "name": "圆通速递",
+      "industry": "物流/快递/供应链",
+      "url": "https://www.yto.net.cn/"
+    },
+    {
+      "key": "beijingyinhang",
+      "name": "北京银行",
+      "industry": "城商行",
+      "url": "https://bankofbeijing.zhiye.com"
+    },
+    {
+      "key": "zhonglvguoji",
+      "name": "中铝国际",
+      "industry": "地方基建工程国企",
+      "url": "https://zlgj2026.zhaopin.com/"
+    },
+    {
+      "key": "baichuanzhineng",
+      "name": "百川智能",
+      "industry": "AI/大模型与互联网新势力",
+      "url": "https://campus.baichuan-inc.com/"
+    },
+    {
+      "key": "mihayou",
+      "name": "米哈游",
+      "industry": "互联网/科技/游戏",
+      "url": "https://mihooyo.zhiye.com/"
+    },
+    {
+      "key": "zhongguochubeiliangguanlijituan",
+      "name": "中国储备粮管理集团",
+      "industry": "能源/电网/石油石化央企",
+      "url": "https://sinograin.iguopin.com/"
+    },
+    {
+      "key": "zhongliangjituan",
+      "name": "中粮集团",
+      "industry": "商贸/供应链/综合央企",
+      "url": "https://cofco.zhiye.com/"
+    },
+    {
+      "key": "debangwuliu",
+      "name": "德邦物流",
+      "industry": "物流/快递/供应链",
+      "url": "https://deppon.zhiye.com/"
+    },
+    {
+      "key": "shanghaiyinhang",
+      "name": "上海银行",
+      "industry": "城商行",
+      "url": "https://bosc.zhiye.com"
+    },
+    {
+      "key": "zhongguohejian-zhongguohegongyejianshejituan",
+      "name": "中国核建(中国核工业建设集团)",
+      "industry": "地方基建工程国企",
+      "url": "https://cnecc.zhiye.com/"
+    },
+    {
+      "key": "yingjiaowangluo",
+      "name": "鹰角网络",
+      "industry": "互联网/科技/游戏",
+      "url": "https://hypergryph.zhiye.com/"
+    },
+    {
+      "key": "minimax",
+      "name": "MiniMax",
+      "industry": "AI/大模型与互联网新势力",
+      "url": "https://www.minimax.io/careers"
+    },
+    {
+      "key": "guoyaojituan",
+      "name": "国药集团",
+      "industry": "商贸/供应链/综合央企",
+      "url": "https://sinopharm.zhiye.com/"
+    },
+    {
+      "key": "zhongguogongxiaojituan",
+      "name": "中国供销集团",
+      "industry": "能源/电网/石油石化央企",
+      "url": "https://zggxjt.iguopin.com/"
+    },
+    {
+      "key": "jitusudi",
+      "name": "极兔速递",
+      "industry": "物流/快递/供应链",
+      "url": "https://www.jtexpress.com/"
+    },
+    {
+      "key": "lilisiyouxi",
+      "name": "莉莉丝游戏",
+      "industry": "互联网/科技/游戏",
+      "url": "https://lilith.zhiye.com/"
+    },
+    {
+      "key": "jiangsuyinhang",
+      "name": "江苏银行",
+      "industry": "城商行",
+      "url": "https://hr.jsbchina.cn/zp"
+    },
+    {
+      "key": "dewu-du",
+      "name": "得物(毒)",
+      "industry": "互联网垂直 / 电商 / 内容",
+      "url": "https://campus.dewu.com"
+    },
+    {
+      "key": "jieyuexingchen",
+      "name": "阶跃星辰",
+      "industry": "AI/大模型与互联网新势力",
+      "url": "https://app.mokahr.com/campus-recruitment/step/141903"
+    },
+    {
+      "key": "xiamenjianfa",
+      "name": "厦门建发",
+      "industry": "商贸/供应链/综合央企",
+      "url": "http://chinacdc.zhiye.com/campus"
+    },
+    {
+      "key": "tongweigufen",
+      "name": "通威股份",
+      "industry": "新能源/电力装备",
+      "url": "https://tongwei.zhiye.com"
+    },
+    {
+      "key": "kuayuesuyun",
+      "name": "跨越速运",
+      "industry": "物流/快递/供应链",
+      "url": "https://www.ky-express.com/"
+    },
+    {
+      "key": "zhongguonanshuibeidiaojituan",
+      "name": "中国南水北调集团",
+      "industry": "能源/电网/石油石化央企",
+      "url": "https://www.csnwd.com.cn/"
+    },
+    {
+      "key": "weipinhui",
+      "name": "唯品会",
+      "industry": "互联网垂直 / 电商 / 内容",
+      "url": "https://campus.vip.com/"
+    },
+    {
+      "key": "ningboyinhang",
+      "name": "宁波银行",
+      "industry": "城商行",
+      "url": "https://zhaopin.nbcb.com.cn/"
+    },
+    {
+      "key": "zhongguoyanyejituan",
+      "name": "中国盐业集团",
+      "industry": "能源/电网/石油石化央企",
+      "url": "https://www.chinasalt.com.cn/"
     }
   ]
 }

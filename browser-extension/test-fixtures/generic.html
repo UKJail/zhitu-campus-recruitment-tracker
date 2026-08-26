@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>普通 HTML 表单 · 脱敏验收</title><link rel="stylesheet" href="styles.css"></head>
+<body><main class="page">
+  <nav class="fixture-nav"><a href="generic.html">普通表单</a><a href="beisen-like.html">北森风格</a><a href="moka-like.html">Moka 风格</a></nav>
+  <p class="fixture-note">这是本地脱敏测试页，不会提交或发送任何数据。请测试重复点击、已有内容不覆盖、敏感字段跳过。</p>
+  <section class="sheet"><header><h1>普通 HTML 网申表单</h1><p>原生输入框、日期、下拉、单选、多选和动态字段</p></header>
+    <form id="application-form">
+      <fieldset><legend>基本信息</legend><div class="grid">
+        <div class="form-item"><label for="full-name">姓名</label><input id="full-name" name="candidate_name" required></div>
+        <div class="form-item"><label for="email">电子邮箱</label><input id="email" type="email" name="email"></div>
+        <div class="form-item"><label for="phone">手机号码</label><input id="phone" name="mobile"></div>
+        <div class="form-item"><label for="birth-date">出生日期</label><input id="birth-date" type="date"></div>
+        <div class="form-item"><label for="city">城市</label><select id="city"><option value="">请选择</option><option>深圳市</option><option>香港</option><option>广州市</option></select></div>
+        <div class="form-item"><label>性别</label><div class="choices"><label><input type="radio" name="gender" value="female">女</label><label><input type="radio" name="gender" value="male">男</label></div></div>
+        <div class="form-item"><label for="existing">姓名（预填，不应覆盖）</label><input id="existing" value="网页已有内容"></div>
+        <div class="form-item"><label for="identity">身份证号码</label><input id="identity"></div>
+        <div class="form-item"><label for="captcha">短信验证码</label><input id="captcha"></div>
+        <div class="form-item"><label><input type="checkbox" name="agreement">我同意隐私协议</label></div>
+        <div class="form-item"><label>技能（多选）</label><div class="choices"><label><input type="checkbox" name="skills" value="Excel">Excel</label><label><input type="checkbox" name="skills" value="Python">Python</label></div></div>
+      </div></fieldset>
+      <fieldset><legend>教育经历</legend><div class="grid">
+        <div class="form-item"><label for="school">学校名称</label><input id="school"></div>
+        <div class="form-item"><label for="major">专业名称</label><input id="major"></div>
+        <div class="form-item"><label for="degree">学历</label><select id="degree"><option value="">请选择</option><option>本科</option><option>硕士</option></select></div>
+        <div class="form-item"><label for="gpa">GPA</label><input id="gpa"></div>
+      </div></fieldset>
+      <div id="dynamic-slot"></div><div class="actions"><button class="secondary" type="button" id="add-project">动态加载项目字段</button><button type="submit">提交（测试页已拦截）</button></div><pre class="result hidden" id="result"></pre>
+    </form>
+  </section>
+</main><script>
+document.querySelector('#add-project').addEventListener('click', () => { document.querySelector('#dynamic-slot').innerHTML = '<fieldset><legend>项目经历</legend><div class="form-item"><label for="project-name">项目名称</label><input id="project-name"></div></fieldset>'; });
+document.querySelector('form').addEventListener('submit', (event) => { event.preventDefault(); const result = document.querySelector('#result'); result.classList.remove('hidden'); result.textContent = '测试页已阻止提交。插件也不应自动点击此按钮。'; });
+</script></body></html>
