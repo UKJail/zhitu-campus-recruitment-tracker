@@ -3,8 +3,8 @@
 import {
   ArrowUpRight, Bell, Bookmark, BriefcaseBusiness, Building2, CalendarDays, Check, CheckCircle2,
   ChevronDown, ChevronLeft, ChevronRight, CircleUserRound, ClipboardCheck, Clock3, FileCheck2, FilePenLine,
-  Copy, Download, ExternalLink, FileText, Inbox, KeyRound, LayoutDashboard, Link2, LogOut, Mail, Menu, MessageSquareText, MoreHorizontal,
-  PenLine, Plus, RefreshCw, Save, Search, Send, ShieldCheck, Sparkles, Star, Target, Trash2, Upload, UserPlus, X, XCircle, MailCheck, MessageCircleMore,
+  Copy, Download, ExternalLink, FileText, Inbox, KeyRound, LayoutDashboard, LogOut, Mail, Menu, MessageSquareText, MoreHorizontal,
+  PenLine, Plus, RefreshCw, Save, Search, Send, ShieldCheck, Sparkles, Star, Target, Trash2, Upload, X, XCircle, MailCheck, MessageCircleMore,
 } from "lucide-react";
 import { type ChangeEvent, type Dispatch, type FormEvent, type SetStateAction, useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
@@ -1605,9 +1605,6 @@ type AdminOverview = {
 function AdminPanel({ onClose, notify }: { onClose: () => void; notify: (text: string) => void }) {
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [error, setError] = useState("");
-  const [email, setEmail] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [inviteLink, setInviteLink] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -1625,32 +1622,6 @@ function AdminPanel({ onClose, notify }: { onClose: () => void; notify: (text: s
     const timer = window.setTimeout(() => { void load(); }, 0);
     return () => window.clearTimeout(timer);
   }, [load]);
-
-  async function copyInviteLink(link = inviteLink) {
-    try {
-      await navigator.clipboard.writeText(link);
-      notify("邀请链接已复制");
-    } catch {
-      notify("自动复制失败，请手动复制链接");
-    }
-  }
-
-  async function invite() {
-    setBusy(true);
-    try {
-      const response = await fetch("/api/admin/invites", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email }) });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload.error || "邀请失败");
-      if (typeof payload.activationUrl !== "string") throw new Error("激活链接生成失败");
-      setInviteLink(payload.activationUrl);
-      await copyInviteLink(payload.activationUrl);
-      await load();
-    } catch (inviteError) {
-      notify(inviteError instanceof Error ? inviteError.message : "邀请失败");
-    } finally {
-      setBusy(false);
-    }
-  }
 
   async function updateQuota(id: string, dailyLimit: number) {
     try {
@@ -1671,19 +1642,14 @@ function AdminPanel({ onClose, notify }: { onClose: () => void; notify: (text: s
       {!error && !overview && <p className="notice-empty">正在读取管理员数据…</p>}
       {overview && <>
         <section className="admin-invite">
-          <div><h4>发放测试邀请</h4><span>生成一次性激活链接；用户填写受邀邮箱并设置密码后即可登录。</span></div>
-          <div className="admin-invite-controls">
-            <label><UserPlus size={16} /><input type="email" value={email} onChange={(event) => { setEmail(event.target.value); setInviteLink(""); }} placeholder="candidate@example.com" /></label>
-            <button disabled={busy || !email} onClick={() => void invite()}><Link2 size={15} />{busy ? "生成中…" : "生成激活链接并复制"}</button>
-          </div>
-          {inviteLink && <div className="invite-link-result" role="status"><input aria-label="已生成的激活链接" readOnly value={inviteLink} onFocus={(event) => event.currentTarget.select()} /><button className="secondary-button" onClick={() => void copyInviteLink()}><Copy size={15} />复制</button><small>链接只可使用一次，24 小时内有效；新用户和已有测试账号都可用它设置密码。</small></div>}
+          <div><h4>邀请码注册已启用</h4><span>用户可在登录页填写共享邀请码并直接注册，无需管理员逐个生成激活链接。</span></div>
+          <div className="admin-invite-status"><KeyRound size={17} /><span><strong>邀请码仅保存在服务器</strong><small>为避免泄露，后台不会显示邀请码内容。需要更换时修改服务器环境变量并重启服务。</small></span></div>
         </section>
         <div className="admin-grid">
           <section><header><h4>用户与每日 AI 配额</h4><span>{overview.users.length} 位用户</span></header><div className="admin-list">{overview.users.map((user) => <article key={user.id}><div><strong>{user.display_name || user.email || "未命名用户"}{user.is_admin && <em>管理员</em>}</strong><span>{user.email}</span></div><label>每日<input type="number" min={0} max={500} defaultValue={user.ai_daily_limit} onBlur={(event) => void updateQuota(user.id, Number(event.target.value))} />次</label></article>)}</div></section>
           <section><header><h4>采集来源健康度</h4><span>{overview.sources.filter((source) => source.latestRun?.status === "completed").length}/{overview.sources.length} 正常</span></header><div className="admin-list source-health">{overview.sources.map((source) => <article key={source.id}><i className={source.latestRun?.status === "completed" ? "healthy" : source.latestRun?.status === "restricted" ? "restricted" : "unknown"} /><div><strong>{source.name}</strong><span>{source.latestRun ? `${source.latestRun.status} · 发现 ${source.latestRun.jobs_seen} / 新增 ${source.latestRun.jobs_added}` : source.restricted_reason || "等待首次运行"}</span></div><time>{source.latestRun ? new Date(source.latestRun.started_at).toLocaleString("zh-CN") : "—"}</time></article>)}</div></section>
         </div>
         <section className="admin-feedback"><header><div><h4>建议与 Bug 反馈</h4><span>仅管理员可见 · 共 {overview.feedback.length} 条</span></div><MessageCircleMore size={18} /></header>{overview.feedback.length === 0 ? <p className="admin-feedback-empty">还没有收到用户反馈。</p> : <div>{overview.feedback.map((item) => <article key={item.id}><p>{item.content}</p><footer><span>{item.email || "已注销用户"}</span><time>{new Date(item.created_at).toLocaleString("zh-CN")}</time></footer></article>)}</div>}</section>
-        <section className="invite-history"><h4>最近邀请</h4>{overview.invites.length === 0 ? <span>尚未创建邀请记录</span> : overview.invites.slice(0, 8).map((inviteItem) => <p key={inviteItem.id}><strong>{inviteItem.email}</strong><span>{inviteItem.used_at ? "已使用" : new Date(inviteItem.expires_at) > new Date() ? "等待接受" : "已过期"}</span></p>)}</section>
       </>}
     </section>
   </div>;

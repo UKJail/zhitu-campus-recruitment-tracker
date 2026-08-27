@@ -48,7 +48,7 @@ where id = (
 
 5. 将 `.env.local` 中的 `NEXT_PUBLIC_DEMO_MODE` 改为 `false`，重启开发服务，然后测试邮箱验证码登录。
 
-服务端 Secret/Service Role 密钥不要放进 `NEXT_PUBLIC_*` 变量、浏览器代码、Git 仓库或聊天消息。登录、简历和 AI 流程只需要 publishable key；管理员邀请、账号彻底注销和 Resend Webhook 需要仅服务端可见的 Service Role 密钥。
+服务端 Secret/Service Role 密钥不要放进 `NEXT_PUBLIC_*` 变量、浏览器代码、Git 仓库或聊天消息。登录、简历和 AI 流程只需要 publishable key；邀请码注册、账号彻底注销和 Resend Webhook 需要仅服务端可见的 Service Role 密钥。
 
 ## 环境变量
 
@@ -63,10 +63,13 @@ RESEND_WEBHOOK_SECRET=
 RESEND_INBOUND_DOMAIN=
 SUPABASE_SERVICE_ROLE_KEY=
 AUTH_RECOVERY_GRANT_SECRET=
+AUTH_BETA_INVITE_CODE=
 APP_URL=http://localhost:3000
 ```
 
 `AUTH_RECOVERY_GRANT_SECRET` 仅用于服务器端密码恢复临时凭证，与 `SUPABASE_SERVICE_ROLE_KEY` 分离。本地启动脚本在未配置时会为当前进程临时生成；生产发布前必须设置稳定的随机密钥。二者都不得使用 `NEXT_PUBLIC_*` 前缀或提交到 Git。
+
+`AUTH_BETA_INVITE_CODE` 是小范围内测共用的邀请码。建议使用至少 12 位的随机字母和数字，只写入 `.env.local` 或生产服务器环境变量；注册时忽略大小写和首尾空格。旧的一次性激活链接仍保留兼容。
 
 如果曾在聊天、截图或仓库中暴露 DeepSeek 密钥，请先到 DeepSeek 控制台吊销旧密钥并生成新密钥，然后只写入本地 `.env.local` 或部署平台的加密环境变量。
 

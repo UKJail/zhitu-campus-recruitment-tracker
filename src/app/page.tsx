@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Check, FileSearch, LockKeyhole, Mail, MailCheck, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, FileSearch, KeyRound, LockKeyhole, Mail, MailCheck, Sparkles, UserPlus } from "lucide-react";
 import { BrandMascot } from "@/components/brand-mascot";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
@@ -12,12 +12,15 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [authServiceError, setAuthServiceError] = useState("");
-  const [screen, setScreen] = useState<"login" | "otp" | "recovery" | "recovery-sent">("login");
+  const [screen, setScreen] = useState<"login" | "register" | "otp" | "recovery" | "recovery-sent">("login");
 
   useEffect(() => {
     let active = true;
@@ -60,6 +63,45 @@ export default function LoginPage() {
       if (result?.code === "auth_service_unreachable") setAuthServiceError(result.error || "无法连接认证服务。");
       setError(result?.error || "登录服务暂时不可用，请稍后重试。");
       setLoading(false);
+      return;
+    }
+    router.replace("/app");
+    router.refresh();
+  }
+
+  async function register(event: FormEvent) {
+    event.preventDefault();
+    setError("");
+    if (password !== confirmPassword) {
+      setError("两次输入的密码不一致");
+      return;
+    }
+
+    setLoading(true);
+    const normalizedEmail = email.trim().toLowerCase();
+    const response = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ email: normalizedEmail, displayName, inviteCode, password }),
+    }).catch(() => null);
+    if (!response?.ok) {
+      const result = await response?.json().catch(() => null) as { error?: string } | null;
+      setError(result?.error || "注册服务暂时不可用，请稍后重试。");
+      setLoading(false);
+      return;
+    }
+
+    const signInResponse = await fetch("/api/auth/sign-in", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ method: "password", email: normalizedEmail, password }),
+    }).catch(() => null);
+    setLoading(false);
+    if (!signInResponse?.ok) {
+      setScreen("login");
+      setError("账号已注册成功，请使用刚才设置的密码登录。");
       return;
     }
     router.replace("/app");
@@ -144,17 +186,28 @@ export default function LoginPage() {
         <span className="login-brand-lockup"><strong>职途<em>tracker</em></strong><small>一个一站式求职助手网站。</small></span>
       </div>}
       <div className="story-copy"><p className="eyebrow">你的求职旅程，不再散落各处</p><h1>把每一次尝试，<br />都变成下一步的方向。</h1><p className="story-lead">从简历优化、职位发现到面试复盘，职途陪你把复杂的求职过程整理成一条清晰的路。</p><div className="route-preview" aria-hidden="true"><span><FileSearch size={17} /> 简历</span><i /><span><Sparkles size={17} /> 匹配</span><i /><span><Mail size={17} /> 面试</span><i /><span><Check size={17} /> Offer</span></div></div>
-      <p className="login-note">邀请制内测 · 你的数据只属于你</p>
+      <p className="login-note">邀请码内测 · 你的数据只属于你</p>
     </section>
     <section className="login-panel"><div className="login-card">
       {authServiceError && <p className="auth-service-alert" role="alert">{authServiceError}</p>}
       {screen === "login" && <>
-        <span className="mini-icon"><LockKeyhole size={18} /></span><h2>欢迎回来</h2><p>测试版使用受邀邮箱和激活时设置的密码登录。</p><form onSubmit={signIn}>
+        <span className="mini-icon"><LockKeyhole size={18} /></span><h2>欢迎回来</h2><p>已有账号可直接登录，新用户使用邀请码完成注册。</p><form onSubmit={signIn}>
           <label htmlFor="email">邮箱地址</label><input id="email" type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" />
           <div className="password-label-row"><label htmlFor="password">密码</label><button type="button" onClick={() => { setError(""); setScreen("recovery"); }}>忘记密码？</button></div><input id="password" type="password" required autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="输入登录密码" />
           {error && <p className="form-error" role="alert">{error}</p>}
           <button className="primary-button wide" type="submit" disabled={loading}>{loading ? "正在登录…" : "登录"}{!loading && <ArrowRight size={17} />}</button>
-        </form><button className="secondary-button wide auth-method-button" type="button" onClick={() => { setError(""); setScreen("otp"); }}><Mail size={16} />使用邮箱验证码登录</button><p className="activation-hint">还没有密码？请先打开管理员发送的一次性激活链接。</p><p className="legal-copy">继续即代表你同意《服务条款》和《隐私政策》。</p>
+        </form><button className="secondary-button wide auth-method-button" type="button" onClick={() => { setError(""); setScreen("register"); }}><UserPlus size={16} />使用邀请码注册</button><button className="secondary-button wide auth-method-button" type="button" onClick={() => { setError(""); setScreen("otp"); }}><Mail size={16} />使用邮箱验证码登录</button><p className="activation-hint">旧的一次性激活链接仍可继续使用。</p><p className="legal-copy">继续即代表你同意《服务条款》和《隐私政策》。</p>
+      </>}
+      {screen === "register" && <>
+        <span className="mini-icon recovery-icon"><KeyRound size={18} /></span><h2>邀请码注册</h2><p>填写内测邀请码，注册后即可直接进入职途。</p><form onSubmit={register}>
+          <label htmlFor="register-email">邮箱地址</label><input id="register-email" type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" />
+          <label htmlFor="register-display-name">用户 ID</label><input id="register-display-name" type="text" required minLength={2} maxLength={24} autoComplete="nickname" value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="例如：秋招小李" />
+          <label htmlFor="register-invite-code">邀请码</label><input id="register-invite-code" type="text" required minLength={8} maxLength={64} autoCapitalize="characters" autoComplete="off" value={inviteCode} onChange={(event) => setInviteCode(event.target.value)} placeholder="输入内测邀请码" />
+          <label htmlFor="register-password">设置密码</label><input id="register-password" type="password" required minLength={8} maxLength={72} autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="至少 8 位，包含字母和数字" />
+          <label htmlFor="register-confirm-password">确认密码</label><input id="register-confirm-password" type="password" required minLength={8} maxLength={72} autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="再次输入密码" />
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <button className="primary-button wide" type="submit" disabled={loading}>{loading ? "正在注册…" : "注册并进入职途"}{!loading && <ArrowRight size={17} />}</button>
+        </form><button className="auth-back-button" type="button" onClick={returnToLogin}><ArrowLeft size={15} />返回登录</button>
       </>}
       {screen === "otp" && <>
         <span className="mini-icon recovery-icon"><Mail size={18} /></span><h2>验证码登录</h2><p>仅已受邀账号可以使用。验证码会发送到你的登录邮箱。</p><form onSubmit={otpSent ? verifyLoginCode : requestLoginCode}>

@@ -45,6 +45,39 @@
   align-items: stretch;
 }
 
+.admin-invite-status {
+  min-height: 58px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--sage-soft);
+  color: var(--sage);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-invite-status > span {
+  margin: 0;
+}
+
+.admin-invite-status strong,
+.admin-invite-status small {
+  display: block;
+}
+
+.admin-invite-status strong {
+  color: var(--ink);
+  font-size: 10px;
+}
+
+.admin-invite-status small {
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.5;
+  margin-top: 3px;
+}
+
 .admin-invite-controls > label {
   display: flex;
   align-items: center;
