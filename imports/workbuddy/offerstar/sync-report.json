@@ -1,92 +1,92 @@
 {
   "source": "offerstar",
   "sourcePath": "C:\\Users\\k'k\\WorkBuddy\\zhitu-career-jobs\\latest\\offerstar-to-zhitu.json",
-  "syncedAt": "2026-08-26T19:02:44.535Z",
+  "syncedAt": "2026-08-31T08:38:17.450Z",
   "dryRun": false,
-  "received": 21005,
-  "accepted": 21005,
+  "received": 21524,
+  "accepted": 21524,
   "duplicates": 0,
   "rejected": 0,
-  "wechatApplyUrls": 18960,
+  "wechatApplyUrls": 19452,
   "byRecruitmentType": {
     "其他": 10,
-    "实习": 315,
-    "校招": 20680
+    "实习": 342,
+    "校招": 21172
   },
   "fieldCoverage": [
     {
       "label": "公司名称",
       "key": "company",
-      "filled": 21005,
-      "total": 21005,
+      "filled": 21524,
+      "total": 21524,
       "coverage": 1
     },
     {
       "label": "标题",
       "key": "title",
-      "filled": 21005,
-      "total": 21005,
+      "filled": 21524,
+      "total": 21524,
       "coverage": 1
     },
     {
       "label": "批次",
       "key": "offerstarType",
-      "filled": 21005,
-      "total": 21005,
+      "filled": 21524,
+      "total": 21524,
       "coverage": 1
     },
     {
       "label": "更新时间",
       "key": "postDate",
-      "filled": 21005,
-      "total": 21005,
+      "filled": 21524,
+      "total": 21524,
       "coverage": 1
     },
     {
       "label": "招聘岗位",
       "key": "position",
-      "filled": 20982,
-      "total": 21005,
+      "filled": 21501,
+      "total": 21524,
       "coverage": 0.9989
     },
     {
       "label": "工作地点",
       "key": "location",
-      "filled": 21005,
-      "total": 21005,
+      "filled": 21524,
+      "total": 21524,
       "coverage": 1
     },
     {
       "label": "行业",
       "key": "industry",
-      "filled": 21005,
-      "total": 21005,
+      "filled": 21524,
+      "total": 21524,
       "coverage": 1
     },
     {
       "label": "招聘类型",
       "key": "recruitmentType",
-      "filled": 21005,
-      "total": 21005,
+      "filled": 21524,
+      "total": 21524,
       "coverage": 1
     },
     {
       "label": "截止时间",
       "key": "deadline",
-      "filled": 21005,
-      "total": 21005,
+      "filled": 21524,
+      "total": 21524,
       "coverage": 1
     },
     {
       "label": "操作链接",
       "key": "applyUrl",
-      "filled": 21005,
-      "total": 21005,
+      "filled": 21524,
+      "total": 21524,
       "coverage": 1
     }
   ],
   "displayContractWarnings": [
-    "招聘岗位(position) 覆盖 20982/21005"
+    "招聘岗位(position) 覆盖 21501/21524"
   ],
   "rejectedSamples": []
 }
