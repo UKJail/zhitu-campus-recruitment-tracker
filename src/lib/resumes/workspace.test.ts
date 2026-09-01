@@ -17,11 +17,12 @@ describe("resume workspace restoration", () => {
     const result = buildResumeWorkspace(resumeId, {
       id: versionId,
       created_at: "2026-08-14T00:00:00Z",
-      content: { meta: { targetCompany: "腾讯", targetRole: "市场营销", analysisRunId: runId, acceptedSuggestionIndexes: [0] } },
+      content: { meta: { targetCompany: "腾讯", targetRole: "市场营销", analysisRunId: runId, acceptedSuggestionIndexes: [0], qualityChecks: [{ key: "docx_patch", label: "原模板替换预检", status: "passed", detail: "已成功应用" }] } },
     }, [{ id: runId, output: analysis }]);
 
     expect(result.analysis?.score).toBe(72);
     expect(result.targetCompany).toBe("腾讯");
+    expect(result.generatedVersion?.qualityChecks[0].status).toBe("passed");
     expect(result.generatedVersion?.downloadUrl).toContain(versionId);
   });
 

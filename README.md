@@ -1,6 +1,6 @@
 # 职途Tracker
 
-面向中国大陆求职者的邀请制求职追踪 MVP。当前仓库包含响应式登录页、五个核心模块、Supabase 数据与权限模型、真实简历上传/解析，以及基于 DeepSeek 的 JD 匹配分析。
+面向中国大陆求职者的公开测试版求职追踪产品。当前仓库包含响应式登录与注册、五个核心模块、Supabase 数据与权限模型、真实简历上传/解析，以及基于 DeepSeek 的 JD 匹配分析。
 
 ## 当前完成度
 
@@ -9,10 +9,10 @@
 - `resumes` 私有存储桶已创建，限制 PDF/DOCX、单文件不超过 10MB。
 - 邮箱验证码登录使用 Supabase SSR，会话由 `proxy.ts` 刷新。
 - 简历中心已接入真实上传、PDF/DOCX 文本解析、列表和删除接口。
-- DeepSeek JD 分析已接入登录用户、每日配额和运行记录。
+- DeepSeek JD 分析与面试准备共用每日 AI 任务额度；简历上传解析、JD 分析和优化建议合并计为一次成功任务，最终简历导出不扣次数。
 - Resend Inbound Webhook 已按 Svix 签名规范实现，支持邮件去重、分类、职位匹配、用户确认后更新进度，以及单封邮件敏感内容删除。
 - 面试复盘、职位筛选/比较、申请事件时间线、个人数据导出和账号注销均已接入真实数据。
-- 管理后台已实现邀请、AI 配额和职位来源健康度；生产端服务密钥已配置并通过未授权访问测试。
+- 管理后台已实现用户管理、AI 配额和职位来源健康度；生产端服务密钥已配置并通过未授权访问测试。
 - Vercel 生产站点为 `https://zhitu-tracker.vercel.app`，Railway 定时 Worker 与 Resend Inbound 均已上线。
 - 真实邮件端到端验收已通过：Gmail → Resend → 签名 Webhook → 邮件分类 → 岗位匹配 → 用户确认 → 申请事件时间线 → 24 小时提醒。
 - 演示数据仍保留，便于没有外部账号时查看完整交互。
@@ -29,14 +29,14 @@ npm.cmd run dev
 
 可用 `http://localhost:3000/api/health/auth` 检查认证链路。返回 `ok: true` 才表示本地网页能够向 Supabase 发起登录请求。首次配置期间保持 `NEXT_PUBLIC_DEMO_MODE=true`；真实账号可登录后再改为 `false`。
 
-## 首位管理员与邀请制登录
+## 公开注册与首位管理员
 
 真实登录启用前，需要在 Supabase 控制台完成一次初始化：
 
 1. 打开项目 `职途Tracker Project` → Authentication → URL Configuration。
 2. Site URL 填写 `http://localhost:3000`，Redirect URLs 添加 `http://localhost:3000/auth/callback`；部署后再添加生产域名对应地址。
-3. 打开 Authentication → Users，使用“邀请用户/发送邀请”创建首位账号。不要开启公开注册。
-4. 用户接受邀请后，在 SQL Editor 执行下面的语句，将邮箱替换为真实管理员邮箱：
+3. 打开 Authentication → Providers → Email，允许邮箱注册，并开启邮箱确认；公开测试用户可在登录页直接注册。
+4. 首位管理员完成邮箱注册和确认后，在 SQL Editor 执行下面的语句，将邮箱替换为真实管理员邮箱：
 
 ```sql
 update public.profiles
@@ -48,7 +48,7 @@ where id = (
 
 5. 将 `.env.local` 中的 `NEXT_PUBLIC_DEMO_MODE` 改为 `false`，重启开发服务，然后测试邮箱验证码登录。
 
-服务端 Secret/Service Role 密钥不要放进 `NEXT_PUBLIC_*` 变量、浏览器代码、Git 仓库或聊天消息。登录、简历和 AI 流程只需要 publishable key；邀请码注册、账号彻底注销和 Resend Webhook 需要仅服务端可见的 Service Role 密钥。
+服务端 Secret/Service Role 密钥不要放进 `NEXT_PUBLIC_*` 变量、浏览器代码、Git 仓库或聊天消息。注册、登录、简历和 AI 流程只需要 publishable key；账号彻底注销和 Resend Webhook 需要仅服务端可见的 Service Role 密钥。
 
 ## 环境变量
 
@@ -63,13 +63,12 @@ RESEND_WEBHOOK_SECRET=
 RESEND_INBOUND_DOMAIN=
 SUPABASE_SERVICE_ROLE_KEY=
 AUTH_RECOVERY_GRANT_SECRET=
-AUTH_BETA_INVITE_CODE=
 APP_URL=http://localhost:3000
 ```
 
 `AUTH_RECOVERY_GRANT_SECRET` 仅用于服务器端密码恢复临时凭证，与 `SUPABASE_SERVICE_ROLE_KEY` 分离。本地启动脚本在未配置时会为当前进程临时生成；生产发布前必须设置稳定的随机密钥。二者都不得使用 `NEXT_PUBLIC_*` 前缀或提交到 Git。
 
-`AUTH_BETA_INVITE_CODE` 是小范围内测共用的邀请码。建议使用至少 12 位的随机字母和数字，只写入 `.env.local` 或生产服务器环境变量；注册时忽略大小写和首尾空格。旧的一次性激活链接仍保留兼容。
+公开测试注册不再需要邀请码。Supabase Email Provider 应允许新用户注册并开启邮箱确认；旧的一次性激活链接仍保留兼容。
 
 如果曾在聊天、截图或仓库中暴露 DeepSeek 密钥，请先到 DeepSeek 控制台吊销旧密钥并生成新密钥，然后只写入本地 `.env.local` 或部署平台的加密环境变量。
 
@@ -85,8 +84,12 @@ APP_URL=http://localhost:3000
 - `006_manual_external_applications.sql`：用户手动添加外部申请。
 - `20260814071548_interview_review_persistence.sql`：面试复盘真实存储。
 - `20260814073831_application_status_transition.sql`：受控状态流转与事件追加。
+- `20260901092026_ai_usage_tasks.sql`：简历优化与面试准备共用任务额度、成功后扣次、失败释放和 30 分钟过期预留。
+- `20260901092151_ai_usage_result_run_index.sql`：补充额度任务结果外键索引。
 
-`invites` 和 `source_runs` 故意不向普通登录用户配置策略，它们保持默认拒绝，仅供受信任的后台服务操作。
+上线新版本前必须先应用最新迁移，再部署应用代码，否则统一 AI 额度接口会不可用。
+
+`invites` 仅用于兼容已经发出的旧激活链接；它和 `source_runs` 都不向普通登录用户配置策略，保持默认拒绝，仅供受信任的后台服务操作。
 
 ## 验证
 

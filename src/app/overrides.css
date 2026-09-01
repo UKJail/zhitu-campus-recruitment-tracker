@@ -1110,3 +1110,56 @@
     grid-column: auto;
   }
 }
+.ai-quota-chip {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 11px;
+  border: 1px solid #dce9e1;
+  border-radius: 10px;
+  background: var(--sage-soft);
+  color: var(--sage);
+  white-space: nowrap;
+}
+
+.ai-quota-chip strong {
+  font: 700 12px "IBM Plex Mono";
+  color: var(--ink);
+}
+
+.ai-quota-chip small {
+  font-size: 9px;
+  color: var(--muted);
+}
+
+.analysis-bundle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--sage);
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.jd-analyzer > div:first-child > small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+@media (max-width: 760px) {
+  .ai-quota-chip {
+    padding: 0 8px;
+  }
+
+  .ai-quota-chip small {
+    display: none;
+  }
+
+  .analysis-bundle-label {
+    display: none;
+  }
+}

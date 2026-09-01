@@ -830,6 +830,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      complete_ai_usage: {
+        Args: { p_result_run_id: string; p_task_id: string }
+        Returns: Json
+      }
       confirm_email_status_suggestion: {
         Args: { p_accept: boolean; p_notification_id: string }
         Returns: Database["public"]["Tables"]["notifications"]["Row"]
@@ -837,6 +841,23 @@ export type Database = {
       prepare_job_application: {
         Args: { p_job_id: string }
         Returns: Database["public"]["Tables"]["applications"]["Row"]
+      }
+      get_ai_quota: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      release_ai_usage: {
+        Args: { p_task_id: string }
+        Returns: Json
+      }
+      reserve_ai_usage: {
+        Args: {
+          p_force_new?: boolean
+          p_input_fingerprint: string
+          p_kind: string
+          p_operation_key: string
+        }
+        Returns: Json
       }
       record_application_result: {
         Args: { p_application_id: string; p_outcome: string }

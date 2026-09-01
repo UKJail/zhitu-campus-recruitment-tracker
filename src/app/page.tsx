@@ -14,13 +14,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [inviteCode, setInviteCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [authServiceError, setAuthServiceError] = useState("");
-  const [screen, setScreen] = useState<"login" | "register" | "otp" | "recovery" | "recovery-sent">("login");
+  const [screen, setScreen] = useState<"login" | "register" | "registration-sent" | "otp" | "recovery" | "recovery-sent">("login");
 
   useEffect(() => {
     let active = true;
@@ -83,7 +82,7 @@ export default function LoginPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
-      body: JSON.stringify({ email: normalizedEmail, displayName, inviteCode, password }),
+      body: JSON.stringify({ email: normalizedEmail, displayName, password }),
     }).catch(() => null);
     if (!response?.ok) {
       const result = await response?.json().catch(() => null) as { error?: string } | null;
@@ -92,16 +91,10 @@ export default function LoginPage() {
       return;
     }
 
-    const signInResponse = await fetch("/api/auth/sign-in", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "same-origin",
-      body: JSON.stringify({ method: "password", email: normalizedEmail, password }),
-    }).catch(() => null);
+    const result = await response.json().catch(() => null) as { requiresEmailConfirmation?: boolean } | null;
     setLoading(false);
-    if (!signInResponse?.ok) {
-      setScreen("login");
-      setError("账号已注册成功，请使用刚才设置的密码登录。");
+    if (result?.requiresEmailConfirmation) {
+      setScreen("registration-sent");
       return;
     }
     router.replace("/app");
@@ -142,7 +135,7 @@ export default function LoginPage() {
     setLoading(false);
     if (!response?.ok) {
       const result = await response?.json().catch(() => null) as { error?: string } | null;
-      setError(result?.error || "验证码发送失败，请确认这是已受邀的邮箱后重试。");
+      setError(result?.error || "验证码发送失败，请确认邮箱已完成注册后重试。");
       return;
     }
     setOtpSent(true);
@@ -186,31 +179,33 @@ export default function LoginPage() {
         <span className="login-brand-lockup"><strong>职途<em>tracker</em></strong><small>一个一站式求职助手网站。</small></span>
       </div>}
       <div className="story-copy"><p className="eyebrow">你的求职旅程，不再散落各处</p><h1>把每一次尝试，<br />都变成下一步的方向。</h1><p className="story-lead">从简历优化、职位发现到面试复盘，职途陪你把复杂的求职过程整理成一条清晰的路。</p><div className="route-preview" aria-hidden="true"><span><FileSearch size={17} /> 简历</span><i /><span><Sparkles size={17} /> 匹配</span><i /><span><Mail size={17} /> 面试</span><i /><span><Check size={17} /> Offer</span></div></div>
-      <p className="login-note">邀请码内测 · 你的数据只属于你</p>
+      <p className="login-note">公开测试 · 你的数据只属于你</p>
     </section>
     <section className="login-panel"><div className="login-card">
       {authServiceError && <p className="auth-service-alert" role="alert">{authServiceError}</p>}
       {screen === "login" && <>
-        <span className="mini-icon"><LockKeyhole size={18} /></span><h2>欢迎回来</h2><p>已有账号可直接登录，新用户使用邀请码完成注册。</p><form onSubmit={signIn}>
+        <span className="mini-icon"><LockKeyhole size={18} /></span><h2>欢迎回来</h2><p>已有账号可直接登录，新用户可以使用邮箱免费注册。</p><form onSubmit={signIn}>
           <label htmlFor="email">邮箱地址</label><input id="email" type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" />
           <div className="password-label-row"><label htmlFor="password">密码</label><button type="button" onClick={() => { setError(""); setScreen("recovery"); }}>忘记密码？</button></div><input id="password" type="password" required autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="输入登录密码" />
           {error && <p className="form-error" role="alert">{error}</p>}
           <button className="primary-button wide" type="submit" disabled={loading}>{loading ? "正在登录…" : "登录"}{!loading && <ArrowRight size={17} />}</button>
-        </form><button className="secondary-button wide auth-method-button" type="button" onClick={() => { setError(""); setScreen("register"); }}><UserPlus size={16} />使用邀请码注册</button><button className="secondary-button wide auth-method-button" type="button" onClick={() => { setError(""); setScreen("otp"); }}><Mail size={16} />使用邮箱验证码登录</button><p className="activation-hint">旧的一次性激活链接仍可继续使用。</p><p className="legal-copy">继续即代表你同意《服务条款》和《隐私政策》。</p>
+        </form><button className="secondary-button wide auth-method-button" type="button" onClick={() => { setError(""); setScreen("register"); }}><UserPlus size={16} />注册新账号</button><button className="secondary-button wide auth-method-button" type="button" onClick={() => { setError(""); setScreen("otp"); }}><Mail size={16} />使用邮箱验证码登录</button><p className="activation-hint">公开测试期间可直接注册；旧激活链接仍可继续使用。</p><p className="legal-copy">继续即代表你同意《服务条款》和《隐私政策》。</p>
       </>}
       {screen === "register" && <>
-        <span className="mini-icon recovery-icon"><KeyRound size={18} /></span><h2>邀请码注册</h2><p>填写内测邀请码，注册后即可直接进入职途。</p><form onSubmit={register}>
+        <span className="mini-icon recovery-icon"><KeyRound size={18} /></span><h2>注册职途</h2><p>无需邀请码，使用邮箱创建你的公开测试账号。</p><form onSubmit={register}>
           <label htmlFor="register-email">邮箱地址</label><input id="register-email" type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" />
           <label htmlFor="register-display-name">用户 ID</label><input id="register-display-name" type="text" required minLength={2} maxLength={24} autoComplete="nickname" value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="例如：秋招小李" />
-          <label htmlFor="register-invite-code">邀请码</label><input id="register-invite-code" type="text" required minLength={8} maxLength={64} autoCapitalize="characters" autoComplete="off" value={inviteCode} onChange={(event) => setInviteCode(event.target.value)} placeholder="输入内测邀请码" />
           <label htmlFor="register-password">设置密码</label><input id="register-password" type="password" required minLength={8} maxLength={72} autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="至少 8 位，包含字母和数字" />
           <label htmlFor="register-confirm-password">确认密码</label><input id="register-confirm-password" type="password" required minLength={8} maxLength={72} autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="再次输入密码" />
           {error && <p className="form-error" role="alert">{error}</p>}
-          <button className="primary-button wide" type="submit" disabled={loading}>{loading ? "正在注册…" : "注册并进入职途"}{!loading && <ArrowRight size={17} />}</button>
+          <button className="primary-button wide" type="submit" disabled={loading}>{loading ? "正在注册…" : "注册账号"}{!loading && <ArrowRight size={17} />}</button>
         </form><button className="auth-back-button" type="button" onClick={returnToLogin}><ArrowLeft size={15} />返回登录</button>
       </>}
+      {screen === "registration-sent" && <div className="recovery-sent-state">
+        <span className="mail-orbit"><MailCheck size={27} /></span><h2>请确认注册邮箱</h2><p>确认邮件已经发送到 <strong>{email.trim().toLowerCase()}</strong>。打开邮件中的链接后即可进入职途；如果暂时没有收到，请检查垃圾邮件。</p><button className="secondary-button wide" type="button" onClick={returnToLogin}><ArrowLeft size={15} />返回登录</button>
+      </div>}
       {screen === "otp" && <>
-        <span className="mini-icon recovery-icon"><Mail size={18} /></span><h2>验证码登录</h2><p>仅已受邀账号可以使用。验证码会发送到你的登录邮箱。</p><form onSubmit={otpSent ? verifyLoginCode : requestLoginCode}>
+        <span className="mini-icon recovery-icon"><Mail size={18} /></span><h2>验证码登录</h2><p>已注册账号可以使用，验证码会发送到你的登录邮箱。</p><form onSubmit={otpSent ? verifyLoginCode : requestLoginCode}>
           <label htmlFor="otp-email">邮箱地址</label><input id="otp-email" type="email" required autoComplete="email" readOnly={otpSent} value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" />
           {otpSent && <><label htmlFor="login-otp">6 位验证码</label><input id="login-otp" type="text" required inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} value={otp} onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="输入邮件中的验证码" /></>}
           {error && <p className="form-error" role="alert">{error}</p>}

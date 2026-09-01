@@ -26,6 +26,18 @@ describe("original DOCX template patching", () => {
     const source = await zip.generateAsync({ type: "uint8array" });
     await expect(patchResumeTemplateDocx(source, [{ original: "不存在", revised: "新文字" }])).rejects.toThrow("原模板中找不到");
   });
+
+  it("用户确认删除完整要点时移除整个段落而不是留下空项目符号", async () => {
+    const zip = new JSZip();
+    zip.file("word/document.xml", '<w:document xmlns:w="x"><w:body><w:p><w:pPr><w:numPr/></w:pPr><w:r><w:t>低相关且重复的完整要点</w:t></w:r></w:p><w:p><w:r><w:t>应保留的内容</w:t></w:r></w:p></w:body></w:document>');
+    const source = await zip.generateAsync({ type: "uint8array" });
+    const output = await patchResumeTemplateDocx(source, [{ original: "低相关且重复的完整要点", revised: "" }]);
+    const result = await JSZip.loadAsync(output);
+    const xml = await result.file("word/document.xml")!.async("string");
+    expect(xml).not.toContain("低相关且重复的完整要点");
+    expect(xml).not.toContain("<w:numPr/>");
+    expect(xml).toContain("应保留的内容");
+  });
   it("replaces split text when the template only differs in whitespace", async () => {
     const zip = new JSZip();
     zip.file("word/document.xml", '<w:document xmlns:w="x"><w:body><w:p><w:r><w:rPr><w:rFonts w:eastAsia="Arial"/></w:rPr><w:t>海外留学教育机构｜教育项目市场与销售专员｜远程线上</w:t></w:r><w:r><w:rPr><w:b/></w:rPr><w:t xml:space="preserve">   2024.01-2024.06</w:t></w:r></w:p></w:body></w:document>');

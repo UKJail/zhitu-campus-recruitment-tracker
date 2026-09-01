@@ -15,6 +15,12 @@ const versionMetaSchema = z.object({
   analysisRunId: z.string().uuid(),
   acceptedSuggestionIndexes: z.array(z.number().int().nonnegative()),
   jobDescription: z.string().optional(),
+  qualityChecks: z.array(z.object({
+    key: z.string(),
+    label: z.string(),
+    status: z.enum(["passed", "manual_required"]),
+    detail: z.string(),
+  })).optional().default([]),
 });
 
 export type WorkspaceVersion = { id: string; created_at: string; content: Json };
@@ -58,6 +64,7 @@ export function buildResumeWorkspace(resumeId: string, version: WorkspaceVersion
       targetCompany: meta.targetCompany,
       targetRole: meta.targetRole,
       acceptedCount: meta.acceptedSuggestionIndexes.length,
+      qualityChecks: meta.qualityChecks,
       downloadUrl: `/api/resumes/versions/${version.id}/download`,
     } : null,
   };

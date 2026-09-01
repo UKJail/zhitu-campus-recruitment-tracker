@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getAIProvider, interviewPreparationSchema } from "@/lib/ai/provider";
+import { completeAIUsage, releaseAIUsage, reserveAIUsage } from "@/lib/ai/quota";
 import { extractResumeText, validateResumeFile } from "@/lib/resumes/parse";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
 
@@ -9,18 +10,12 @@ export const runtime = "nodejs";
 
 const textField = z.string().trim().min(1).max(120);
 const formSchema = z.object({
+  operationId: z.string().uuid(),
   company: textField,
   role: textField,
   jobDescription: z.string().trim().min(20).max(100_000),
   inboundEmailId: z.string().uuid().optional(),
 });
-
-function startOfTodayInShanghai() {
-  const now = new Date();
-  const shanghai = new Date(now.getTime() + 8 * 60 * 60 * 1000);
-  shanghai.setUTCHours(0, 0, 0, 0);
-  return new Date(shanghai.getTime() - 8 * 60 * 60 * 1000).toISOString();
-}
 
 export async function GET() {
   const { supabase, userId } = await getAuthenticatedUserId();
@@ -60,6 +55,8 @@ export async function POST(request: Request) {
 
   let storagePath = "";
   let runId = "";
+  let taskId = "";
+  let preparationId = "";
   let applicationId: string | null = null;
   let stage = "request";
   try {
@@ -69,16 +66,10 @@ export async function POST(request: Request) {
     if (!(file instanceof File)) return NextResponse.json({ error: "请上传该岗位实际投递的简历" }, { status: 400 });
     validateResumeFile(file);
     const input = formSchema.parse({
+      operationId: form.get("operationId"),
       company: form.get("company"), role: form.get("role"), jobDescription: form.get("jobDescription"),
       inboundEmailId: String(form.get("inboundEmailId") || "") || undefined,
     });
-
-    const [{ data: profile }, { count }] = await Promise.all([
-      supabase.from("profiles").select("ai_daily_limit").eq("id", userId).single(),
-      supabase.from("ai_runs").select("id", { count: "exact", head: true })
-        .eq("user_id", userId).eq("status", "completed").gte("created_at", startOfTodayInShanghai()),
-    ]);
-    if ((count || 0) >= (profile?.ai_daily_limit ?? 20)) return NextResponse.json({ error: "今日 AI 操作次数已用完" }, { status: 429 });
 
     if (input.inboundEmailId) {
       const { data: invitation } = await supabase.from("inbound_emails").select("id,extracted_data").eq("id", input.inboundEmailId).eq("user_id", userId).eq("category", "interview").maybeSingle();
@@ -90,13 +81,45 @@ export async function POST(request: Request) {
     stage = "resume_parse";
     const bytes = new Uint8Array(await file.arrayBuffer());
     const resumeText = await extractResumeText(new File([bytes], file.name, { type: file.type }));
+    const fingerprint = createHash("sha256").update(JSON.stringify({
+      version: "interview-prep-v2",
+      resumeText,
+      company: input.company,
+      role: input.role,
+      jobDescription: input.jobDescription,
+    })).digest("hex");
+    const reservation = await reserveAIUsage(supabase, {
+      kind: "interview_prep",
+      operationKey: input.operationId,
+      inputFingerprint: fingerprint,
+      forceNew: true,
+    });
+    if (!reservation.allowed) return NextResponse.json({ error: "今日 AI 使用次数已用完", quota: reservation.quota }, { status: 429 });
+    if (reservation.cached && reservation.resultRunId) {
+      const { data: cachedRun } = await supabase.from("ai_runs").select("output").eq("id", reservation.resultRunId).eq("user_id", userId).maybeSingle();
+      const preparationId = cachedRun?.output && typeof cachedRun.output === "object" && !Array.isArray(cachedRun.output)
+        ? cachedRun.output.preparationId
+        : null;
+      if (typeof preparationId === "string") {
+        const { data: preparation } = await supabase.from("interview_preparations")
+          .select("id,company,role,job_description,resume_file_name,result,inbound_email_id,created_at,updated_at")
+          .eq("id", preparationId)
+          .eq("user_id", userId)
+          .maybeSingle();
+        if (preparation) return NextResponse.json({ preparation, cached: true, quota: reservation.quota }, { status: 200 });
+      }
+    }
+    if (!reservation.reserved || !reservation.taskId) {
+      return NextResponse.json({ error: "这项面试准备正在处理中，请稍后查看结果", quota: reservation.quota }, { status: 409 });
+    }
+    taskId = reservation.taskId;
+
     const extension = file.type === "application/pdf" ? "pdf" : "docx";
     storagePath = `${userId}/interview-prep/${randomUUID()}.${extension}`;
     stage = "resume_upload";
     const { error: uploadError } = await supabase.storage.from("resumes").upload(storagePath, bytes, { contentType: file.type, upsert: false });
     if (uploadError) throw new Error(`文件存储失败: ${uploadError.message}`);
 
-    const fingerprint = createHash("sha256").update(`${resumeText}\n${input.company}\n${input.role}\n${input.jobDescription}`).digest("hex");
     const { data: run, error: runError } = await supabase.from("ai_runs").insert({
       user_id: userId, kind: "interview_prep", provider: "deepseek", status: "running", input_fingerprint: fingerprint,
     }).select("id").single();
@@ -121,12 +144,17 @@ export async function POST(request: Request) {
       result: safeResult,
     }).select("id,company,role,job_description,resume_file_name,result,inbound_email_id,created_at,updated_at").single();
     if (insertError || !preparation) throw new Error("无法保存面试准备结果");
-    await supabase.from("ai_runs").update({ status: "completed", output: { preparationId: preparation.id } }).eq("id", runId).eq("user_id", userId);
+    preparationId = preparation.id;
+    const { error: runUpdateError } = await supabase.from("ai_runs").update({ status: "completed", output: { preparationId: preparation.id } }).eq("id", runId).eq("user_id", userId);
+    if (runUpdateError) throw new Error("面试准备已生成，但保存任务状态失败");
+    const quota = await completeAIUsage(supabase, taskId, runId);
     console.info("[interview-prep] request completed", { preparationId: preparation.id, questionCount: safeResult.questions.length });
-    return NextResponse.json({ preparation }, { status: 201 });
+    return NextResponse.json({ preparation, cached: false, quota }, { status: 201 });
   } catch (error) {
     if (runId) await supabase.from("ai_runs").update({ status: "failed", error_code: error instanceof Error ? error.message.slice(0, 160) : "unknown" }).eq("id", runId).eq("user_id", userId);
+    if (preparationId) await supabase.from("interview_preparations").delete().eq("id", preparationId).eq("user_id", userId);
     if (storagePath) await supabase.storage.from("resumes").remove([storagePath]);
+    if (taskId) await releaseAIUsage(supabase, taskId).catch(() => undefined);
     const issueSummary = error instanceof z.ZodError ? error.issues.map((issue) => `${issue.path.join(".")}:${issue.code}`).slice(0, 8) : [];
     console.error("[interview-prep] request failed", { stage, errorType: error instanceof z.ZodError ? "validation" : "runtime", issues: issueSummary, message: error instanceof Error ? error.message.slice(0, 200) : "unknown" });
     const message = error instanceof z.ZodError

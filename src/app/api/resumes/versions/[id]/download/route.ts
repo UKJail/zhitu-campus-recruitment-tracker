@@ -9,7 +9,7 @@ const contentSchema = z.object({
   meta: z.object({
     targetCompany: z.string(),
     targetRole: z.string(),
-    replacements: z.array(z.object({ original: z.string().min(1), revised: z.string().min(1) })).min(1),
+    replacements: z.array(z.object({ original: z.string().min(1), revised: z.string() })).min(1),
     templatePolicy: z.literal("preserve_original_docx"),
   }),
 });

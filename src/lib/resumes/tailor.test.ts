@@ -21,6 +21,10 @@ describe("deterministic tailored resume", () => {
       reason: "突出独立交付",
       impact: "高",
       requiresConfirmation: false,
+      action: "改写",
+      evidence: ["使用 Codex 完成页面搭建与代码调试。"],
+      jdRequirement: "AI 产品交付",
+      stretchRisk: "无",
     }];
     const output = buildTailoredResumeFromAccepted({ structured, acceptedSuggestions: accepted, targetCompany: "示例公司", targetRole: "AI 产品经理" });
     expect(output.projects[0].bullets[0]).toEqual({ text: accepted[0].revised, sourceIds: ["accepted.0"] });
@@ -35,6 +39,10 @@ describe("deterministic tailored resume", () => {
       reason: "补充项目信息",
       impact: "中",
       requiresConfirmation: true,
+      action: "改写",
+      evidence: ["完整项目描述"],
+      jdRequirement: null,
+      stretchRisk: "中",
     }];
     const output = buildTailoredResumeFromAccepted({ structured, acceptedSuggestions: accepted, targetCompany: "示例公司", targetRole: "产品经理" });
     expect(output.projects[0].bullets.at(-1)).toEqual({ text: accepted[0].revised, sourceIds: ["accepted.0"] });

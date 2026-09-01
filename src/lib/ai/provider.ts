@@ -69,6 +69,44 @@ export const analysisSchema = z.object({
     suggestion: z.string(),
   })).default([]),
   privacyWarnings: z.array(z.string()).default([]),
+  requirementAnalysis: z.object({
+    hardRequirements: z.array(z.object({
+      requirement: z.string(),
+      status: z.enum(["符合", "可能不符合", "信息不足", "明确不符合"]),
+      evidence: z.array(z.string()).default([]),
+      note: z.string(),
+    })).default([]),
+    coreRequirements: z.array(z.object({
+      requirement: z.string(),
+      status: z.enum(["符合", "可能不符合", "信息不足", "明确不符合"]),
+      evidence: z.array(z.string()).default([]),
+      note: z.string(),
+    })).default([]),
+    preferredRequirements: z.array(z.object({
+      requirement: z.string(),
+      status: z.enum(["符合", "可能不符合", "信息不足", "明确不符合"]),
+      evidence: z.array(z.string()).default([]),
+      note: z.string(),
+    })).default([]),
+    unknownRequirements: z.array(z.string()).default([]),
+  }).default({ hardRequirements: [], coreRequirements: [], preferredRequirements: [], unknownRequirements: [] }),
+  contentStrategy: z.object({
+    mustKeep: z.array(z.object({ text: z.string(), reason: z.string() })).default([]),
+    cutCandidates: z.array(z.object({
+      text: z.string(),
+      reason: z.string(),
+      relevance: z.enum(["高", "中", "低"]),
+      unique: z.boolean(),
+      narrativeLoad: z.boolean(),
+    })).default([]),
+    consistencyWarnings: z.array(z.string()).default([]),
+  }).default({ mustKeep: [], cutCandidates: [], consistencyWarnings: [] }),
+  deliveryChecklist: z.array(z.object({
+    check: z.string(),
+    scope: z.enum(["文本", "文档"]),
+    status: z.enum(["通过", "需确认", "生成后检查"]),
+    detail: z.string(),
+  })).default([]),
   suggestions: z.array(z.object({
     section: z.string(),
     original: z.string(),
@@ -76,6 +114,17 @@ export const analysisSchema = z.object({
     reason: z.string(),
     impact: z.enum(["高", "中", "低"]),
     requiresConfirmation: z.boolean(),
+    action: z.enum(["改写", "删除"]).default("改写"),
+    evidence: z.array(z.string()).default([]),
+    jdRequirement: nullableText.default(null),
+    stretchRisk: z.enum(["无", "低", "中", "高"]).default("无"),
+  }).superRefine((suggestion, context) => {
+    if (suggestion.action === "删除" && suggestion.revised !== "") {
+      context.addIssue({ code: "custom", path: ["revised"], message: "删除建议的 revised 必须为空字符串" });
+    }
+    if (suggestion.action === "改写" && suggestion.revised.trim().length === 0) {
+      context.addIssue({ code: "custom", path: ["revised"], message: "改写建议必须提供 revised" });
+    }
   })),
 });
 
@@ -202,6 +251,21 @@ const ANALYSIS_EXAMPLE = {
   missingInformation: [{ section: "经历", question: "需要向候选人确认的问题", purpose: "补充该信息的用途" }],
   riskWarnings: [{ text: "存在风险的原文或建议", risk: "事实边界或面试解释风险", suggestion: "保留、弱化、确认或删除" }],
   privacyWarnings: [],
+  requirementAnalysis: {
+    hardRequirements: [{ requirement: "学历、毕业时间、语言、工作资格或地点等明确门槛", status: "信息不足", evidence: [], note: "只按简历和 JD 明示信息判断" }],
+    coreRequirements: [{ requirement: "JD 核心职责或技能", status: "符合", evidence: ["简历原文证据"], note: "直接匹配或可迁移匹配" }],
+    preferredRequirements: [],
+    unknownRequirements: [],
+  },
+  contentStrategy: {
+    mustKeep: [{ text: "应保留的原文", reason: "与 JD 高相关且是关键证据" }],
+    cutCandidates: [{ text: "可考虑删除的完整原文", reason: "低相关或重复", relevance: "低", unique: false, narrativeLoad: false }],
+    consistencyWarnings: [],
+  },
+  deliveryChecklist: [
+    { check: "关键词与事实一致", scope: "文本", status: "通过", detail: "只使用有简历证据的 JD 关键词" },
+    { check: "页数、视觉排版与 ATS 文字层", scope: "文档", status: "生成后检查", detail: "必须在生成 DOCX/PDF 后实际检查" },
+  ],
   suggestions: [{
     section: "经历",
     original: "简历中的原文",
@@ -209,6 +273,10 @@ const ANALYSIS_EXAMPLE = {
     reason: "修改理由",
     impact: "中",
     requiresConfirmation: false,
+    action: "改写",
+    evidence: ["支持这次修改的简历原文"],
+    jdRequirement: "对应的 JD 要求",
+    stretchRisk: "无",
   }],
 };
 
@@ -382,10 +450,17 @@ export class DeepSeekProvider implements AIProvider {
         "优先使用收集、整理、核对、分析、计算、制作、撰写、更新、跟进、协调、调研、设计、测试、完成、建立、改进、维护、支持、汇总、展示、提交等准确动词。只有原文明确证明核心责任时才可使用主导、领导、制定、推动、统筹、搭建、管理或决策。",
         "避免连续使用‘负责…通过…实现…’等机械句式。改写应简洁、自然、便于扫描，优先写具体动作、对象、工具、范围、交付物和可验证结果；没有量化事实时不得编造数字。",
         "教育经历只保留真实学校、专业、学历、时间、成绩、排名和相关课程；实习经历如为支持性工作应使用协助、支持、整理、跟进；项目必须准确说明课程项目、学术研究、竞赛、个人项目或校企合作属性；校园经历不得包装成企业高管经历；空泛自我评价应删除或改成有事实支持的简短定位。",
-        "岗位匹配时提取最重要的 3 至 5 项要求，只突出已有的直接匹配或可迁移经历，可自然使用 JD 关键词但不得整句照抄；不得把课程学习写成实际工作经验或把相邻领域写成完全相同的岗位经验。明显差距必须如实写入 matchAnalysis.gaps。",
+        "先拆解岗位要求，再评分和改写。requirementAnalysis.hardRequirements 只放 JD 明确写出的学历、专业、毕业时间、到岗时间、语言、工作资格、资格证、地点或出勤等硬性门槛；coreRequirements 放核心职责与必备技能；preferredRequirements 放加分项。每项必须引用简历或 JD 中的明确证据。",
+        "硬性门槛不得靠常识或候选人身份猜测。只有 JD 与简历明示信息能直接证明冲突时才标记‘明确不符合’；证据不完整时标记‘信息不足’，疑似存在差距但仍需人工判断时标记‘可能不符合’。不得因为单项不符合而拒绝输出分析或替用户决定是否投递。",
+        "岗位匹配时优先提取最重要的 3 至 5 项核心要求，只突出已有的直接匹配或可迁移经历，可自然使用 JD 关键词但不得整句照抄；不得把课程学习写成实际工作经验或把相邻领域写成完全相同的岗位经验。明显差距必须如实写入 matchAnalysis.gaps。",
+        "从整份简历而不是单句角度制定 contentStrategy。mustKeep 应保留与本岗位高度相关、独有或承担叙事证据的原文；cutCandidates 只能引用可定位的完整原文，并分别判断与本 JD 的相关性、是否是唯一证据、是否承载后续面试叙事。优先删重复和低相关内容，不能机械地按栏目、时间远近或固定条数裁剪。",
+        "检查学历在读状态、毕业时间、经历日期、公司与岗位名称、数字口径、技能熟练度和语言等级在简历不同位置是否一致，把冲突或无法确认之处写入 contentStrategy.consistencyWarnings。不得自行修正未知事实。",
         "必须完整保留原简历中符合 STAR 法则的真实叙事信息：Situation（情境）、Task（任务）、Action（行动）和 Result（结果），以及其中已有的时间、范围、频率、数量、百分比、金额、排名、覆盖对象和成果数据。不得为了精简、去 AI 味或匹配 JD 而删除、弱化、遗漏或改变这些真实信息及其因果关系；只能在信息完整、事实含义和数据均不变的前提下调整语序与表达。",
         "每条 revised 都必须通过面试可解释性检查：候选人能够直接解释，不需要回撤或澄清夸大的职责与成果。",
         "不要重复身份证号、家庭住址、银行卡号等高敏感信息；如发现，将删除或脱敏建议写入 privacyWarnings。",
+        "每条建议必须用 evidence 列出支持修改的简历原文，用 jdRequirement 标明对应的 JD 要求，并用 stretchRisk 标出为了匹配岗位而产生的夸大风险。证据不足时不生成改写，改为 missingInformation 或 riskWarnings。",
+        "删除建议仅用于 contentStrategy 已判定为低相关或重复、且不是唯一证据和叙事支点的完整原文。此时 action 必须为‘删除’且 revised 必须是空字符串；其他建议 action 为‘改写’且 revised 必须有内容。删除也必须由用户逐条确认。",
+        "deliveryChecklist 要区分文本级检查和生成文件后的文档级检查。你可以检查关键词是否有事实支持、在读状态和日期是否一致；不得声称已经检查尚未生成的 DOCX/PDF 页数、视觉排版、分页、文字层或 ATS 读取顺序，这些必须标记为‘生成后检查’。",
         "score 必须是 0 到 100 的数字。每条建议必须保留可追溯的 original 原文；不修改的句子不要生成建议。missingInformation 只放需要候选人补充的问题，不得把‘待补充’写进 revised。",
         "impact 只能是 高、中、低。必须只返回有效 JSON。",
         `JSON 结构示例：${JSON.stringify(ANALYSIS_EXAMPLE)}`,
@@ -414,7 +489,11 @@ export class DeepSeekProvider implements AIProvider {
         "只能筛选和重排 SOURCE_UNITS；每个输出 text 必须逐字复制某一个 SOURCE_UNIT 的完整 text，禁止自行改写、合并或新增任何文字。",
         "accepted.* 是用户已确认采用的建议，可作为事实来源；没有出现在来源中的内容一律禁止写入。",
         "每一个 summary、标题、元信息、要点、技能和语言条目都必须填写至少一个真实 sourceIds，以便逐条追溯。",
-        "优先保留与 JD 相关且有量化成果的来源单元，删除重复表达；不要写求职意向、性格评价、照片、年龄或婚育信息。",
+        "从整份简历进行取舍：依次判断每个来源单元对本 JD 的相关性、是否提供独有证据、是否承载经历叙事；优先保留核心要求的直接证据、真实量化结果和唯一证据，优先省略重复、空泛和低相关内容。不得机械按栏目或时间远近裁剪。",
+        "学历或证书尚未完成时，只有来源单元明确写出在读、预计完成或至今等状态才能保留为当前资格；不同位置的完成日期、经历日期、技能等级和数字口径出现冲突时，不得自行修正或合并。",
+        "技能与关键词必须有 SOURCE_UNITS 逐字证据。建议保留 5 至 7 项最相关技能，但来源不足时宁可少列；不得为 ATS 匹配添加没有证据的术语。",
+        "一到两页只是内容预算目标，不代表你已经检查了实际文档。你不能声称已验证页数、分页、视觉排版、DOCX/PDF 文字层或 ATS 读取顺序；这些必须在文件生成后由程序或人工检查。",
+        "不要写求职意向、空洞性格评价、照片、年龄、婚育信息或与岗位无关的敏感信息。",
         "basics 必须逐字复制输入的姓名、邮箱、电话和地点；target 必须逐字复制目标公司和岗位。",
         "必须只返回符合指定结构的有效 JSON。",
         `JSON 结构：${JSON.stringify({ target: { company: "目标公司", role: "目标岗位" }, basics: { name: null, email: null, phones: [], location: null }, summary: { text: "职业概述", sourceIds: ["basics.summary"] }, education: [{ heading: { text: "学校｜学位", sourceIds: ["education.0.heading"] }, subheading: null, meta: { text: "地点｜日期", sourceIds: ["education.0.meta"] }, bullets: [] }], experiences: [], projects: [], skills: [{ category: "技能", items: [{ text: "技能项", sourceIds: ["skills.0.0"] }] }], languages: [] })}`,
@@ -481,6 +560,9 @@ export class DemoAIProvider implements AIProvider {
       missingInformation: [],
       riskWarnings: [],
       privacyWarnings: [],
+      requirementAnalysis: { hardRequirements: [], coreRequirements: [], preferredRequirements: [], unknownRequirements: [] },
+      contentStrategy: { mustKeep: [], cutCandidates: [], consistencyWarnings: [] },
+      deliveryChecklist: [],
       suggestions: [],
     };
   }

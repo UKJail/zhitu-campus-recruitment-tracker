@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { buildResumeSourceUnits, DeepSeekProvider, DemoAIProvider, getAIProvider, interviewPreparationSchema, structuredResumeSchema } from "./provider";
+import { analysisSchema, buildResumeSourceUnits, DeepSeekProvider, DemoAIProvider, getAIProvider, interviewPreparationSchema, structuredResumeSchema } from "./provider";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -68,7 +68,73 @@ describe("DeepSeekProvider", () => {
     expect(systemPrompt).toContain("必须完整保留原简历中符合 STAR 法则的真实叙事信息");
     expect(systemPrompt).toContain("不得为了精简、去 AI 味或匹配 JD 而删除");
     expect(systemPrompt).toContain("privacyWarnings");
+    expect(systemPrompt).toContain("requirementAnalysis.hardRequirements");
+    expect(systemPrompt).toContain("相关性、是否是唯一证据、是否承载后续面试叙事");
+    expect(systemPrompt).toContain("学历在读状态、毕业时间");
+    expect(systemPrompt).toContain("不得声称已经检查尚未生成的 DOCX/PDF");
     expect(body.messages[1].content).toContain('"targetPosition":"AI 产品经理"');
+  });
+
+  it("把删除建议、岗位证据和夸大风险纳入结构化分析", () => {
+    const parsed = analysisSchema.parse({
+      score: 70,
+      matchedKeywords: [],
+      missingKeywords: [],
+      risks: [],
+      suggestions: [{
+        section: "经历",
+        original: "与目标岗位无关且重复的完整要点",
+        revised: "",
+        reason: "低相关且已有其他证据",
+        impact: "低",
+        requiresConfirmation: false,
+        action: "删除",
+        evidence: ["与目标岗位无关且重复的完整要点"],
+        jdRequirement: "数据分析",
+        stretchRisk: "无",
+      }],
+    });
+
+    expect(parsed.suggestions[0].action).toBe("删除");
+    expect(parsed.requirementAnalysis.hardRequirements).toEqual([]);
+    expect(parsed.deliveryChecklist).toEqual([]);
+    expect(() => analysisSchema.parse({
+      score: 70,
+      matchedKeywords: [],
+      missingKeywords: [],
+      risks: [],
+      suggestions: [{ section: "经历", original: "原文", revised: "仍有内容", reason: "删除", impact: "低", requiresConfirmation: false, action: "删除" }],
+    })).toThrow();
+  });
+
+  it("最终定制简历按相关性、唯一证据和叙事作用取舍且不冒充文档检查", async () => {
+    const output = {
+      target: { company: "示例公司", role: "产品实习生" },
+      basics: { name: "李同学", email: null, phones: [], location: "上海" },
+      summary: null,
+      education: [],
+      experiences: [],
+      projects: [],
+      skills: [{ category: "工具", items: [{ text: "Figma", sourceIds: ["skills.0.0"] }] }],
+      languages: [],
+    };
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify(output) } }] }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(new DeepSeekProvider("test-secret").generateTailoredResume({
+      structured: structuredFixture,
+      acceptedSuggestions: [],
+      jobDescription: "负责产品原型设计、用户研究和跨团队协作，要求熟悉 Figma。",
+      targetCompany: "示例公司",
+      targetRole: "产品实习生",
+    })).resolves.toEqual(output);
+
+    const body = JSON.parse(String((fetchMock.mock.calls[0][1] as RequestInit).body));
+    const systemPrompt = body.messages[0].content as string;
+    expect(systemPrompt).toContain("相关性、是否提供独有证据、是否承载经历叙事");
+    expect(systemPrompt).toContain("尚未完成");
+    expect(systemPrompt).toContain("不得为 ATS 匹配添加没有证据的术语");
+    expect(systemPrompt).toContain("不能声称已验证页数");
   });
 
   it("结构化解析只接受完整且可验证的输出形状", async () => {
@@ -196,6 +262,10 @@ describe("DeepSeekProvider", () => {
       reason: "匹配岗位要求",
       impact: "中",
       requiresConfirmation: false,
+      action: "改写",
+      evidence: ["Figma"],
+      jdRequirement: "Figma",
+      stretchRisk: "无",
     }]);
     expect(units).toContainEqual({ id: "skills.0.0", text: "Figma" });
     expect(units).toContainEqual({ id: "accepted.0", text: "Figma（熟练）" });

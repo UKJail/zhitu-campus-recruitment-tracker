@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { analysisSchema } from "@/lib/ai/provider";
+import { patchResumeTemplateDocx } from "@/lib/resumes/template-docx";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
 import type { Json } from "@/lib/supabase/database.types";
 
@@ -17,31 +18,21 @@ const requestSchema = z.object({
   truthConfirmed: z.literal(true),
 });
 
-function startOfTodayInShanghai() {
-  const now = new Date();
-  const shanghai = new Date(now.getTime() + 8 * 60 * 60 * 1000);
-  shanghai.setUTCHours(0, 0, 0, 0);
-  return new Date(shanghai.getTime() - 8 * 60 * 60 * 1000).toISOString();
-}
-
 export async function POST(request: Request) {
   const { supabase, userId } = await getAuthenticatedUserId();
   if (!userId) return NextResponse.json({ error: "请先登录" }, { status: 401 });
 
   try {
     const input = requestSchema.parse(await request.json());
-    const [{ data: resume, error: resumeError }, { data: analysisRun, error: analysisError }, { data: profile }, { count }] = await Promise.all([
-      supabase.from("resumes").select("id,parsed_text,parse_status,mime_type").eq("id", input.resumeId).eq("user_id", userId).single(),
+    const [{ data: resume, error: resumeError }, { data: analysisRun, error: analysisError }] = await Promise.all([
+      supabase.from("resumes").select("id,parsed_text,parse_status,mime_type,storage_path").eq("id", input.resumeId).eq("user_id", userId).single(),
       supabase.from("ai_runs").select("id,kind,status,input_fingerprint,output").eq("id", input.analysisRunId).eq("user_id", userId).single(),
-      supabase.from("profiles").select("ai_daily_limit").eq("id", userId).single(),
-      supabase.from("ai_runs").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("status", "completed").gte("created_at", startOfTodayInShanghai()),
     ]);
 
     if (resumeError || !resume) return NextResponse.json({ error: "简历不存在或无权访问" }, { status: 404 });
     if (resume.mime_type === "application/pdf") return NextResponse.json({ error: "保持原排版需要使用原始 DOCX 模板，请上传并选择对应的 Word 简历后重新分析" }, { status: 409 });
     if (analysisError || !analysisRun || analysisRun.kind !== "job_match" || analysisRun.status !== "completed") return NextResponse.json({ error: "找不到已完成的岗位匹配分析" }, { status: 404 });
     if (resume.parse_status !== "ready" || !resume.parsed_text) return NextResponse.json({ error: "简历尚未完成文本解析" }, { status: 409 });
-    if ((count || 0) >= (profile?.ai_daily_limit ?? 20)) return NextResponse.json({ error: "今日 AI 操作次数已用完" }, { status: 429 });
 
     const expectedFingerprint = createHash("sha256").update(`${resume.id}\n${input.jobDescription}`).digest("hex");
     if (analysisRun.input_fingerprint !== expectedFingerprint) return NextResponse.json({ error: "当前 JD 与这次匹配分析不一致，请重新分析" }, { status: 409 });
@@ -49,6 +40,18 @@ export async function POST(request: Request) {
     const analysis = analysisSchema.parse(analysisRun.output);
     const acceptedSuggestions = input.acceptedSuggestionIndexes.map((index) => analysis.suggestions[index]).filter(Boolean);
     if (acceptedSuggestions.length !== input.acceptedSuggestionIndexes.length) return NextResponse.json({ error: "已接受建议列表无效，请重新分析" }, { status: 400 });
+    const replacements = acceptedSuggestions.map((suggestion) => ({ original: suggestion.original, revised: suggestion.revised }));
+
+    const { data: template, error: templateError } = await supabase.storage.from("resumes").download(resume.storage_path);
+    if (templateError || !template) return NextResponse.json({ error: "读取原始 DOCX 模板失败，无法进行生成前检查" }, { status: 500 });
+    await patchResumeTemplateDocx(new Uint8Array(await template.arrayBuffer()), replacements);
+
+    const qualityChecks = [
+      { key: "source_traceability", label: "修改来源可追溯", status: "passed", detail: "所有改写或删除均来自本次分析且已经用户确认" },
+      { key: "docx_patch", label: "原模板替换预检", status: "passed", detail: "已在原始 DOCX 副本中成功应用全部修改" },
+      { key: "visual_layout", label: "页数与视觉排版", status: "manual_required", detail: "下载后请用 Word 打开，检查页数、分页、留白和项目符号" },
+      { key: "ats_text_layer", label: "ATS 文字层", status: "manual_required", detail: "如导出 PDF，请再检查联系方式、日期范围、文字顺序和乱码" },
+    ];
 
     const fingerprint = createHash("sha256").update(JSON.stringify({
       analysisRunId: analysisRun.id,
@@ -73,8 +76,9 @@ export async function POST(request: Request) {
           jobDescription: input.jobDescription,
           analysisRunId: analysisRun.id,
           acceptedSuggestionIndexes: input.acceptedSuggestionIndexes,
-          replacements: acceptedSuggestions.map((suggestion) => ({ original: suggestion.original, revised: suggestion.revised })),
+          replacements,
           templatePolicy: "preserve_original_docx",
+          qualityChecks,
           generatedAt: new Date().toISOString(),
         },
       } as Json;
@@ -93,6 +97,7 @@ export async function POST(request: Request) {
         targetCompany: input.targetCompany,
         targetRole: input.targetRole,
         acceptedCount: acceptedSuggestions.length,
+        qualityChecks,
         downloadUrl: `/api/resumes/versions/${version.id}/download`,
       });
     } catch (error) {

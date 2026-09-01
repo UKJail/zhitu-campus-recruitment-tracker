@@ -3,6 +3,7 @@
 import { AlertTriangle, CheckCircle2, ChevronDown, Clock3, FileText, MailCheck, Sparkles, Upload } from "lucide-react";
 import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import type { InterviewPreparation } from "@/lib/ai/provider";
+import type { AIQuota } from "@/lib/ai/quota";
 
 type Invitation = {
   id: string;
@@ -26,7 +27,11 @@ type Preparation = {
   updated_at: string;
 };
 
-export function InterviewPrepPage({ notify }: { notify: (message: string) => void }) {
+export function InterviewPrepPage({ notify, aiQuota, onQuotaChanged }: {
+  notify: (message: string) => void;
+  aiQuota: AIQuota;
+  onQuotaChanged: (quota: AIQuota) => void;
+}) {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [preparations, setPreparations] = useState<Preparation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -82,6 +87,7 @@ export function InterviewPrepPage({ notify }: { notify: (message: string) => voi
     if (!file) return notify("请上传该岗位实际投递的 PDF 或 DOCX 简历");
     setGenerationError("");
     const form = new FormData();
+    form.set("operationId", crypto.randomUUID());
     form.set("company", company);
     form.set("role", role);
     form.set("jobDescription", jobDescription);
@@ -91,6 +97,7 @@ export function InterviewPrepPage({ notify }: { notify: (message: string) => voi
     try {
       const response = await fetch("/api/interview-preparations", { method: "POST", body: form });
       const payload = await response.json().catch(() => ({}));
+      if (payload.quota) onQuotaChanged(payload.quota as AIQuota);
       if (!response.ok) throw new Error(payload.error || "生成失败");
       setPreparations((current) => [payload.preparation, ...current]);
       setSelectedId(payload.preparation.id);
@@ -130,7 +137,7 @@ export function InterviewPrepPage({ notify }: { notify: (message: string) => voi
             <label>岗位 JD<textarea required minLength={20} maxLength={100000} value={jobDescription} onChange={(event) => setJobDescription(event.target.value)} placeholder="粘贴完整岗位职责和任职要求；如果邀请已匹配到职位库，会自动带入。" /></label>
             <label className={`prep-upload ${file ? "has-file" : ""}`}><input type="file" accept=".pdf,.docx" onChange={chooseFile} /><span className="upload-orbit">{file ? <CheckCircle2 size={23} /> : <Upload size={23} />}</span><span><strong>{file?.name || "上传该岗位实际投递的简历"}</strong><small>{file ? `${Math.max(1, Math.round(file.size / 1024))} KB · 将作为本次面试准备依据` : "支持 PDF、DOCX，不超过 10MB；不要上传其他版本"}</small></span></label>
             {generationError && <div className="prep-generation-error" role="alert"><AlertTriangle size={16} /><span><strong>这次没有生成成功</strong><small>{generationError}</small></span></div>}
-            <div className="prep-generate-row"><span><Sparkles size={15} />每天 AI 配额中计 1 次</span><button className="primary-button" disabled={generating}>{generating ? <><Clock3 size={16} />正在生成题目…</> : <><Sparkles size={16} />生成面试准备题</>}</button></div>
+            <div className="prep-generate-row"><span><Sparkles size={15} />成功生成计 1 次，失败不扣 · 今日剩余 {aiQuota.remaining}/{aiQuota.limit}</span><button className="primary-button" disabled={generating}>{generating ? <><Clock3 size={16} />正在生成题目…</> : <><Sparkles size={16} />生成面试准备题</>}</button></div>
           </form>
         </> : <PrepResult preparation={selected} activeQuestion={activeQuestion} setActiveQuestion={setActiveQuestion} onNew={() => { setSelectedId(null); setSelectedInvitationId(null); setCompany(""); setRole(""); setJobDescription(""); setFile(null); }} />}
       </section>

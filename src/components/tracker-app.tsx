@@ -18,6 +18,7 @@ import { BrandMascot } from "@/components/brand-mascot";
 import { CareerPortalDirectory } from "@/components/career-portal-directory";
 import { allowedConfirmationLinks, forwardingConfirmationProvider, forwardingVerificationState, gmailForwardingConfirmationCode, gmailRecruitmentFilterQuery, hasRecentInboundEmail, isGmailForwardingConfirmation, isQqForwardingConfirmation, recruitmentFilterKeywords } from "@/lib/mail/forwarding";
 import type { JobAnalysis, StructuredResume } from "@/lib/ai/provider";
+import type { AIQuota } from "@/lib/ai/quota";
 import type { InterviewReview, Job, Resume, Suggestion } from "@/lib/types";
 import type { RecruitingCalendarEvent } from "@/lib/mail/calendar";
 import { DEFAULT_DAILY_APPLICATION_TARGET, DEFAULT_JOB_PREFERENCES, hasJobPreferences, type JobPreferences } from "@/lib/account/preferences";
@@ -36,7 +37,9 @@ type NotificationItem = {
   metadata: Record<string, unknown> | null;
   action_status: "pending" | "accepted" | "rejected" | null;
 };
+type DeliveryQualityCheck = { key: string; label: string; status: "passed" | "manual_required"; detail: string };
 const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE !== "false";
+const defaultAIQuota: AIQuota = { limit: 20, used: 0, remaining: 20, resetAt: "" };
 
 const navItems = [
   { key: "home" as const, label: "首页", icon: LayoutDashboard },
@@ -68,6 +71,7 @@ export function TrackerApp() {
   const [dailyTargetDraft, setDailyTargetDraft] = useState(String(DEFAULT_DAILY_APPLICATION_TARGET));
   const [editingDailyTarget, setEditingDailyTarget] = useState(false);
   const [savingDailyTarget, setSavingDailyTarget] = useState(false);
+  const [aiQuota, setAIQuota] = useState<AIQuota>(defaultAIQuota);
 
   const notify = useCallback((message: string) => {
     setToast(message);
@@ -126,6 +130,18 @@ export function TrackerApp() {
     }
   }, [notify]);
 
+  const loadAIQuota = useCallback(async () => {
+    if (isDemoMode) return;
+    try {
+      const response = await fetch("/api/ai/quota", { cache: "no-store" });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "AI 配额读取失败");
+      setAIQuota(payload.quota as AIQuota);
+    } catch (quotaError) {
+      notify(quotaError instanceof Error ? quotaError.message : "AI 配额读取失败");
+    }
+  }, [notify]);
+
   useEffect(() => {
     const timer = window.setTimeout(() => { void loadJobs(); }, 0);
     return () => window.clearTimeout(timer);
@@ -140,6 +156,18 @@ export function TrackerApp() {
     const timer = window.setTimeout(() => { void loadNotifications(); }, 0);
     return () => window.clearTimeout(timer);
   }, [loadNotifications]);
+
+  useEffect(() => {
+    const refresh = () => { void loadAIQuota(); };
+    const timer = window.setTimeout(refresh, 0);
+    const interval = window.setInterval(refresh, 60_000);
+    window.addEventListener("focus", refresh);
+    return () => {
+      window.clearTimeout(timer);
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [loadAIQuota]);
 
   useEffect(() => {
     const updateClock = () => setProgressClock(new Date());
@@ -216,6 +244,7 @@ export function TrackerApp() {
           <div><p>职途tracker</p><h1>{title}</h1></div>
           <div className="topbar-actions">
             <label className="global-search"><Search size={17} /><input aria-label="全局搜索" placeholder="搜索职位、公司或记录" /><kbd>⌘ K</kbd></label>
+            <span className="ai-quota-chip" title="简历优化与面试准备共用额度；北京时间 00:00 重置"><Sparkles size={15} /><strong>{aiQuota.remaining}</strong><small>/ {aiQuota.limit} 次</small></span>
             <div className="notification-wrap">
               <button className={`icon-button ${notifications.length > 0 ? "has-count" : ""}`} aria-label={`通知${notifications.length > 0 ? `，${notifications.length} 条` : ""}`} onClick={() => setNotificationsOpen(!notificationsOpen)}>
                 <Bell size={19} />
@@ -230,9 +259,9 @@ export function TrackerApp() {
         <main className="page-content">
           {page === "home" && <HomePage jobs={jobs} displayName={profile?.displayName} onNavigate={navigate} />}
           {page === "jobs" && <JobsPage refreshActivity={loadJobs} notify={notify} preferences={profile?.jobPreferences || DEFAULT_JOB_PREFERENCES} onPreferencesUpdated={(jobPreferences) => setProfile((current) => current ? { ...current, jobPreferences } : current)} />}
-          {page === "resumes" && <ResumesPage suggestions={suggestions} setSuggestions={setSuggestions} notify={notify} />}
+          {page === "resumes" && <ResumesPage suggestions={suggestions} setSuggestions={setSuggestions} notify={notify} aiQuota={aiQuota} onQuotaChanged={setAIQuota} />}
           {page === "progress" && <ProgressPage jobs={jobs} refreshJobs={loadJobs} notify={notify} onOpenMailSettings={() => setSettingsOpen(true)} />}
-          {page === "prep" && <InterviewPrepPage notify={notify} />}
+          {page === "prep" && <InterviewPrepPage notify={notify} aiQuota={aiQuota} onQuotaChanged={setAIQuota} />}
           {page === "reviews" && <ReviewsPage reviews={reviews} setReviews={setReviews} notify={notify} />}
         </main>
       </section>
@@ -678,7 +707,13 @@ function JobPreferenceDialog({ preferences, notify, onClose, onSaved }: { prefer
   </section></div>;
 }
 
-function ResumesPage({ suggestions, setSuggestions, notify }: { suggestions: Suggestion[]; setSuggestions: (s: Suggestion[]) => void; notify: (text: string) => void }) {
+function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQuotaChanged }: {
+  suggestions: Suggestion[];
+  setSuggestions: (s: Suggestion[]) => void;
+  notify: (text: string) => void;
+  aiQuota: AIQuota;
+  onQuotaChanged: (quota: AIQuota) => void;
+}) {
   const [resumeItems, setResumeItems] = useState<Resume[]>(isDemoMode ? seedResumes : []);
   const [selected, setSelected] = useState<Resume | null>(isDemoMode ? seedResumes[0] : null);
   const [realResumeId, setRealResumeId] = useState<string | null>(null);
@@ -693,7 +728,7 @@ function ResumesPage({ suggestions, setSuggestions, notify }: { suggestions: Sug
   const [targetRole, setTargetRole] = useState("");
   const [generating, setGenerating] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [generatedVersion, setGeneratedVersion] = useState<{ versionId: string; targetCompany: string; targetRole: string; acceptedCount: number; createdAt: string; downloadUrl: string } | null>(null);
+  const [generatedVersion, setGeneratedVersion] = useState<{ versionId: string; targetCompany: string; targetRole: string; acceptedCount: number; createdAt: string; qualityChecks: DeliveryQualityCheck[]; downloadUrl: string } | null>(null);
   const [manualApplicationUrl, setManualApplicationUrl] = useState("");
   const [recordingApplication, setRecordingApplication] = useState(false);
   const [applicationRecorded, setApplicationRecorded] = useState(false);
@@ -841,43 +876,33 @@ function ResumesPage({ suggestions, setSuggestions, notify }: { suggestions: Sug
     }
   }
 
-  async function parseWithDeepSeek() {
-    if (!realResumeId) return notify("请先上传一份真实简历");
-    setAnalyzing(true);
-    try {
-      const response = await fetch("/api/ai/parse-resume", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeId: realResumeId }),
-      });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || "结构化解析失败");
-      setStructured(payload.structured);
-      notify(payload.cached ? "已读取 DeepSeek 结构化解析结果" : "DeepSeek 结构化解析完成");
-    } catch (error) {
-      notify(error instanceof Error ? error.message : "结构化解析失败");
-    } finally {
-      setAnalyzing(false);
-    }
-  }
-
   async function analyze() {
     if (!realResumeId) return notify("请先上传一份真实简历");
     if (jobDescription.trim().length < 20) return notify("请粘贴完整的目标岗位 JD");
     setAnalyzing(true);
     try {
+      const forceRefresh = Boolean(analysisSummary);
       const response = await fetch("/api/ai/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resumeId: realResumeId, jobDescription, targetCompany, targetRole }),
+        body: JSON.stringify({
+          resumeId: realResumeId,
+          operationId: crypto.randomUUID(),
+          jobDescription,
+          targetCompany,
+          targetRole,
+          forceRefresh,
+        }),
       });
       const payload = await response.json();
+      if (payload.quota) onQuotaChanged(payload.quota as AIQuota);
       if (!response.ok) throw new Error(payload.error || "分析失败");
       setAnalysisSummary(payload);
       setAnalysisRunId(payload.runId);
+      if (payload.structured) setStructured(payload.structured as StructuredResume);
       setGeneratedVersion(null);
       setSuggestions(payload.suggestions.map((item: Omit<Suggestion, "id" | "state">, index: number) => ({ ...item, sourceIndex: index, id: `deepseek-${payload.runId}-${index}`, state: "pending" as const })));
-      notify(`DeepSeek 分析完成，匹配分 ${payload.score}`);
+      notify(payload.cached ? `已读取现有分析，匹配分 ${payload.score}` : `DeepSeek 分析完成，匹配分 ${payload.score}，已使用 1 次`);
     } catch (error) {
       notify(error instanceof Error ? error.message : "分析失败");
     } finally {
@@ -952,7 +977,18 @@ function ResumesPage({ suggestions, setSuggestions, notify }: { suggestions: Sug
       setRecordingApplication(false);
     }
   }
+  function invalidateAnalysis() {
+    setAnalysisSummary(null);
+    setAnalysisRunId(null);
+    setGeneratedVersion(null);
+    setSuggestions([]);
+  }
   const accepted = suggestions.filter((s) => s.state === "accepted").length;
+  const visibleRequirements = analysisSummary ? [
+    ...analysisSummary.requirementAnalysis.hardRequirements.map((item) => ({ ...item, kind: "硬性门槛" })),
+    ...analysisSummary.requirementAnalysis.coreRequirements.map((item) => ({ ...item, kind: "核心要求" })),
+  ] : [];
+  const deliveryQualityChecks = generatedVersion?.qualityChecks ?? [];
   return <div className="page-stack">
     <section className="page-intro"><div><p className="eyebrow">简历中心</p><h2>让经历被准确看见</h2><span>所有修改由你确认，职途不会编造任何经历或数据。</span></div><label className="primary-button file-button"><Upload size={17} />上传新简历<input type="file" accept=".pdf,.docx" onChange={upload} /></label></section>
     {uploadName && <div className="upload-banner"><FileCheck2 /><span><strong>{uploadName}</strong> {uploading ? "正在解析" : "已完成解析"}</span><em>{uploading ? "请勿关闭页面" : "已安全保存"}</em></div>}
@@ -961,12 +997,24 @@ function ResumesPage({ suggestions, setSuggestions, notify }: { suggestions: Sug
       {loading ? <section className="resume-empty panel" aria-live="polite"><FileText size={30} /><h3>正在读取你的简历</h3><p>文件将通过私有存储安全加载。</p></section> : !selected ? <section className="resume-empty panel"><Upload size={32} /><h3>{loadError ? "简历列表暂时无法加载" : "上传第一份简历"}</h3><p>{loadError || "支持 PDF、DOCX，文件不超过 10MB。上传后即可解析经历并进行 JD 匹配。"}</p>{!loadError && <label className="primary-button file-button"><Upload size={17} />选择简历文件<input type="file" accept=".pdf,.docx" onChange={upload} /></label>}</section> : <section className="resume-workspace panel">
         <div className="resume-toolbar"><div><p className="eyebrow">当前简历</p><h3>{selected.name}</h3></div><span><button className="secondary-button"><FileText size={16} />预览</button><button className="secondary-button">导出 <ChevronDown size={15} /></button></span></div>
         <div className="ai-processing-note"><ShieldCheck size={16} /><span><strong>DeepSeek 只处理解析文本</strong><small>不发送原 PDF/DOCX；所有改写建议均需你逐条确认。</small></span></div>
-        <div className="match-hero"><div className="score-ring"><strong>{structured ? <Check size={23} /> : "AI"}</strong><small>{structured ? "已解析" : "待解析"}</small></div><div><p>简历结构化解析</p><h4>{structured ? `${structured.experiences.length} 段经历 · ${structured.projects.length} 个项目` : "让 DeepSeek 提取教育、经历、项目与技能"}</h4><span>{structured ? <><i>{structured.skills.reduce((total, group) => total + group.items.length, 0)} 项技能</i><i className="warn">{structured.uncertainItems.length} 项待确认</i></> : <i>只提取原文明确出现的事实</i>}</span></div><button disabled={analyzing || Boolean(structured)} onClick={parseWithDeepSeek}>{analyzing ? "解析中…" : structured ? "解析完成" : "开始解析"}</button></div>
-        <div className="jd-analyzer"><div><p className="eyebrow">目标岗位 JD</p><h4>粘贴真实岗位要求后再进行匹配</h4></div><div className="target-fields"><label>目标公司<input value={targetCompany} onChange={(event) => { setTargetCompany(event.target.value); setGeneratedVersion(null); }} placeholder="例如：字节跳动" /></label><label>岗位名称<input value={targetRole} onChange={(event) => { setTargetRole(event.target.value); setGeneratedVersion(null); }} placeholder="例如：推荐算法工程师" /></label></div><textarea value={jobDescription} onChange={(event) => { setJobDescription(event.target.value); setGeneratedVersion(null); }} placeholder="粘贴职位描述、岗位职责和任职要求…" /><button className="primary-button" disabled={analyzing || jobDescription.trim().length < 20} onClick={analyze}><Sparkles size={15} />{analyzing ? "分析中…" : "分析匹配度"}</button></div>
+        <div className="match-hero"><div className="score-ring"><strong>{structured ? <Check size={23} /> : "AI"}</strong><small>{structured ? "已解析" : "待分析"}</small></div><div><p>简历解析与岗位匹配</p><h4>{structured ? `${structured.experiences.length} 段经历 · ${structured.projects.length} 个项目` : "上传、解析与 JD 建议合并为一个任务"}</h4><span>{structured ? <><i>{structured.skills.reduce((total, group) => total + group.items.length, 0)} 项技能</i><i className="warn">{structured.uncertainItems.length} 项待确认</i></> : <i>只在完整分析成功后计 1 次</i>}</span></div><span className="analysis-bundle-label"><Sparkles size={14} />随 JD 一起分析</span></div>
+        <div className="jd-analyzer"><div><p className="eyebrow">目标岗位 JD</p><h4>粘贴真实岗位要求后，获得匹配度与逐条优化建议</h4><small>成功生成完整结果计 1 次，失败不扣；今日剩余 {aiQuota.remaining}/{aiQuota.limit} 次。</small></div><div className="target-fields"><label>目标公司<input value={targetCompany} onChange={(event) => { setTargetCompany(event.target.value); invalidateAnalysis(); }} placeholder="例如：字节跳动" /></label><label>岗位名称<input value={targetRole} onChange={(event) => { setTargetRole(event.target.value); invalidateAnalysis(); }} placeholder="例如：推荐算法工程师" /></label></div><textarea value={jobDescription} onChange={(event) => { setJobDescription(event.target.value); invalidateAnalysis(); }} placeholder="粘贴职位描述、岗位职责和任职要求…" /><button className="primary-button" disabled={analyzing || jobDescription.trim().length < 20} onClick={analyze}><Sparkles size={15} />{analyzing ? "分析中…" : analysisSummary ? "重新分析（计 1 次）" : "分析并获取建议（计 1 次）"}</button></div>
         {analysisSummary && <div className="match-hero match-result"><div className="score-ring"><strong>{analysisSummary.score}</strong><small>匹配分</small></div><div><p>真实 JD 分析结果</p><h4>已匹配 {analysisSummary.matchedKeywords.length} 个关键词</h4><span><i>{analysisSummary.matchedKeywords.slice(0, 3).join(" · ") || "暂无明确匹配词"}</i><i className="warn">待补充 {analysisSummary.missingKeywords.length} 项</i></span></div></div>}
+        {analysisSummary && <section className="resume-evaluation">
+          <div className="evaluation-heading"><div><p className="eyebrow">岗位门槛与整份简历取舍</p><h4>先判断能否申请，再决定保留什么</h4></div><span>{analysisSummary.requirementAnalysis.preferredRequirements.length} 项加分项 · {analysisSummary.requirementAnalysis.unknownRequirements.length} 项待确认</span></div>
+          {visibleRequirements.length > 0 && <div className="requirement-grid">{visibleRequirements.map((item, index) => <article key={`${item.kind}-${index}`} className={`requirement-card status-${item.status}`}><header><span>{item.kind}</span><em>{item.status}</em></header><strong>{item.requirement}</strong><p>{item.note}</p>{item.evidence.length > 0 && <small>证据：{item.evidence.slice(0, 2).join("；")}</small>}</article>)}</div>}
+          <div className="content-strategy-grid"><article><header><CheckCircle2 size={15} /><strong>优先保留</strong></header>{analysisSummary.contentStrategy.mustKeep.length > 0 ? analysisSummary.contentStrategy.mustKeep.slice(0, 4).map((item, index) => <p key={index}>{item.text}<small>{item.reason}</small></p>) : <p className="empty-copy">暂无额外保留建议</p>}</article><article><header><ClipboardCheck size={15} /><strong>可考虑精简</strong></header>{analysisSummary.contentStrategy.cutCandidates.length > 0 ? analysisSummary.contentStrategy.cutCandidates.slice(0, 4).map((item, index) => <p key={index}>{item.text}<small>{item.reason} · 相关性 {item.relevance}{item.unique ? " · 唯一证据" : ""}{item.narrativeLoad ? " · 叙事支点" : ""}</small></p>) : <p className="empty-copy">暂无低相关或重复内容</p>}</article></div>
+          {analysisSummary.contentStrategy.consistencyWarnings.length > 0 && <div className="consistency-warning"><ShieldCheck size={15} /><span><strong>一致性待确认</strong>{analysisSummary.contentStrategy.consistencyWarnings.join("；")}</span></div>}
+          {analysisSummary.deliveryChecklist.length > 0 && <div className="analysis-checklist">{analysisSummary.deliveryChecklist.map((item, index) => <span key={index} className={`check-${item.status}`}><i>{item.status === "通过" ? <CheckCircle2 size={14} /> : <Clock3 size={14} />}</i><strong>{item.check}</strong><small>{item.scope}检查 · {item.detail}</small></span>)}</div>}
+        </section>}
         <div className="suggestion-heading"><div><h4>逐条优化建议</h4><span>已接受 {accepted}/{suggestions.length} 条</span></div><p>{suggestions.length ? "建议只基于你的原始经历，带数字的内容请确认真实有效。" : "完成真实 JD 分析后，建议会在这里逐条展示；每条都保留原文供你确认。"}</p></div>
-        <div className="suggestion-list">{suggestions.map((item) => <article className={`suggestion ${item.state}`} key={item.id}><header><span>{item.section}</span><span className="suggestion-flags">{item.requiresConfirmation && <em className="confirm-flag">需确认真实性</em>}<em className={`impact impact-${item.impact}`}>{item.impact}影响</em></span></header><div className="copy-compare"><div><small>原文</small><p>{item.original}</p></div><div className="revised"><small><Sparkles size={13} />建议版本</small><p>{item.revised}</p></div></div><footer><span><Sparkles size={14} />{item.reason}</span>{item.state === "pending" ? <div><button onClick={() => decide(item.id, false)}><X size={15} />保留原文</button><button className="accept" onClick={() => decide(item.id, true)}><Check size={15} />接受建议</button></div> : <strong>{item.state === "accepted" ? <><CheckCircle2 size={15} />已接受</> : <><XCircle size={15} />已跳过</>}</strong>}</footer></article>)}</div>
-        {suggestions.length > 0 && <section className={`delivery-version ${generatedVersion ? "ready" : ""} ${selected.fileType !== "DOCX" ? "needs-template" : ""}`}><div className="version-stamp"><FileCheck2 /><span>{generatedVersion ? "READY" : selected.fileType === "DOCX" ? "DRAFT" : "DOCX"}</span></div><div><p className="eyebrow">投递版本 · 原格式保真</p><h4>{generatedVersion ? `${generatedVersion.targetCompany} · ${generatedVersion.targetRole}` : selected.fileType === "DOCX" ? "在原始 Word 模板中替换已接受文字" : "请上传并选择原始 DOCX 简历"}</h4><span>{generatedVersion ? `采用 ${generatedVersion.acceptedCount} 条已确认建议 · 字体、字号、页边距与栏目结构继承原文件` : selected.fileType === "DOCX" ? `当前已接受 ${accepted} 条建议，只替换文字，不重新设计排版` : "PDF 无法进行原格式编辑，系统不会再用通用模板生成"}</span></div>{generatedVersion ? <div className="delivery-actions"><a className="primary-button" href={generatedVersion.downloadUrl}><Download size={16} />下载 DOCX</a><label><span>原始岗位链接</span><input aria-label="原始岗位链接" value={manualApplicationUrl} onChange={(event) => { setManualApplicationUrl(event.target.value); setApplicationRecorded(false); }} placeholder="https://…" /></label><button className="secondary-button" disabled={recordingApplication || applicationRecorded} onClick={recordManualApplication}>{applicationRecorded ? <><CheckCircle2 size={15} />已记录投递</> : recordingApplication ? "记录中…" : "记录已投递"}</button></div> : selected.fileType === "DOCX" ? <button className="primary-button" disabled={generating || accepted === 0} onClick={generateResume}><FilePenLine size={16} />{generating ? "生成中…" : "生成投递简历"}</button> : <label className="primary-button file-button"><Upload size={16} />上传原始 DOCX<input type="file" accept=".docx" onChange={upload} /></label>}</section>}
+        <div className="suggestion-list">{suggestions.map((item) => <article className={`suggestion ${item.state}`} key={item.id}><header><span>{item.section}</span><span className="suggestion-flags">{item.action === "删除" && <em className="delete-flag">建议删除</em>}{item.stretchRisk && item.stretchRisk !== "无" && <em className="risk-flag">夸大风险 {item.stretchRisk}</em>}{item.requiresConfirmation && <em className="confirm-flag">需确认真实性</em>}<em className={`impact impact-${item.impact}`}>{item.impact}影响</em></span></header><div className="copy-compare"><div><small>原文</small><p>{item.original}</p></div><div className="revised"><small><Sparkles size={13} />{item.action === "删除" ? "取舍建议" : "建议版本"}</small><p>{item.action === "删除" ? "删除这条完整内容" : item.revised}</p>{item.jdRequirement && <em>对应 JD：{item.jdRequirement}</em>}</div></div><footer><span><Sparkles size={14} />{item.reason}{item.evidence?.length ? ` · 证据：${item.evidence.slice(0, 1).join("；")}` : ""}</span>{item.state === "pending" ? <div><button onClick={() => decide(item.id, false)}><X size={15} />保留原文</button><button className="accept" onClick={() => decide(item.id, true)}><Check size={15} />{item.action === "删除" ? "确认删除" : "接受建议"}</button></div> : <strong>{item.state === "accepted" ? <><CheckCircle2 size={15} />已接受</> : <><XCircle size={15} />已跳过</>}</strong>}</footer></article>)}</div>
+        {suggestions.length > 0 && <section className={`delivery-version ${generatedVersion ? "ready" : ""} ${selected.fileType !== "DOCX" ? "needs-template" : ""}`}>
+          <div className="version-stamp"><FileCheck2 /><span>{generatedVersion ? "READY" : selected.fileType === "DOCX" ? "DRAFT" : "DOCX"}</span></div>
+          <div><p className="eyebrow">投递版本 · 原格式保真</p><h4>{generatedVersion ? `${generatedVersion.targetCompany} · ${generatedVersion.targetRole}` : selected.fileType === "DOCX" ? "在原始 Word 模板中替换已接受文字" : "请上传并选择原始 DOCX 简历"}</h4><span>{generatedVersion ? `采用 ${generatedVersion.acceptedCount} 条已确认建议 · 字体、字号、页边距与栏目结构继承原文件` : selected.fileType === "DOCX" ? `当前已接受 ${accepted} 条建议，只替换文字，不重新设计排版` : "PDF 无法进行原格式编辑，系统不会再用通用模板生成"}</span></div>
+          {generatedVersion ? <div className="delivery-actions"><a className="primary-button" href={generatedVersion.downloadUrl}><Download size={16} />下载 DOCX</a><label><span>原始岗位链接</span><input aria-label="原始岗位链接" value={manualApplicationUrl} onChange={(event) => { setManualApplicationUrl(event.target.value); setApplicationRecorded(false); }} placeholder="https://…" /></label><button className="secondary-button" disabled={recordingApplication || applicationRecorded} onClick={recordManualApplication}>{applicationRecorded ? <><CheckCircle2 size={15} />已记录投递</> : recordingApplication ? "记录中…" : "记录已投递"}</button></div> : selected.fileType === "DOCX" ? <button className="primary-button" disabled={generating || accepted === 0} onClick={generateResume}><FilePenLine size={16} />{generating ? "生成中…" : "生成投递简历"}</button> : <label className="primary-button file-button"><Upload size={16} />上传原始 DOCX<input type="file" accept=".docx" onChange={upload} /></label>}
+          {deliveryQualityChecks.length > 0 && <div className="delivery-quality">{deliveryQualityChecks.map((check) => <span key={check.key} className={check.status}><i>{check.status === "passed" ? <CheckCircle2 size={14} /> : <Clock3 size={14} />}</i><strong>{check.label}</strong><small>{check.detail}</small></span>)}</div>}
+        </section>}
       </section>}
     </div>
   </div>;
@@ -1295,7 +1343,7 @@ function AccountSettings({ profile, onClose, notify, onUpdated, onOpenAdmin }: {
         <div className="password-mode-toggle" role="group" aria-label="密码设置方式"><button type="button" className={firstPasswordSetup ? "active" : ""} onClick={() => { setFirstPasswordSetup(true); setCurrentPassword(""); }}>首次设置</button><button type="button" className={!firstPasswordSetup ? "active" : ""} onClick={() => setFirstPasswordSetup(false)}>修改已有密码</button></div>
         <form className="account-form password-form" onSubmit={changePassword}>{!firstPasswordSetup && <><label htmlFor="current-password">当前密码</label><input id="current-password" type="password" required autoComplete="current-password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} /></>}<label htmlFor="new-password">{firstPasswordSetup ? "设置密码" : "新密码"}</label><input id="new-password" type="password" required minLength={8} maxLength={72} autoComplete="new-password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} placeholder="至少 8 位，包含字母和数字" /><label htmlFor="confirm-new-password">再次输入新密码</label><input id="confirm-new-password" type="password" required minLength={8} maxLength={72} autoComplete="new-password" value={passwordConfirmation} onChange={(event) => setPasswordConfirmation(event.target.value)} /><button className="primary-button" disabled={savingPassword}><KeyRound size={15} />{savingPassword ? "保存中…" : firstPasswordSetup ? "设置密码" : "确认修改密码"}</button></form>
       </section>
-      {profile?.isAdmin && <button className="admin-entry-button" onClick={onOpenAdmin}><ShieldCheck size={17} /><span><strong>管理员控制台</strong><small>邀请、配额、来源状态与用户反馈</small></span><ArrowUpRight size={16} /></button>}
+      {profile?.isAdmin && <button className="admin-entry-button" onClick={onOpenAdmin}><ShieldCheck size={17} /><span><strong>管理员控制台</strong><small>用户、配额、来源状态与用户反馈</small></span><ArrowUpRight size={16} /></button>}
       <footer><button className="account-signout" disabled={signingOut} onClick={() => void signOut()}><LogOut size={15} />{signingOut ? "退出中…" : "退出登录"}</button><button className="primary-button" onClick={onClose}>完成</button></footer>
     </section>
   </div>;
@@ -1597,7 +1645,6 @@ function FeedbackModal({ onClose, notify }: { onClose: () => void; notify: (text
 
 type AdminOverview = {
   users: Array<{ id: string; email: string; display_name: string | null; is_admin: boolean; ai_daily_limit: number; created_at: string }>;
-  invites: Array<{ id: string; email: string; expires_at: string; used_at: string | null; created_at: string }>;
   sources: Array<{ id: string; name: string; kind: string; enabled: boolean; restricted_reason: string | null; last_success_at: string | null; latestRun: null | { status: string; jobs_seen: number; jobs_added: number; error_code: string | null; started_at: string } }>;
   feedback: Array<{ id: string; user_id: string; email: string; content: string; created_at: string }>;
 };
@@ -1642,8 +1689,8 @@ function AdminPanel({ onClose, notify }: { onClose: () => void; notify: (text: s
       {!error && !overview && <p className="notice-empty">正在读取管理员数据…</p>}
       {overview && <>
         <section className="admin-invite">
-          <div><h4>邀请码注册已启用</h4><span>用户可在登录页填写共享邀请码并直接注册，无需管理员逐个生成激活链接。</span></div>
-          <div className="admin-invite-status"><KeyRound size={17} /><span><strong>邀请码仅保存在服务器</strong><small>为避免泄露，后台不会显示邀请码内容。需要更换时修改服务器环境变量并重启服务。</small></span></div>
+          <div><h4>公开注册已启用</h4><span>新用户无需邀请码，可直接使用邮箱注册公开测试账号。</span></div>
+          <div className="admin-invite-status"><MailCheck size={17} /><span><strong>邮箱确认保护账号</strong><small>注册后通过确认邮件进入职途；已经发出的旧激活链接仍保持兼容。</small></span></div>
         </section>
         <div className="admin-grid">
           <section><header><h4>用户与每日 AI 配额</h4><span>{overview.users.length} 位用户</span></header><div className="admin-list">{overview.users.map((user) => <article key={user.id}><div><strong>{user.display_name || user.email || "未命名用户"}{user.is_admin && <em>管理员</em>}</strong><span>{user.email}</span></div><label>每日<input type="number" min={0} max={500} defaultValue={user.ai_daily_limit} onBlur={(event) => void updateQuota(user.id, Number(event.target.value))} />次</label></article>)}</div></section>

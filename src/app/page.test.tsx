@@ -47,14 +47,14 @@ describe("LoginPage session redirect", () => {
     await waitFor(() => expect(authMocks.replace).toHaveBeenCalledWith("/app"));
   });
 
-  it("offers invitation-code registration without requiring an activation link", async () => {
+  it("offers public email registration without an invitation code", async () => {
     authMocks.fetch.mockResolvedValue({ ok: false });
     render(<LoginPage />);
 
-    fireEvent.click(screen.getByRole("button", { name: /使用邀请码注册/ }));
+    fireEvent.click(screen.getByRole("button", { name: /注册新账号/ }));
 
-    expect(screen.getByRole("heading", { name: "邀请码注册" })).toBeTruthy();
-    expect(screen.getByLabelText("邀请码")).toBeTruthy();
-    expect(screen.getByRole("button", { name: /注册并进入职途/ })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "注册职途" })).toBeTruthy();
+    expect(screen.queryByLabelText("邀请码")).toBeNull();
+    expect(screen.getByRole("button", { name: /注册账号/ })).toBeTruthy();
   });
 });

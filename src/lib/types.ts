@@ -65,6 +65,10 @@ export type Suggestion = {
   reason: string;
   impact: "高" | "中" | "低";
   requiresConfirmation?: boolean;
+  action?: "改写" | "删除";
+  evidence?: string[];
+  jdRequirement?: string | null;
+  stretchRisk?: "无" | "低" | "中" | "高";
   sourceIndex?: number;
   state: "pending" | "accepted" | "rejected";
 };

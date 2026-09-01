@@ -54,6 +54,7 @@ function patchParagraph(paragraphXml: string, replacement: TextReplacement) {
     ? { start: originalAt, end: originalAt + replacement.original.length }
     : findNormalizedRange(paragraphText, replacement.original);
   if (!range) return null;
+  if (replacement.revised === "" && normalize(paragraphText) === normalize(replacement.original)) return "";
   const sourceText = paragraphText.slice(range.start, range.end);
   const revised = preserveLayoutWhitespace(sourceText, replacement.revised);
   const revisedText = `${paragraphText.slice(0, range.start)}${revised}${paragraphText.slice(range.end)}`;
@@ -81,7 +82,7 @@ export async function patchResumeTemplateDocx(source: Uint8Array, replacements: 
     xml = xml.replace(/<w:p\b[\s\S]*?<\/w:p>/g, (paragraph) => {
       if (replaced) return paragraph;
       const patched = patchParagraph(paragraph, replacement);
-      if (patched) {
+      if (patched !== null) {
         replaced = true;
         return patched;
       }
