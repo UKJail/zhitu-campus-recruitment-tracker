@@ -10,10 +10,14 @@ const SHOW_AUTH_BRAND_LOGO = false;
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [registrationEmail, setRegistrationEmail] = useState("");
+  const [registrationPassword, setRegistrationPassword] = useState("");
+  const [registrationConfirmPassword, setRegistrationConfirmPassword] = useState("");
+  const [registrationDisplayName, setRegistrationDisplayName] = useState("");
+  const [otpEmail, setOtpEmail] = useState("");
+  const [recoveryEmail, setRecoveryEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [otp, setOtp] = useState("");
@@ -55,7 +59,7 @@ export default function LoginPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
-      body: JSON.stringify({ method: "password", email, password }),
+      body: JSON.stringify({ method: "password", email: loginEmail, password: loginPassword }),
     }).catch(() => null);
     if (!response?.ok) {
       const result = await response?.json().catch(() => null) as { error?: string; code?: string } | null;
@@ -71,18 +75,18 @@ export default function LoginPage() {
   async function register(event: FormEvent) {
     event.preventDefault();
     setError("");
-    if (password !== confirmPassword) {
+    if (registrationPassword !== registrationConfirmPassword) {
       setError("两次输入的密码不一致");
       return;
     }
 
     setLoading(true);
-    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedEmail = registrationEmail.trim().toLowerCase();
     const response = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
-      body: JSON.stringify({ email: normalizedEmail, displayName, password }),
+      body: JSON.stringify({ email: normalizedEmail, displayName: registrationDisplayName, password: registrationPassword }),
     }).catch(() => null);
     if (!response?.ok) {
       const result = await response?.json().catch(() => null) as { error?: string } | null;
@@ -113,7 +117,7 @@ export default function LoginPage() {
     }
 
     const redirectTo = `${window.location.origin}/auth/callback?next=/reset-password`;
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo });
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(recoveryEmail.trim().toLowerCase(), { redirectTo });
     setLoading(false);
     if (resetError) {
       setError("暂时无法发送重置邮件，请稍后再试。");
@@ -130,7 +134,7 @@ export default function LoginPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
-      body: JSON.stringify({ method: "request-otp", email: email.trim().toLowerCase() }),
+      body: JSON.stringify({ method: "request-otp", email: otpEmail.trim().toLowerCase() }),
     }).catch(() => null);
     setLoading(false);
     if (!response?.ok) {
@@ -151,7 +155,7 @@ export default function LoginPage() {
       credentials: "same-origin",
       body: JSON.stringify({
         method: "otp",
-        email: email.trim().toLowerCase(),
+        email: otpEmail.trim().toLowerCase(),
         token: otp.trim(),
       }),
     }).catch(() => null);
@@ -167,9 +171,22 @@ export default function LoginPage() {
 
   function returnToLogin() {
     setError("");
+    setLoginPassword("");
+    setRegistrationPassword("");
+    setRegistrationConfirmPassword("");
     setOtp("");
     setOtpSent(false);
     setScreen("login");
+  }
+
+  function openRegistration() {
+    setError("");
+    setLoginPassword("");
+    setRegistrationEmail("");
+    setRegistrationPassword("");
+    setRegistrationConfirmPassword("");
+    setRegistrationDisplayName("");
+    setScreen("register");
   }
 
   return <main className="login-page">
@@ -185,28 +202,28 @@ export default function LoginPage() {
       {authServiceError && <p className="auth-service-alert" role="alert">{authServiceError}</p>}
       {screen === "login" && <>
         <span className="mini-icon"><LockKeyhole size={18} /></span><h2>欢迎回来</h2><p>已有账号可直接登录，新用户可以使用邮箱免费注册。</p><form onSubmit={signIn}>
-          <label htmlFor="email">邮箱地址</label><input id="email" type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" />
-          <div className="password-label-row"><label htmlFor="password">密码</label><button type="button" onClick={() => { setError(""); setScreen("recovery"); }}>忘记密码？</button></div><input id="password" type="password" required autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="输入登录密码" />
+          <label htmlFor="email">邮箱地址</label><input id="email" name="login-email" type="email" required autoComplete="email" value={loginEmail} onChange={(event) => setLoginEmail(event.target.value)} placeholder="name@example.com" />
+          <div className="password-label-row"><label htmlFor="password">密码</label><button type="button" onClick={() => { setError(""); setLoginPassword(""); setRecoveryEmail(""); setScreen("recovery"); }}>忘记密码？</button></div><input id="password" name="login-password" type="password" required autoComplete="current-password" value={loginPassword} onChange={(event) => setLoginPassword(event.target.value)} placeholder="输入登录密码" />
           {error && <p className="form-error" role="alert">{error}</p>}
           <button className="primary-button wide" type="submit" disabled={loading}>{loading ? "正在登录…" : "登录"}{!loading && <ArrowRight size={17} />}</button>
-        </form><button className="secondary-button wide auth-method-button" type="button" onClick={() => { setError(""); setScreen("register"); }}><UserPlus size={16} />注册新账号</button><button className="secondary-button wide auth-method-button" type="button" onClick={() => { setError(""); setScreen("otp"); }}><Mail size={16} />使用邮箱验证码登录</button><p className="activation-hint">公开测试期间可直接注册；旧激活链接仍可继续使用。</p><p className="legal-copy">继续即代表你同意《服务条款》和《隐私政策》。</p>
+        </form><button className="secondary-button wide auth-method-button" type="button" onClick={openRegistration}><UserPlus size={16} />注册新账号</button><button className="secondary-button wide auth-method-button" type="button" onClick={() => { setError(""); setLoginPassword(""); setOtpEmail(""); setScreen("otp"); }}><Mail size={16} />使用邮箱验证码登录</button><p className="activation-hint">公开测试期间可直接注册；旧激活链接仍可继续使用。</p><p className="legal-copy">继续即代表你同意《服务条款》和《隐私政策》。</p>
       </>}
       {screen === "register" && <>
         <span className="mini-icon recovery-icon"><KeyRound size={18} /></span><h2>注册职途</h2><p>无需邀请码，使用邮箱创建你的公开测试账号。</p><form onSubmit={register}>
-          <label htmlFor="register-email">邮箱地址</label><input id="register-email" type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" />
-          <label htmlFor="register-display-name">用户 ID</label><input id="register-display-name" type="text" required minLength={2} maxLength={24} autoComplete="nickname" value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="例如：秋招小李" />
-          <label htmlFor="register-password">设置密码</label><input id="register-password" type="password" required minLength={8} maxLength={72} autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="至少 8 位，包含字母和数字" />
-          <label htmlFor="register-confirm-password">确认密码</label><input id="register-confirm-password" type="password" required minLength={8} maxLength={72} autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="再次输入密码" />
+          <label htmlFor="register-email">邮箱地址</label><input id="register-email" name="register-email" type="email" required autoComplete="email" value={registrationEmail} onChange={(event) => setRegistrationEmail(event.target.value)} placeholder="name@example.com" />
+          <label htmlFor="register-display-name">用户 ID</label><input id="register-display-name" name="register-display-name" type="text" required minLength={2} maxLength={24} autoComplete="nickname" value={registrationDisplayName} onChange={(event) => setRegistrationDisplayName(event.target.value)} placeholder="例如：秋招小李" />
+          <label htmlFor="register-password">设置密码</label><input id="register-password" name="register-password" type="password" required minLength={8} maxLength={72} autoComplete="new-password" value={registrationPassword} onChange={(event) => setRegistrationPassword(event.target.value)} placeholder="至少 8 位，包含字母和数字" />
+          <label htmlFor="register-confirm-password">确认密码</label><input id="register-confirm-password" name="register-confirm-password" type="password" required minLength={8} maxLength={72} autoComplete="new-password" value={registrationConfirmPassword} onChange={(event) => setRegistrationConfirmPassword(event.target.value)} placeholder="再次输入密码" />
           {error && <p className="form-error" role="alert">{error}</p>}
           <button className="primary-button wide" type="submit" disabled={loading}>{loading ? "正在注册…" : "注册账号"}{!loading && <ArrowRight size={17} />}</button>
         </form><button className="auth-back-button" type="button" onClick={returnToLogin}><ArrowLeft size={15} />返回登录</button>
       </>}
       {screen === "registration-sent" && <div className="recovery-sent-state">
-        <span className="mail-orbit"><MailCheck size={27} /></span><h2>请确认注册邮箱</h2><p>确认邮件已经发送到 <strong>{email.trim().toLowerCase()}</strong>。打开邮件中的链接后即可进入职途；如果暂时没有收到，请检查垃圾邮件。</p><button className="secondary-button wide" type="button" onClick={returnToLogin}><ArrowLeft size={15} />返回登录</button>
+        <span className="mail-orbit"><MailCheck size={27} /></span><h2>请确认注册邮箱</h2><p>确认邮件已经发送到 <strong>{registrationEmail.trim().toLowerCase()}</strong>。打开邮件中的链接后即可进入职途；如果暂时没有收到，请检查垃圾邮件。</p><button className="secondary-button wide" type="button" onClick={returnToLogin}><ArrowLeft size={15} />返回登录</button>
       </div>}
       {screen === "otp" && <>
         <span className="mini-icon recovery-icon"><Mail size={18} /></span><h2>验证码登录</h2><p>已注册账号可以使用，验证码会发送到你的登录邮箱。</p><form onSubmit={otpSent ? verifyLoginCode : requestLoginCode}>
-          <label htmlFor="otp-email">邮箱地址</label><input id="otp-email" type="email" required autoComplete="email" readOnly={otpSent} value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" />
+          <label htmlFor="otp-email">邮箱地址</label><input id="otp-email" name="otp-email" type="email" required autoComplete="email" readOnly={otpSent} value={otpEmail} onChange={(event) => setOtpEmail(event.target.value)} placeholder="name@example.com" />
           {otpSent && <><label htmlFor="login-otp">6 位验证码</label><input id="login-otp" type="text" required inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} value={otp} onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="输入邮件中的验证码" /></>}
           {error && <p className="form-error" role="alert">{error}</p>}
           <button className="primary-button wide" type="submit" disabled={loading}>{loading ? (otpSent ? "正在验证…" : "正在发送…") : (otpSent ? "验证并登录" : "发送登录验证码")}{!loading && <ArrowRight size={17} />}</button>
@@ -214,7 +231,7 @@ export default function LoginPage() {
       </>}
       {screen === "recovery" && <>
         <span className="mini-icon recovery-icon"><Mail size={18} /></span><h2>找回密码</h2><p>输入账号使用的邮箱，我们会向该邮箱发送密码重置链接。</p><form onSubmit={requestPasswordReset}>
-          <label htmlFor="recovery-email">邮箱地址</label><input id="recovery-email" type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" />
+          <label htmlFor="recovery-email">邮箱地址</label><input id="recovery-email" name="recovery-email" type="email" required autoComplete="email" value={recoveryEmail} onChange={(event) => setRecoveryEmail(event.target.value)} placeholder="name@example.com" />
           {error && <p className="form-error" role="alert">{error}</p>}
           <button className="primary-button wide" type="submit" disabled={loading}>{loading ? "正在发送…" : "发送重置邮件"}{!loading && <ArrowRight size={17} />}</button>
         </form><button className="auth-back-button" type="button" onClick={returnToLogin}><ArrowLeft size={15} />返回登录</button>

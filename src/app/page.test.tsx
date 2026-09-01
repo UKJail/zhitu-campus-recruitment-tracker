@@ -57,4 +57,17 @@ describe("LoginPage session redirect", () => {
     expect(screen.queryByLabelText("邀请码")).toBeNull();
     expect(screen.getByRole("button", { name: /注册账号/ })).toBeTruthy();
   });
+
+  it("does not carry login credentials into the registration form", async () => {
+    authMocks.fetch.mockResolvedValue({ ok: false });
+    render(<LoginPage />);
+
+    fireEvent.change(screen.getByLabelText("邮箱地址"), { target: { value: "existing@example.com" } });
+    fireEvent.change(screen.getByLabelText("密码"), { target: { value: "ExistingPass2026" } });
+    fireEvent.click(screen.getByRole("button", { name: /注册新账号/ }));
+
+    expect((screen.getByLabelText("邮箱地址") as HTMLInputElement).value).toBe("");
+    expect((screen.getByLabelText("设置密码") as HTMLInputElement).value).toBe("");
+    expect((screen.getByLabelText("确认密码") as HTMLInputElement).value).toBe("");
+  });
 });
