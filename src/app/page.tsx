@@ -20,6 +20,8 @@ export default function LoginPage() {
   const [recoveryEmail, setRecoveryEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendingConfirmation, setResendingConfirmation] = useState(false);
+  const [confirmationNotice, setConfirmationNotice] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [authServiceError, setAuthServiceError] = useState("");
@@ -105,6 +107,22 @@ export default function LoginPage() {
     router.refresh();
   }
 
+  async function resendRegistrationConfirmation() {
+    setResendingConfirmation(true);
+    setConfirmationNotice("");
+    const response = await fetch("/api/auth/resend-confirmation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ email: registrationEmail.trim().toLowerCase() }),
+    }).catch(() => null);
+    const result = await response?.json().catch(() => null) as { error?: string; message?: string } | null;
+    setResendingConfirmation(false);
+    setConfirmationNotice(response?.ok
+      ? (result?.message || "如果账号尚未确认，新的验证邮件会发送到该邮箱。")
+      : (result?.error || "暂时无法重新发送，请稍后再试。"));
+  }
+
   async function requestPasswordReset(event: FormEvent) {
     event.preventDefault();
     setLoading(true);
@@ -176,6 +194,8 @@ export default function LoginPage() {
     setRegistrationConfirmPassword("");
     setOtp("");
     setOtpSent(false);
+    setConfirmationNotice("");
+    setResendingConfirmation(false);
     setScreen("login");
   }
 
@@ -219,7 +239,7 @@ export default function LoginPage() {
         </form><button className="auth-back-button" type="button" onClick={returnToLogin}><ArrowLeft size={15} />返回登录</button>
       </>}
       {screen === "registration-sent" && <div className="recovery-sent-state">
-        <span className="mail-orbit"><MailCheck size={27} /></span><h2>请确认注册邮箱</h2><p>确认邮件已经发送到 <strong>{registrationEmail.trim().toLowerCase()}</strong>。打开邮件中的链接后即可进入职途；如果暂时没有收到，请检查垃圾邮件。</p><button className="secondary-button wide" type="button" onClick={returnToLogin}><ArrowLeft size={15} />返回登录</button>
+        <span className="mail-orbit"><MailCheck size={27} /></span><h2>请检查注册邮箱</h2><p>如果这是新账号，验证邮件会发送到 <strong>{registrationEmail.trim().toLowerCase()}</strong>。请同时检查垃圾邮件；如果这个邮箱已经注册或完成验证，系统不会重复发送，请直接登录或找回密码。</p>{confirmationNotice && <p className="form-notice" role="status">{confirmationNotice}</p>}<button className="primary-button wide" type="button" disabled={resendingConfirmation} onClick={() => void resendRegistrationConfirmation()}>{resendingConfirmation ? "正在重新发送…" : "重新发送验证邮件"}</button><button className="secondary-button wide" type="button" onClick={returnToLogin}><ArrowLeft size={15} />返回登录</button>
       </div>}
       {screen === "otp" && <>
         <span className="mini-icon recovery-icon"><Mail size={18} /></span><h2>验证码登录</h2><p>已注册账号可以使用，验证码会发送到你的登录邮箱。</p><form onSubmit={otpSent ? verifyLoginCode : requestLoginCode}>

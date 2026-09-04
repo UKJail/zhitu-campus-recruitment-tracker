@@ -70,4 +70,26 @@ describe("LoginPage session redirect", () => {
     expect((screen.getByLabelText("设置密码") as HTMLInputElement).value).toBe("");
     expect((screen.getByLabelText("确认密码") as HTMLInputElement).value).toBe("");
   });
+
+  it("does not promise delivery for an existing email and offers a safe resend", async () => {
+    authMocks.fetch.mockImplementation((input: string) => {
+      if (input === "/api/auth/register") return Promise.resolve({
+        ok: true,
+        json: async () => ({ requiresEmailConfirmation: true }),
+      });
+      return Promise.resolve({ ok: false });
+    });
+    render(<LoginPage />);
+
+    fireEvent.click(screen.getByRole("button", { name: /注册新账号/ }));
+    fireEvent.change(screen.getByLabelText("邮箱地址"), { target: { value: "candidate@example.com" } });
+    fireEvent.change(screen.getByLabelText("用户 ID"), { target: { value: "秋招小李" } });
+    fireEvent.change(screen.getByLabelText("设置密码"), { target: { value: "career2026" } });
+    fireEvent.change(screen.getByLabelText("确认密码"), { target: { value: "career2026" } });
+    fireEvent.click(screen.getByRole("button", { name: /注册账号/ }));
+
+    await waitFor(() => expect(screen.getByRole("heading", { name: "请检查注册邮箱" })).toBeTruthy());
+    expect(screen.getByText(/如果这个邮箱已经注册或完成验证/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "重新发送验证邮件" })).toBeTruthy();
+  });
 });
