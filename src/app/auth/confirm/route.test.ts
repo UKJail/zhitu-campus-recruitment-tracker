@@ -18,6 +18,7 @@ vi.mock("@/lib/supabase/admin", () => ({
 
 describe("GET /auth/confirm", () => {
   beforeEach(() => {
+    delete process.env.APP_URL;
     authMocks.verifyOtp.mockReset();
     adminMocks.from.mockReset();
     adminMocks.update.mockReset();
@@ -60,6 +61,15 @@ describe("GET /auth/confirm", () => {
     authMocks.verifyOtp.mockResolvedValue({ data: { user: null }, error: { message: "expired" } });
 
     const response = await GET(new Request("https://zhitutracker.com/auth/confirm?token_hash=expired&type=email"));
+
+    expect(response.headers.get("location")).toBe("https://zhitutracker.com/?auth_error=expired_link");
+  });
+
+  it("uses the configured public origin behind a reverse proxy", async () => {
+    process.env.APP_URL = "https://zhitutracker.com";
+    authMocks.verifyOtp.mockResolvedValue({ data: { user: null }, error: { message: "expired" } });
+
+    const response = await GET(new Request("https://localhost:3000/auth/confirm?token_hash=expired&type=email"));
 
     expect(response.headers.get("location")).toBe("https://zhitutracker.com/?auth_error=expired_link");
   });
