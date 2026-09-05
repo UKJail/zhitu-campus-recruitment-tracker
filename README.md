@@ -162,6 +162,14 @@ https://zhitu-tracker.vercel.app/api/webhooks/resend
 
 ## 上线运维项
 
+### 管理员删除测试账号
+
+- 管理员控制台 → 用户列表 → 删除，输入目标账号完整邮箱后确认永久删除。当前管理员及其他管理员账号均禁止删除。
+- 服务端先枚举并清理目标用户在 `resumes` 私有桶内的文件（含面试准备文件及未关联记录的上传），再通过 Supabase Auth 删除账号，业务数据依赖外键级联清理。
+- 文件与 Auth 删除不在同一个事务中；如后一步失败，界面会明确提示部分文件可能已清理，账号尚需重试删除。
+- 发布前应用 `allow_account_event_cleanup` 迁移，允许账号删除级联清理申请历史；存续账号的历史仍禁止修改或单独删除。`supabase/tests/account_event_cleanup.sql` 使用临时账号验证数据库行为并全量回滚，不删除真实用户。
+- 此操作不能在产品内撤销；删除后同一邮箱可重新注册，但不会恢复旧账号数据。
+
 - 首轮邀请用户扩大前，完成数据库备份恢复演练。
 - 按运维周期轮换 Supabase Service Role、Resend Webhook Secret 和 DeepSeek API Key，并在轮换后重新部署与回归。
 - 持续观察职位来源健康度、邮件识别准确率、AI 建议接受率和投递确认率。

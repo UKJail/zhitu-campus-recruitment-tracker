@@ -1163,3 +1163,32 @@
     display: none;
   }
 }
+
+.admin-delete-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 8px;
+  color: #ab3434;
+  background: #fff1ef;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+.admin-delete-confirm {
+  max-width: 580px;
+  margin: 0 auto;
+  padding: 22px;
+  border: 1px solid #ecc9c4;
+  border-radius: 15px;
+  background: #fffbfa;
+}
+.admin-delete-confirm h4 { font-size: 20px; }
+.admin-delete-confirm p { margin: 14px 0; font-size: 14px; line-height: 1.7; }
+.admin-delete-confirm .admin-delete-email { font-weight: 600; overflow-wrap: anywhere; }
+.admin-delete-confirm label { display: block; margin: 20px 0 8px; font-size: 14px; }
+.admin-delete-confirm input { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 16px; }
+.admin-delete-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 12px; }
+.admin-delete-actions button { padding: 12px 18px; border-radius: 9px; background: var(--mist); }
+.admin-delete-actions .admin-delete-submit { background: #a83232; color: #fff; }
+.admin-delete-confirm button:disabled, .admin-delete-user:disabled { opacity: .5; cursor: not-allowed; }

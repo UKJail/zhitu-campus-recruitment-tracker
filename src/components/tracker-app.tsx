@@ -1649,9 +1649,39 @@ type AdminOverview = {
   feedback: Array<{ id: string; user_id: string; email: string; content: string; created_at: string }>;
 };
 
-function AdminPanel({ onClose, notify }: { onClose: () => void; notify: (text: string) => void }) {
+export function AdminPanel({ onClose, notify }: { onClose: () => void; notify: (text: string) => void }) {
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [error, setError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<AdminOverview["users"][number] | null>(null);
+  const [confirmationEmail, setConfirmationEmail] = useState("");
+  const [deletingUser, setDeletingUser] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
+  async function deleteUser(event: FormEvent) {
+    event.preventDefault();
+    if (!deleteTarget || deletingUser) return;
+    setDeletingUser(true);
+    setDeleteError("");
+    try {
+      const response = await fetch(`/api/admin/users/${deleteTarget.id}`, {
+        method: "DELETE", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ confirmationEmail }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "删除用户失败");
+      setOverview((current) => current ? { ...current,
+        users: current.users.filter((user) => user.id !== deleteTarget.id),
+        feedback: current.feedback.filter((item) => item.user_id !== deleteTarget.id),
+      } : current);
+      setDeleteTarget(null);
+      setConfirmationEmail("");
+      notify("用户及站内数据已删除，该邮箱可以重新注册");
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : "删除失败，请刷新列表核对结果");
+    } finally {
+      setDeletingUser(false);
+    }
+  }
 
   const load = useCallback(async () => {
     try {
@@ -1682,18 +1712,28 @@ function AdminPanel({ onClose, notify }: { onClose: () => void; notify: (text: s
     }
   }
 
-  return <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+  return <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !deleteTarget && !deletingUser) onClose(); }}>
     <section className="admin-panel" role="dialog" aria-modal="true" aria-labelledby="admin-panel-title">
-      <header><div><p className="eyebrow">受限后台</p><h3 id="admin-panel-title"><ShieldCheck size={20} />管理员控制台</h3></div><button onClick={onClose} aria-label="关闭管理员后台"><X /></button></header>
+      <header><div><p className="eyebrow">受限后台</p><h3 id="admin-panel-title"><ShieldCheck size={20} />管理员控制台</h3></div><button disabled={deletingUser} onClick={() => { if (deleteTarget) setDeleteTarget(null); else onClose(); }} aria-label={deleteTarget ? "取消删除" : "关闭管理员后台"}><X /></button></header>
+      {deleteTarget && <form className="admin-delete-confirm" aria-label="删除用户确认" onSubmit={(event) => void deleteUser(event)}>
+        <h4>确认永久删除这个账号？</h4>
+        <p className="admin-delete-email">{deleteTarget.email}</p>
+        <p>此操作无法撤销。将删除账号，以及该账号的简历文件、投递记录、面试准备、反馈和其他站内数据。删除后，该邮箱可以重新注册。</p>
+        <p>请核对这是你要清理的测试账号。管理员账号不能在此删除。</p>
+        <label htmlFor="admin-delete-email">输入上方完整邮箱确认</label>
+        <input id="admin-delete-email" type="email" autoComplete="off" autoFocus required value={confirmationEmail} onChange={(event) => setConfirmationEmail(event.target.value)} disabled={deletingUser} aria-describedby="admin-delete-status" />
+        <p id="admin-delete-status" role="status">{deleteError || (deletingUser ? "正在清理文件并删除账号，请勿关闭页面…" : "未确认前不会删除任何数据。")}</p>
+        <div className="admin-delete-actions"><button type="button" disabled={deletingUser} onClick={() => setDeleteTarget(null)}>取消</button><button className="admin-delete-submit" type="submit" disabled={deletingUser || confirmationEmail.trim().toLowerCase() !== deleteTarget.email?.toLowerCase()}>{deletingUser ? "正在删除…" : "永久删除账号"}</button></div>
+      </form>}
       {error && <div className="admin-error"><strong>{error}</strong><span>{error.includes("密钥") ? "本地整改环境尚未填写管理员只读密钥。请仅写入本机 .env.local，切勿发送到聊天或提交 Git。" : "普通用户无法查看其他用户、邀请、反馈或采集运行信息。"}</span></div>}
       {!error && !overview && <p className="notice-empty">正在读取管理员数据…</p>}
-      {overview && <>
+      {overview && !deleteTarget && <>
         <section className="admin-invite">
           <div><h4>公开注册已启用</h4><span>新用户无需邀请码，可直接使用邮箱注册公开测试账号。</span></div>
           <div className="admin-invite-status"><MailCheck size={17} /><span><strong>邮箱确认保护账号</strong><small>注册后通过确认邮件进入职途；已经发出的旧激活链接仍保持兼容。</small></span></div>
         </section>
         <div className="admin-grid">
-          <section><header><h4>用户与每日 AI 配额</h4><span>{overview.users.length} 位用户</span></header><div className="admin-list">{overview.users.map((user) => <article key={user.id}><div><strong>{user.display_name || user.email || "未命名用户"}{user.is_admin && <em>管理员</em>}</strong><span>{user.email}</span></div><label>每日<input type="number" min={0} max={500} defaultValue={user.ai_daily_limit} onBlur={(event) => void updateQuota(user.id, Number(event.target.value))} />次</label></article>)}</div></section>
+          <section><header><h4>用户与每日 AI 配额</h4><span>{overview.users.length} 位用户</span></header><div className="admin-list">{overview.users.map((user) => <article key={user.id}><div><strong>{user.display_name || user.email || "未命名用户"}{user.is_admin && <em>管理员</em>}</strong><span>{user.email}</span></div><label>每日<input type="number" min={0} max={500} defaultValue={user.ai_daily_limit} onBlur={(event) => void updateQuota(user.id, Number(event.target.value))} />次</label>{!user.is_admin && <button className="admin-delete-user" type="button" disabled={!user.email || deletingUser} aria-label={`删除用户 ${user.email}`} onClick={() => { setDeleteTarget(user); setConfirmationEmail(""); setDeleteError(""); }}><Trash2 size={14} />删除</button>}</article>)}</div></section>
           <section><header><h4>采集来源健康度</h4><span>{overview.sources.filter((source) => source.latestRun?.status === "completed").length}/{overview.sources.length} 正常</span></header><div className="admin-list source-health">{overview.sources.map((source) => <article key={source.id}><i className={source.latestRun?.status === "completed" ? "healthy" : source.latestRun?.status === "restricted" ? "restricted" : "unknown"} /><div><strong>{source.name}</strong><span>{source.latestRun ? `${source.latestRun.status} · 发现 ${source.latestRun.jobs_seen} / 新增 ${source.latestRun.jobs_added}` : source.restricted_reason || "等待首次运行"}</span></div><time>{source.latestRun ? new Date(source.latestRun.started_at).toLocaleString("zh-CN") : "—"}</time></article>)}</div></section>
         </div>
         <section className="admin-feedback"><header><div><h4>建议与 Bug 反馈</h4><span>仅管理员可见 · 共 {overview.feedback.length} 条</span></div><MessageCircleMore size={18} /></header>{overview.feedback.length === 0 ? <p className="admin-feedback-empty">还没有收到用户反馈。</p> : <div>{overview.feedback.map((item) => <article key={item.id}><p>{item.content}</p><footer><span>{item.email || "已注销用户"}</span><time>{new Date(item.created_at).toLocaleString("zh-CN")}</time></footer></article>)}</div>}</section>

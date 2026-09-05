@@ -41,7 +41,8 @@ export function createSupabaseAuthClient() {
 
 export async function getAuthenticatedUserId() {
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.getClaims();
-  const userId = typeof data?.claims?.sub === "string" ? data.claims.sub : null;
+  // Check with Auth so deleted accounts cannot keep using an unexpired JWT.
+  const { data, error } = await supabase.auth.getUser();
+  const userId = !error && data.user ? data.user.id : null;
   return { supabase, userId, error };
 }
