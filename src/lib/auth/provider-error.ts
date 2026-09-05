@@ -37,7 +37,7 @@ export function classifyAuthFailure(error: unknown, hasSession = false): AuthFai
   const status = typeof providerError.status === "number" ? providerError.status : 0;
 
   if (status === 429) return "over_request_rate_limit";
-  if (
+  if (status >= 500 ||
     name.includes("retryablefetch")
     || name.includes("fetcherror")
     || message.includes("fetch failed")
@@ -58,7 +58,7 @@ export function classifyAuthFailure(error: unknown, hasSession = false): AuthFai
 export function getAuthFailureMessage(code: AuthFailureCode) {
   switch (code) {
     case "auth_service_unreachable":
-      return "无法连接认证服务，请检查本地开发服务器网络后重试";
+      return "认证服务暂时无法连接，请稍后重试；持续失败请联系管理员";
     case "invalid_credentials":
       return "邮箱或密码不正确，或该账号尚未设置密码";
     case "otp_expired":

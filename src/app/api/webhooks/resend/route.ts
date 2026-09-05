@@ -3,8 +3,9 @@ import { Resend } from "resend";
 import { z } from "zod";
 import { classifyMail, extractRecruitingDetails, plainTextFromHtml, reminderSchedule, suggestedStatus } from "@/lib/mail/classifier";
 import { allowedConfirmationLinks, forwardingConfirmationProvider } from "@/lib/mail/forwarding";
-import { assertSameMailOwner, resolveInboundOwner, uniqueInboundAliases } from "@/lib/mail/ownership";
+import { resolveInboundOwner, uniqueInboundAliases } from "@/lib/mail/ownership";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import type { Json } from "@/lib/supabase/database.types";
 
 export const runtime = "nodejs";
 
@@ -60,7 +61,8 @@ export async function POST(request: Request) {
 
   const admin = createSupabaseAdminClient();
   const providerId = parsed.data.data.email_id;
-  const { data: duplicate } = await admin.from("inbound_emails").select("id").eq("provider_id", providerId).maybeSingle();
+  const { data: duplicate, error: duplicateError } = await admin.from("inbound_emails").select("id").eq("provider_id", providerId).maybeSingle();
+  if (duplicateError) return NextResponse.json({ error: "邮件状态暂时无法读取" }, { status: 503 });
   if (duplicate) return NextResponse.json({ accepted: true, duplicate: true });
 
   const aliases = uniqueInboundAliases(parsed.data.data.to);
@@ -88,11 +90,12 @@ export async function POST(request: Request) {
   const details = extractRecruitingDetails(subject, bodyText);
   const targetStatus = suggestedStatus(category);
 
-  const { data: applicationRows } = await admin
+  const { data: applicationRows, error: applicationError } = await admin
     .from("applications")
     .select("id,status,jobs(company,title)")
     .eq("user_id", owner.userId)
     .not("status", "in", "(closed,rejected)");
+  if (applicationError) return NextResponse.json({ error: "投递关联暂时无法读取" }, { status: 503 });
   const haystack = `${subject}\n${bodyText}`.toLowerCase();
   const candidates = (applicationRows || [])
     .map((item) => {
@@ -123,41 +126,16 @@ export async function POST(request: Request) {
     confirmationLinks,
   };
 
-  const { data: stored, error: storeError } = await admin
-    .from("inbound_emails")
-    .insert({
-      user_id: owner.userId,
-      provider_id: providerId,
-      sender: parsed.data.data.from,
-      subject,
-      body_text: bodyText,
-      category,
-      extracted_data: extractedData,
-      received_at: parsed.data.data.created_at || parsed.data.created_at,
-    })
-    .select("id,user_id")
-    .single();
-  if (storeError) {
-    if (storeError.code === "23505") return NextResponse.json({ accepted: true, duplicate: true });
-    return NextResponse.json({ error: "邮件记录失败" }, { status: 500 });
-  }
-
-  try {
-    assertSameMailOwner(stored.user_id, owner.userId);
-  } catch {
-    return NextResponse.json({ error: "邮件与通知归属不一致，已停止创建通知" }, { status: 500 });
-  }
-
   const copy = notificationCopy(category, subject);
-  const scheduledReminder = category === "assessment" || category === "interview" ? reminderSchedule(details.eventTimeText) : null;
-  const { error: notificationError } = await admin.from("notifications").insert({
+  const reminderTime = category === "assessment" ? details.deadlineText || details.eventTimeText : details.eventTimeText;
+  const scheduledReminder = category === "assessment" || category === "interview" ? reminderSchedule(reminderTime) : null;
+  const notifications: Json[] = [{
     user_id: owner.userId,
     kind: `email_${category}`,
     title: copy.title,
     body: copy.body,
     scheduled_for: null,
     metadata: {
-      inboundEmailId: stored.id,
       applicationId: matched?.id ?? null,
       suggestedStatus: matched ? targetStatus : null,
       company: matched?.company || null,
@@ -167,21 +145,39 @@ export async function POST(request: Request) {
       deadlineText: details.deadlineText,
     },
     action_status: matched && targetStatus ? "pending" : null,
-  });
-  if (notificationError) return NextResponse.json({ error: "通知创建失败" }, { status: 500 });
+  }];
 
   if (scheduledReminder) {
     const reminderTitle = category === "interview" ? "面试将在 24 小时后开始" : "测评将在 24 小时后截止";
-    const { error: reminderError } = await admin.from("notifications").insert({
+    notifications.push({
       user_id: owner.userId,
       kind: `email_${category}_reminder`,
       title: reminderTitle,
-      body: [matched?.company, matched?.title, details.eventTimeText].filter(Boolean).join(" · "),
+      body: [matched?.company, matched?.title, reminderTime].filter(Boolean).join(" · "),
       scheduled_for: scheduledReminder,
-      metadata: { inboundEmailId: stored.id, applicationId: matched?.id ?? null, meetingUrl: details.meetingUrl, eventTimeText: details.eventTimeText },
+      metadata: { applicationId: matched?.id ?? null, meetingUrl: details.meetingUrl, eventTimeText: reminderTime },
       action_status: null,
     });
-    if (reminderError) return NextResponse.json({ error: "提醒创建失败" }, { status: 500 });
+  }
+
+  // One database transaction: a notification failure must not leave a deduped
+  // email behind and prevent the provider's retry from completing the delivery.
+  const { data: stored, error: storeError } = await admin.rpc("store_inbound_email_with_notifications", {
+    p_email: {
+      user_id: owner.userId,
+      provider_id: providerId,
+      sender: parsed.data.data.from,
+      subject,
+      body_text: bodyText,
+      category,
+      extracted_data: extractedData,
+      received_at: parsed.data.data.created_at || parsed.data.created_at,
+    },
+    p_notifications: notifications,
+  });
+  if (storeError || !stored) return NextResponse.json({ error: "邮件与通知保存失败，请求将重试" }, { status: 503 });
+  if (typeof stored === "object" && !Array.isArray(stored) && stored.duplicate === true) {
+    return NextResponse.json({ accepted: true, duplicate: true });
   }
 
   return NextResponse.json({

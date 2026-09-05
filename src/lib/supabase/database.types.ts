@@ -830,6 +830,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      reserve_ai_usage_server: {
+        Args: { p_user_id: string; p_kind: string; p_operation_key: string; p_input_fingerprint: string; p_force_new?: boolean }
+        Returns: Json
+      }
+      complete_ai_usage_server: {
+        Args: { p_user_id: string; p_task_id: string; p_result_run_id: string }
+        Returns: Json
+      }
+      release_ai_usage_server: {
+        Args: { p_user_id: string; p_task_id: string }
+        Returns: Json
+      }
+      store_inbound_email_with_notifications: {
+        Args: { p_email: Json; p_notifications: Json }
+        Returns: Json
+      }
       complete_ai_usage: {
         Args: { p_result_run_id: string; p_task_id: string }
         Returns: Json

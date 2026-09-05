@@ -88,7 +88,7 @@ describe("LoginPage session redirect", () => {
     fireEvent.change(screen.getByLabelText("确认密码"), { target: { value: "career2026" } });
     fireEvent.click(screen.getByRole("button", { name: /注册账号/ }));
 
-    await waitFor(() => expect(screen.getByRole("heading", { name: "输入注册验证码" })).toBeTruthy());
+    await waitFor(() => expect(screen.getByRole("heading", { name: "输入邮箱验证码" })).toBeTruthy());
     expect(screen.getByText(/如果这个邮箱已经注册或完成验证/)).toBeTruthy();
     expect((screen.getByRole("button", { name: /秒后可重新发送/ }) as HTMLButtonElement).disabled).toBe(true);
     expect((screen.getByLabelText("注册邮箱") as HTMLInputElement).value).toBe("candidate@example.com");
@@ -143,5 +143,39 @@ describe("LoginPage session redirect", () => {
     fireEvent.click(screen.getByRole("button", { name: "返回登录" }));
     fireEvent.click(screen.getByRole("button", { name: "继续验证注册邮箱" }));
     expect((screen.getByLabelText("6 位验证码") as HTMLInputElement).value).toBe("");
+  });
+
+  it("keeps the address when switching a pending registration to login codes", async () => {
+    authMocks.fetch.mockResolvedValue({ ok: false });
+    openPendingRegistration();
+    fireEvent.click(screen.getByRole("button", { name: "已注册？改用登录验证码" }));
+    expect(screen.getByRole("heading", { name: "验证码登录" })).toBeTruthy();
+    expect((screen.getByLabelText("邮箱地址") as HTMLInputElement).value).toBe("candidate@example.com");
+  });
+
+  it("starts a login code cooldown and cannot bypass it by reopening the screen", async () => {
+    authMocks.fetch.mockImplementation((input: string) => Promise.resolve({ ok: input === "/api/auth/sign-in" }));
+    render(<LoginPage />);
+    fireEvent.click(screen.getByRole("button", { name: "使用邮箱验证码登录" }));
+    fireEvent.change(screen.getByLabelText("邮箱地址"), { target: { value: "candidate@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "发送登录验证码" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "验证并登录" })).toBeTruthy());
+    expect((screen.getByRole("button", { name: /秒后可重新发送/ }) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "返回密码登录" }));
+    fireEvent.click(screen.getByRole("button", { name: "使用邮箱验证码登录" }));
+    expect((screen.getByRole("button", { name: /秒后可重新发送/ }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("does not navigate to the app after a malformed successful registration response", async () => {
+    authMocks.fetch.mockImplementation((input: string) => Promise.resolve({ ok: input === "/api/auth/register", json: async () => ({}) }));
+    render(<LoginPage />);
+    fireEvent.click(screen.getByRole("button", { name: /注册新账号/ }));
+    fireEvent.change(screen.getByLabelText("邮箱地址"), { target: { value: "candidate@example.com" } });
+    fireEvent.change(screen.getByLabelText("用户 ID"), { target: { value: "秋招小李" } });
+    fireEvent.change(screen.getByLabelText("设置密码"), { target: { value: "career2026" } });
+    fireEvent.change(screen.getByLabelText("确认密码"), { target: { value: "career2026" } });
+    fireEvent.click(screen.getByRole("button", { name: /注册账号/ }));
+    await waitFor(() => expect(screen.getByText(/注册服务未返回完整结果/)).toBeTruthy());
+    expect(authMocks.replace).not.toHaveBeenCalled();
   });
 });

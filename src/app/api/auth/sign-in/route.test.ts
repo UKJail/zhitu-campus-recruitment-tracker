@@ -85,7 +85,7 @@ describe("POST /api/auth/sign-in", () => {
 
     expect(response.status).toBe(503);
     expect(body).toEqual({
-      error: "无法连接认证服务，请检查本地开发服务器网络后重试",
+      error: "认证服务暂时无法连接，请稍后重试；持续失败请联系管理员",
       code: "auth_service_unreachable",
     });
   });
@@ -152,5 +152,20 @@ describe("POST /api/auth/sign-in", () => {
     }
     expect(response?.status).toBe(429);
     expect(authMocks.verifyOtp).toHaveBeenCalledTimes(10);
+  });
+
+  it("limits password guessing as well as OTP guessing", async () => {
+    authMocks.signInWithPassword.mockResolvedValue({ data: { session: null }, error: { code: "invalid_credentials" } });
+    for (let index = 0; index < 10; index += 1) await POST(request({ method: "password", email: "user@example.com", password: "wrong" }));
+    expect((await POST(request({ method: "password", email: "user@example.com", password: "wrong" }))).status).toBe(429);
+    expect(authMocks.signInWithPassword).toHaveBeenCalledTimes(10);
+  });
+
+  it("does not reveal a nonexistent address through the login-code endpoint", async () => {
+    authMocks.signInWithOtp.mockResolvedValue({ error: { code: "otp_disabled", status: 422 } });
+    const response = await POST(request({ method: "request-otp", email: "unknown@example.com" }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ sent: true });
+    expect(authMocks.setSession).not.toHaveBeenCalled();
   });
 });

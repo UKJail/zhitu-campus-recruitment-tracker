@@ -243,7 +243,7 @@ export function TrackerApp() {
           <button className="menu-button" onClick={() => setSidebar(true)} aria-label="打开菜单"><Menu /></button>
           <div><p>职途tracker</p><h1>{title}</h1></div>
           <div className="topbar-actions">
-            <label className="global-search"><Search size={17} /><input aria-label="全局搜索" placeholder="搜索职位、公司或记录" /><kbd>⌘ K</kbd></label>
+            <label className="global-search" title="全局搜索暂未开放，请到职位库搜索职位与公司"><Search size={17} /><input aria-label="全局搜索（暂未开放）" placeholder="全局搜索暂未开放" disabled /></label>
             <span className="ai-quota-chip" title="简历优化与面试准备共用额度；北京时间 00:00 重置"><Sparkles size={15} /><strong>{aiQuota.remaining}</strong><small>/ {aiQuota.limit} 次</small></span>
             <div className="notification-wrap">
               <button className={`icon-button ${notifications.length > 0 ? "has-count" : ""}`} aria-label={`通知${notifications.length > 0 ? `，${notifications.length} 条` : ""}`} onClick={() => setNotificationsOpen(!notificationsOpen)}>
@@ -305,7 +305,7 @@ function HomePage({ jobs, displayName, onNavigate }: { jobs: Job[]; displayName?
         <div className="section-heading"><div><p className="eyebrow">求职旅程地图</p><h3>你走过的每一步，都算数</h3></div><div className="journey-summary"><strong>{applied}</strong><span>份已确认投递</span></div></div>
         <div className="journey-map">
           <svg viewBox="0 0 1000 145" preserveAspectRatio="none" aria-hidden="true"><path className="journey-shadow" d="M35,105 C145,10 240,118 350,55 S575,95 690,36 S855,92 965,28" /><path className="journey-line" d="M35,105 C145,10 240,118 350,55 S575,95 690,36 S855,92 965,28" /></svg>
-          {journeyItems.map((item, index) => <button key={item.key} className={`journey-stop stop-${index}`}><span>{item.count}</span><small>{item.label}</small></button>)}
+          {journeyItems.map((item, index) => <div key={item.key} className={`journey-stop stop-${index}`}><span>{item.count}</span><small>{item.label}</small></div>)}
         </div>
         <div className="journey-footer"><span><i className="legend coral" />{isDemoMode ? "本周新增 3 次进展" : "仅统计真实申请记录"}</span><button onClick={() => onNavigate("progress")}>查看完整进度 <ArrowUpRight size={15} /></button></div>
       </section>
@@ -707,7 +707,7 @@ function JobPreferenceDialog({ preferences, notify, onClose, onSaved }: { prefer
   </section></div>;
 }
 
-function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQuotaChanged }: {
+export function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQuotaChanged }: {
   suggestions: Suggestion[];
   setSuggestions: (s: Suggestion[]) => void;
   notify: (text: string) => void;
@@ -722,6 +722,7 @@ function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQuotaChan
   const [analyzing, setAnalyzing] = useState(false);
   const [structured, setStructured] = useState<StructuredResume | null>(null);
   const [analysisSummary, setAnalysisSummary] = useState<JobAnalysis | null>(null);
+  const [analysisNeedsRefresh, setAnalysisNeedsRefresh] = useState(false);
   const [analysisRunId, setAnalysisRunId] = useState<string | null>(null);
   const [jobDescription, setJobDescription] = useState("");
   const [targetCompany, setTargetCompany] = useState("");
@@ -736,6 +737,7 @@ function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQuotaChan
   const [loadError, setLoadError] = useState("");
 
   const restoreWorkspace = useCallback(async (resumeId: string) => {
+    setAnalysisNeedsRefresh(false);
     setAnalysisSummary(null);
     setAnalysisRunId(null);
     setJobDescription("");
@@ -824,6 +826,7 @@ function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQuotaChan
       setRealResumeId(next.id);
       setStructured(null);
       setAnalysisSummary(null);
+      setAnalysisNeedsRefresh(false);
       setAnalysisRunId(null);
       setGeneratedVersion(null);
       setSuggestions([]);
@@ -877,11 +880,12 @@ function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQuotaChan
   }
 
   async function analyze() {
+    if (analyzing) return;
     if (!realResumeId) return notify("请先上传一份真实简历");
     if (jobDescription.trim().length < 20) return notify("请粘贴完整的目标岗位 JD");
     setAnalyzing(true);
     try {
-      const forceRefresh = Boolean(analysisSummary);
+      const forceRefresh = Boolean(analysisSummary) || analysisNeedsRefresh;
       const response = await fetch("/api/ai/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -896,7 +900,11 @@ function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQuotaChan
       });
       const payload = await response.json();
       if (payload.quota) onQuotaChanged(payload.quota as AIQuota);
-      if (!response.ok) throw new Error(payload.error || "分析失败");
+      if (!response.ok) {
+        if (payload.code === "AI_RESULT_UNAVAILABLE") setAnalysisNeedsRefresh(true);
+        throw new Error(payload.error || "分析失败");
+      }
+      setAnalysisNeedsRefresh(false);
       setAnalysisSummary(payload);
       setAnalysisRunId(payload.runId);
       if (payload.structured) setStructured(payload.structured as StructuredResume);
@@ -978,6 +986,7 @@ function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQuotaChan
     }
   }
   function invalidateAnalysis() {
+    setAnalysisNeedsRefresh(false);
     setAnalysisSummary(null);
     setAnalysisRunId(null);
     setGeneratedVersion(null);
@@ -995,10 +1004,10 @@ function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQuotaChan
     <div className="resume-layout">
       <aside className="resume-list panel"><div className="section-heading compact"><h3>我的简历</h3><span>{resumeItems.length}/3</span></div>{resumeItems.map((resume) => <article key={resume.id} className={`resume-entry ${selected?.id === resume.id ? "selected" : ""}`}><button className="resume-select" onClick={() => { setSelected(resume); setRealResumeId(resume.id.startsWith("resume-") ? null : resume.id); if (!resume.id.startsWith("resume-")) void restoreWorkspace(resume.id).catch((error) => notify(error instanceof Error ? error.message : "读取上次岗位分析失败")); }}><span className="file-type">{resume.fileType}</span><span><strong>{resume.name}</strong><small>{resume.updatedAt}{resume.completeness ? ` · 完整度 ${resume.completeness}%` : " · 已解析"}</small></span></button><button className="resume-delete" aria-label={`删除 ${resume.name}`} title="删除简历" disabled={deletingId === resume.id} onClick={() => void deleteResume(resume)}>{deletingId === resume.id ? <Clock3 size={15} /> : <Trash2 size={15} />}</button></article>)}<div className="privacy-note"><FileCheck2 size={17} /><span><strong>仅你可见</strong><small>文件使用私有存储和短时链接</small></span></div></aside>
       {loading ? <section className="resume-empty panel" aria-live="polite"><FileText size={30} /><h3>正在读取你的简历</h3><p>文件将通过私有存储安全加载。</p></section> : !selected ? <section className="resume-empty panel"><Upload size={32} /><h3>{loadError ? "简历列表暂时无法加载" : "上传第一份简历"}</h3><p>{loadError || "支持 PDF、DOCX，文件不超过 10MB。上传后即可解析经历并进行 JD 匹配。"}</p>{!loadError && <label className="primary-button file-button"><Upload size={17} />选择简历文件<input type="file" accept=".pdf,.docx" onChange={upload} /></label>}</section> : <section className="resume-workspace panel">
-        <div className="resume-toolbar"><div><p className="eyebrow">当前简历</p><h3>{selected.name}</h3></div><span><button className="secondary-button"><FileText size={16} />预览</button><button className="secondary-button">导出 <ChevronDown size={15} /></button></span></div>
+        <div className="resume-toolbar"><div><p className="eyebrow">当前简历</p><h3>{selected.name}</h3><small>原文件预览与导出暂未开放；定制版本生成后可下载 DOCX。</small></div><span><button className="secondary-button" disabled><FileText size={16} />预览（暂未开放）</button><button className="secondary-button" disabled>导出（暂未开放）</button></span></div>
         <div className="ai-processing-note"><ShieldCheck size={16} /><span><strong>DeepSeek 只处理解析文本</strong><small>不发送原 PDF/DOCX；所有改写建议均需你逐条确认。</small></span></div>
         <div className="match-hero"><div className="score-ring"><strong>{structured ? <Check size={23} /> : "AI"}</strong><small>{structured ? "已解析" : "待分析"}</small></div><div><p>简历解析与岗位匹配</p><h4>{structured ? `${structured.experiences.length} 段经历 · ${structured.projects.length} 个项目` : "上传、解析与 JD 建议合并为一个任务"}</h4><span>{structured ? <><i>{structured.skills.reduce((total, group) => total + group.items.length, 0)} 项技能</i><i className="warn">{structured.uncertainItems.length} 项待确认</i></> : <i>只在完整分析成功后计 1 次</i>}</span></div><span className="analysis-bundle-label"><Sparkles size={14} />随 JD 一起分析</span></div>
-        <div className="jd-analyzer"><div><p className="eyebrow">目标岗位 JD</p><h4>粘贴真实岗位要求后，获得匹配度与逐条优化建议</h4><small>成功生成完整结果计 1 次，失败不扣；今日剩余 {aiQuota.remaining}/{aiQuota.limit} 次。</small></div><div className="target-fields"><label>目标公司<input value={targetCompany} onChange={(event) => { setTargetCompany(event.target.value); invalidateAnalysis(); }} placeholder="例如：字节跳动" /></label><label>岗位名称<input value={targetRole} onChange={(event) => { setTargetRole(event.target.value); invalidateAnalysis(); }} placeholder="例如：推荐算法工程师" /></label></div><textarea value={jobDescription} onChange={(event) => { setJobDescription(event.target.value); invalidateAnalysis(); }} placeholder="粘贴职位描述、岗位职责和任职要求…" /><button className="primary-button" disabled={analyzing || jobDescription.trim().length < 20} onClick={analyze}><Sparkles size={15} />{analyzing ? "分析中…" : analysisSummary ? "重新分析（计 1 次）" : "分析并获取建议（计 1 次）"}</button></div>
+        <div className="jd-analyzer"><div><p className="eyebrow">目标岗位 JD</p><h4>粘贴真实岗位要求后，获得匹配度与逐条优化建议</h4><small>成功生成完整结果计 1 次，失败不扣；今日剩余 {aiQuota.remaining}/{aiQuota.limit} 次。</small>{analysisNeedsRefresh && <p role="status">旧分析结果已不可用。点击下方“重新分析”将创建新任务并使用 1 次额度，不会自动生成。</p>}</div><div className="target-fields"><label>目标公司<input value={targetCompany} onChange={(event) => { setTargetCompany(event.target.value); invalidateAnalysis(); }} placeholder="例如：字节跳动" /></label><label>岗位名称<input value={targetRole} onChange={(event) => { setTargetRole(event.target.value); invalidateAnalysis(); }} placeholder="例如：推荐算法工程师" /></label></div><textarea value={jobDescription} onChange={(event) => { setJobDescription(event.target.value); invalidateAnalysis(); }} placeholder="粘贴职位描述、岗位职责和任职要求…" /><button className="primary-button" disabled={analyzing || jobDescription.trim().length < 20} onClick={analyze}><Sparkles size={15} />{analyzing ? "分析中…" : analysisSummary || analysisNeedsRefresh ? "重新分析（计 1 次）" : "分析并获取建议（计 1 次）"}</button></div>
         {analysisSummary && <div className="match-hero match-result"><div className="score-ring"><strong>{analysisSummary.score}</strong><small>匹配分</small></div><div><p>真实 JD 分析结果</p><h4>已匹配 {analysisSummary.matchedKeywords.length} 个关键词</h4><span><i>{analysisSummary.matchedKeywords.slice(0, 3).join(" · ") || "暂无明确匹配词"}</i><i className="warn">待补充 {analysisSummary.missingKeywords.length} 项</i></span></div></div>}
         {analysisSummary && <section className="resume-evaluation">
           <div className="evaluation-heading"><div><p className="eyebrow">岗位门槛与整份简历取舍</p><h4>先判断能否申请，再决定保留什么</h4></div><span>{analysisSummary.requirementAnalysis.preferredRequirements.length} 项加分项 · {analysisSummary.requirementAnalysis.unknownRequirements.length} 项待确认</span></div>
@@ -1098,10 +1107,12 @@ function statusLabel(status: Job["status"]) {
   return ({ saved: "已收藏", preparing: "准备投递", applied: "已投递", assessment: "测评", interview: "面试", offer: "Offer", rejected: "已拒绝", closed: "已结束" } as Record<string, string>)[status || ""] || "状态更新";
 }
 
-function ReviewsPage({ reviews, setReviews, notify }: { reviews: InterviewReview[]; setReviews: (r: InterviewReview[]) => void; notify: (text: string) => void }) {
+export function ReviewsPage({ reviews, setReviews, notify }: { reviews: InterviewReview[]; setReviews: (r: InterviewReview[]) => void; notify: (text: string) => void }) {
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(!isDemoMode);
   const [saving, setSaving] = useState(false);
+  const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
+  const selectedReview = reviews.find((review) => review.id === selectedReviewId) ?? reviews[0] ?? null;
   const emptyForm = useCallback((): InterviewReview => ({
     id: "", company: "", role: "", round: "业务一面",
     date: new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Shanghai" }).format(new Date()),
@@ -1144,7 +1155,8 @@ function ReviewsPage({ reviews, setReviews, notify }: { reviews: InterviewReview
     try {
       if (isDemoMode) {
         const next = { ...form, id: form.id || crypto.randomUUID() };
-        setReviews(form.id ? reviews.map((item) => item.id === form.id ? next : item) : [next, ...reviews]);
+        setReviews([next, ...reviews.filter((item) => item.id !== next.id)]);
+        setSelectedReviewId(next.id);
       } else {
         const response = await fetch(form.id ? `/api/interview-reviews/${form.id}` : "/api/interview-reviews", {
           method: form.id ? "PATCH" : "POST",
@@ -1154,7 +1166,8 @@ function ReviewsPage({ reviews, setReviews, notify }: { reviews: InterviewReview
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(payload.error || "面试复盘保存失败");
         const saved = payload.review as InterviewReview;
-        setReviews(form.id ? reviews.map((item) => item.id === saved.id ? saved : item) : [saved, ...reviews]);
+        setReviews([saved, ...reviews.filter((item) => item.id !== saved.id)]);
+        setSelectedReviewId(saved.id);
       }
       setEditing(false);
       notify("复盘已保存，刷新后也会保留");
@@ -1167,8 +1180,8 @@ function ReviewsPage({ reviews, setReviews, notify }: { reviews: InterviewReview
   return <div className="page-stack">
     <section className="page-intro"><div><p className="eyebrow">面试复盘</p><h2>把一次面试，变成长期能力</h2><span>趁记忆清晰时记下问题、表现和下一步。</span></div><button className="primary-button" onClick={createReview}><Plus size={17} />记录一次面试</button></section>
     {loading ? <section className="resume-empty panel"><Clock3 size={32} /><h3>正在加载复盘记录</h3><p>你的内容只对当前账号可见。</p></section> : reviews.length === 0 ? <section className="resume-empty panel"><MessageSquareText size={32} /><h3>还没有面试复盘</h3><p>完成一次真实面试后，在这里记录问题、表现亮点和下一步准备。</p><button className="primary-button" onClick={createReview}><Plus size={17} />记录第一次面试</button></section> : <div className="review-layout">
-      <section className="panel review-list"><div className="section-heading compact"><div><h3>复盘记录</h3><span>共 {reviews.length} 次</span></div><button className="text-button">按时间排序</button></div>{reviews.map((review) => <article key={review.id}><div className="review-date"><strong>{review.date.slice(8)}</strong><span>{review.date.slice(5, 7)}月</span></div><div><p>{review.company}<span>{review.round}</span></p><h4>{review.role}</h4><small>自评分</small><span className="stars">{[1,2,3,4,5].map((n) => <Star key={n} size={15} fill={n <= review.score ? "currentColor" : "none"} />)}</span></div><button><ArrowUpRight /></button></article>)}</section>
-      <section className="panel review-detail"><div className="detail-head"><div><p className="eyebrow">最近一次复盘</p><h3>{reviews[0]?.company} · {reviews[0]?.round}</h3><span>{reviews[0]?.role} · {reviews[0]?.date}{reviews[0]?.interviewer ? ` · ${reviews[0].interviewer}` : ""}</span></div><button className="secondary-button" onClick={() => editReview(reviews[0])}><PenLine size={16} />编辑</button></div><ReviewBlock title="遇到的问题" content={reviews[0]?.questions} tone="apricot" />{reviews[0]?.answerSummary && <ReviewBlock title="回答摘要" content={reviews[0].answerSummary} tone="blue" />}<div className="review-pair"><ReviewBlock title="做得不错" content={reviews[0]?.highlights} tone="sage" /><ReviewBlock title="可以更好" content={reviews[0]?.improvements} tone="coral" /></div><ReviewBlock title="下一步准备" content={reviews[0]?.nextStep} tone="blue" />{reviews[0]?.nextRoundPrep && <ReviewBlock title="下轮准备" content={reviews[0].nextRoundPrep} tone="sage" />}</section>
+      <section className="panel review-list"><div className="section-heading compact"><div><h3>复盘记录</h3><span>共 {reviews.length} 次</span></div><span className="text-button">最近更新优先</span></div>{reviews.map((review) => <article key={review.id}><div className="review-date"><strong>{review.date.slice(8)}</strong><span>{review.date.slice(5, 7)}月</span></div><div><p>{review.company}<span>{review.round}</span></p><h4>{review.role}</h4><small>自评分</small><span className="stars">{[1,2,3,4,5].map((n) => <Star key={n} size={15} fill={n <= review.score ? "currentColor" : "none"} />)}</span></div><button type="button" aria-label={`查看 ${review.company} ${review.role} ${review.round} ${review.date} 复盘`} aria-pressed={selectedReview?.id === review.id} onClick={() => setSelectedReviewId(review.id)}>{selectedReview?.id === review.id ? <Check /> : <ArrowUpRight />}</button></article>)}</section>
+      {selectedReview && <section className="panel review-detail" aria-label="选中复盘详情"><div className="detail-head"><div><p className="eyebrow">当前选中复盘</p><h3>{selectedReview.company} · {selectedReview.round}</h3><span>{selectedReview.role} · {selectedReview.date}{selectedReview.interviewer ? ` · ${selectedReview.interviewer}` : ""}</span></div><button className="secondary-button" onClick={() => editReview(selectedReview)}><PenLine size={16} />编辑</button></div><ReviewBlock title="遇到的问题" content={selectedReview.questions} tone="apricot" />{selectedReview.answerSummary && <ReviewBlock title="回答摘要" content={selectedReview.answerSummary} tone="blue" />}<div className="review-pair"><ReviewBlock title="做得不错" content={selectedReview.highlights} tone="sage" /><ReviewBlock title="可以更好" content={selectedReview.improvements} tone="coral" /></div><ReviewBlock title="下一步准备" content={selectedReview.nextStep} tone="blue" />{selectedReview.nextRoundPrep && <ReviewBlock title="下轮准备" content={selectedReview.nextRoundPrep} tone="sage" />}</section>}
     </div>}
     {editing && <div className="modal-backdrop"><div className="review-modal" role="dialog" aria-modal="true"><header><div><p className="eyebrow">面试结束后 10 分钟</p><h3>{form.id ? "编辑面试复盘" : "记录这次面试"}</h3></div><button onClick={() => setEditing(false)}><X /></button></header><div className="form-grid"><label>公司<input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} placeholder="例如：字节跳动" /></label><label>岗位<input value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} placeholder="例如：AI 产品经理" /></label><label>面试轮次<select value={form.round} onChange={(e) => setForm({ ...form, round: e.target.value })}><option>HR 初筛</option><option>业务一面</option><option>业务二面</option><option>终面</option></select></label><label>日期<input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} /></label><label>面试官<input value={form.interviewer || ""} onChange={(e) => setForm({ ...form, interviewer: e.target.value })} placeholder="姓名或团队（选填）" /></label><label>自评分<select value={form.score} onChange={(e) => setForm({ ...form, score: Number(e.target.value) })}>{[1,2,3,4,5].map((score) => <option key={score} value={score}>{score} 星</option>)}</select></label></div><label>遇到的问题<textarea value={form.questions} onChange={(e) => setForm({ ...form, questions: e.target.value })} placeholder="每行记录一个问题" /></label><label>回答摘要<textarea value={form.answerSummary || ""} onChange={(e) => setForm({ ...form, answerSummary: e.target.value })} placeholder="记录关键回答与面试官反馈" /></label><div className="form-grid"><label>做得不错<textarea value={form.highlights} onChange={(e) => setForm({ ...form, highlights: e.target.value })} /></label><label>可以更好<textarea value={form.improvements} onChange={(e) => setForm({ ...form, improvements: e.target.value })} /></label></div><div className="form-grid"><label>后续任务<textarea value={form.nextStep} onChange={(e) => setForm({ ...form, nextStep: e.target.value })} /></label><label>下轮准备<textarea value={form.nextRoundPrep || ""} onChange={(e) => setForm({ ...form, nextRoundPrep: e.target.value })} /></label></div><footer><span>内容仅你可见并保存到账号</span><div><button className="secondary-button" disabled={saving} onClick={() => setEditing(false)}>取消</button><button className="primary-button" disabled={saving} onClick={() => void save()}>{saving ? "保存中…" : "保存复盘"}</button></div></footer></div></div>}
   </div>;

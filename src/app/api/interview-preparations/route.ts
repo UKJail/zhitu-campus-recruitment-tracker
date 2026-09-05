@@ -57,6 +57,7 @@ export async function POST(request: Request) {
   let runId = "";
   let taskId = "";
   let preparationId = "";
+  let resultSaved = false;
   let applicationId: string | null = null;
   let stage = "request";
   try {
@@ -95,19 +96,24 @@ export async function POST(request: Request) {
       forceNew: true,
     });
     if (!reservation.allowed) return NextResponse.json({ error: "今日 AI 使用次数已用完", quota: reservation.quota }, { status: 429 });
-    if (reservation.cached && reservation.resultRunId) {
-      const { data: cachedRun } = await supabase.from("ai_runs").select("output").eq("id", reservation.resultRunId).eq("user_id", userId).maybeSingle();
+    if (reservation.cached) {
+      const { data: cachedRun, error: cachedError } = reservation.resultRunId
+        ? await supabase.from("ai_runs").select("output").eq("id", reservation.resultRunId).eq("user_id", userId).eq("kind", "interview_prep").eq("status", "completed").maybeSingle()
+        : { data: null, error: null };
+      if (cachedError) return NextResponse.json({ error: "面试准备结果暂时无法读取，请稍后重试", code: "AI_RESULT_TEMPORARILY_UNAVAILABLE" }, { status: 503 });
       const preparationId = cachedRun?.output && typeof cachedRun.output === "object" && !Array.isArray(cachedRun.output)
         ? cachedRun.output.preparationId
         : null;
       if (typeof preparationId === "string") {
-        const { data: preparation } = await supabase.from("interview_preparations")
+        const { data: preparation, error: preparationError } = await supabase.from("interview_preparations")
           .select("id,company,role,job_description,resume_file_name,result,inbound_email_id,created_at,updated_at")
           .eq("id", preparationId)
           .eq("user_id", userId)
           .maybeSingle();
-        if (preparation) return NextResponse.json({ preparation, cached: true, quota: reservation.quota }, { status: 200 });
+        if (preparationError) return NextResponse.json({ error: "面试准备结果暂时无法读取，请稍后重试", code: "AI_RESULT_TEMPORARILY_UNAVAILABLE" }, { status: 503 });
+        if (preparation && interviewPreparationSchema.safeParse(preparation.result).success) return NextResponse.json({ preparation, cached: true, quota: reservation.quota }, { status: 200 });
       }
+      return NextResponse.json({ error: "旧面试准备结果已不可用，请重新生成；重新生成会使用一次 AI 额度", code: "AI_RESULT_UNAVAILABLE", quota: reservation.quota }, { status: 409 });
     }
     if (!reservation.reserved || !reservation.taskId) {
       return NextResponse.json({ error: "这项面试准备正在处理中，请稍后查看结果", quota: reservation.quota }, { status: 409 });
@@ -147,10 +153,19 @@ export async function POST(request: Request) {
     preparationId = preparation.id;
     const { error: runUpdateError } = await supabase.from("ai_runs").update({ status: "completed", output: { preparationId: preparation.id } }).eq("id", runId).eq("user_id", userId);
     if (runUpdateError) throw new Error("面试准备已生成，但保存任务状态失败");
-    const quota = await completeAIUsage(supabase, taskId, runId);
+    resultSaved = true;
+    const quota = await completeAIUsage(supabase, taskId, runId)
+      .catch(() => completeAIUsage(supabase, taskId, runId));
     console.info("[interview-prep] request completed", { preparationId: preparation.id, questionCount: safeResult.questions.length });
     return NextResponse.json({ preparation, cached: false, quota }, { status: 201 });
   } catch (error) {
+    if (resultSaved) {
+      return NextResponse.json({
+        error: "面试准备已保存，但额度结算暂时无法确认。请稍后刷新查看，不要立即重复生成",
+        code: "AI_QUOTA_SETTLEMENT_PENDING",
+        preparationId,
+      }, { status: 503 });
+    }
     if (runId) await supabase.from("ai_runs").update({ status: "failed", error_code: error instanceof Error ? error.message.slice(0, 160) : "unknown" }).eq("id", runId).eq("user_id", userId);
     if (preparationId) await supabase.from("interview_preparations").delete().eq("id", preparationId).eq("user_id", userId);
     if (storagePath) await supabase.storage.from("resumes").remove([storagePath]);

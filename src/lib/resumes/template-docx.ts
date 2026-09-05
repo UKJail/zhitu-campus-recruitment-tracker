@@ -57,15 +57,26 @@ function patchParagraph(paragraphXml: string, replacement: TextReplacement) {
   if (replacement.revised === "" && normalize(paragraphText) === normalize(replacement.original)) return "";
   const sourceText = paragraphText.slice(range.start, range.end);
   const revised = preserveLayoutWhitespace(sourceText, replacement.revised);
-  const revisedText = `${paragraphText.slice(0, range.start)}${revised}${paragraphText.slice(range.end)}`;
-  let offset = 0;
+  let sourceOffset = 0;
+  let revisedOffset = 0;
   let nodeIndex = 0;
   return paragraphXml.replace(textPattern, (full, open: string, _content: string, close: string) => {
-    const isLast = nodeIndex === nodeTexts.length - 1;
-    const length = isLast ? revisedText.length - offset : nodeTexts[nodeIndex].length;
-    const next = revisedText.slice(offset, offset + Math.max(0, length));
-    offset += Math.max(0, length);
-    nodeIndex += 1;
+    const nodeText = nodeTexts[nodeIndex++];
+    const nodeStart = sourceOffset;
+    const nodeEnd = nodeStart + nodeText.length;
+    sourceOffset = nodeEnd;
+    if (nodeEnd <= range.start || nodeStart >= range.end) return full;
+
+    const localStart = Math.max(0, range.start - nodeStart);
+    const localEnd = Math.min(nodeText.length, range.end - nodeStart);
+    const isLastAffected = nodeEnd >= range.end;
+    const replacementLength = isLastAffected ? revised.length - revisedOffset : localEnd - localStart;
+    const inserted = revised.slice(revisedOffset, revisedOffset + Math.max(0, replacementLength));
+    revisedOffset += inserted.length;
+    // Preserve text outside the confirmed replacement in its original run.
+    // Redistributing the whole paragraph would move dates or headings into
+    // unrelated bold/font/link runs whenever the replacement changes length.
+    const next = `${nodeText.slice(0, localStart)}${inserted}${nodeText.slice(localEnd)}`;
     const openWithSpace = /xml:space=/.test(open) || !/^\s|\s$/.test(next) ? open : open.replace(/>$/, ' xml:space="preserve">');
     return `${openWithSpace}${encodeXml(next)}${close}`;
   });

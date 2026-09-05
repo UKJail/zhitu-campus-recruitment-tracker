@@ -3,6 +3,30 @@ import { describe, expect, it } from "vitest";
 import { patchResumeTemplateDocx } from "./template-docx";
 
 describe("original DOCX template patching", () => {
+  it("keeps untouched suffix text in its original styled run when a rewrite grows", async () => {
+    const zip = new JSZip();
+    zip.file("word/document.xml", '<w:document xmlns:w="x"><w:body><w:p><w:r><w:t>课程项目：整理样本</w:t></w:r><w:r><w:rPr><w:b/></w:rPr><w:t>2026.08</w:t></w:r></w:p></w:body></w:document>');
+    const source = await zip.generateAsync({ type: "uint8array" });
+    const output = await patchResumeTemplateDocx(source, [{ original: "整理样本", revised: "收集并核对课程项目样本" }]);
+    const result = await JSZip.loadAsync(output);
+    const xml = await result.file("word/document.xml")!.async("string");
+    expect(xml).toContain("<w:t>课程项目：收集并核对课程项目样本</w:t>");
+    expect(xml).toContain("<w:rPr><w:b/></w:rPr><w:t>2026.08</w:t>");
+  });
+
+  it("keeps an untouched styled prefix and suffix when replacing across runs", async () => {
+    const zip = new JSZip();
+    zip.file("word/document.xml", '<w:document xmlns:w="x"><w:body><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>项目：</w:t></w:r><w:r><w:t>参与整理</w:t></w:r><w:r><w:t>样本并报告</w:t></w:r><w:r><w:rPr><w:i/></w:rPr><w:t>｜2026.08</w:t></w:r></w:p></w:body></w:document>');
+    const source = await zip.generateAsync({ type: "uint8array" });
+    const output = await patchResumeTemplateDocx(source, [{ original: "整理样本", revised: "整理并核对样本" }]);
+    const result = await JSZip.loadAsync(output);
+    const xml = await result.file("word/document.xml")!.async("string");
+    const text = [...xml.matchAll(/<w:t\b[^>]*>([\s\S]*?)<\/w:t>/g)].map((match) => match[1]).join("");
+    expect(text).toBe("项目：参与整理并核对样本并报告｜2026.08");
+    expect(xml).toContain("<w:rPr><w:b/></w:rPr><w:t>项目：</w:t>");
+    expect(xml).toContain("<w:rPr><w:i/></w:rPr><w:t>｜2026.08</w:t>");
+  });
+
   it("只修改文字节点并保留原段落、字体和页面设置", async () => {
     const zip = new JSZip();
     const originalXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p w:rsidR="ABC"><w:pPr><w:spacing w:line="240"/></w:pPr><w:r><w:rPr><w:rFonts w:eastAsia="Arial"/><w:sz w:val="18"/></w:rPr><w:t>负责用户研究与</w:t></w:r><w:r><w:rPr><w:rFonts w:eastAsia="Arial"/><w:b/></w:rPr><w:t>数据分析</w:t></w:r></w:p><w:sectPr><w:pgMar w:top="432" w:right="518"/></w:sectPr></w:body></w:document>`;

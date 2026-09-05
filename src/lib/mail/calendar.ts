@@ -36,6 +36,9 @@ export function calendarEventFromEmail(email: InboundCalendarEmail, now = new Da
   const originalTimeText = email.category === "assessment"
     ? deadlineText || eventTimeText
     : eventTimeText || deadlineText;
+  const receivedAt = new Date(email.received_at);
+  // Yearless dates refer to when the message arrived, not when it is reopened.
+  const referenceDate = Number.isNaN(receivedAt.getTime()) ? now : receivedAt;
 
   return {
     id: email.id,
@@ -43,10 +46,9 @@ export function calendarEventFromEmail(email: InboundCalendarEmail, now = new Da
     title: text(email.subject) || (email.category === "assessment" ? "测评通知" : "面试通知"),
     company: text(extracted.company),
     role: text(extracted.role),
-    scheduledAt: recruitingEventTime(originalTimeText, now),
+    scheduledAt: recruitingEventTime(originalTimeText, referenceDate),
     originalTimeText,
     meetingUrl: text(extracted.meetingUrl),
     receivedAt: email.received_at,
   };
 }
-

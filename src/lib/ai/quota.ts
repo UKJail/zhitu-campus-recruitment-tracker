@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 
@@ -23,6 +24,13 @@ const reservationSchema = z.object({
 export type AIQuota = z.infer<typeof aiQuotaSchema>;
 export type AIUsageReservation = z.infer<typeof reservationSchema>;
 
+async function quotaMutationContext(supabase: SupabaseServerClient) {
+  // Identity always comes from a provider-verified session, never a request body.
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user) throw new Error("请先登录");
+  return { admin: createSupabaseAdminClient(), userId: data.user.id };
+}
+
 export async function getAIQuota(supabase: SupabaseServerClient) {
   const { data, error } = await supabase.rpc("get_ai_quota");
   if (error) throw new Error("AI 配额读取失败");
@@ -35,7 +43,9 @@ export async function reserveAIUsage(supabase: SupabaseServerClient, input: {
   inputFingerprint: string;
   forceNew?: boolean;
 }) {
-  const { data, error } = await supabase.rpc("reserve_ai_usage", {
+  const { admin, userId } = await quotaMutationContext(supabase);
+  const { data, error } = await admin.rpc("reserve_ai_usage_server", {
+    p_user_id: userId,
     p_kind: input.kind,
     p_operation_key: input.operationKey,
     p_input_fingerprint: input.inputFingerprint,
@@ -46,7 +56,9 @@ export async function reserveAIUsage(supabase: SupabaseServerClient, input: {
 }
 
 export async function completeAIUsage(supabase: SupabaseServerClient, taskId: string, runId: string) {
-  const { data, error } = await supabase.rpc("complete_ai_usage", {
+  const { admin, userId } = await quotaMutationContext(supabase);
+  const { data, error } = await admin.rpc("complete_ai_usage_server", {
+    p_user_id: userId,
     p_task_id: taskId,
     p_result_run_id: runId,
   });
@@ -55,7 +67,8 @@ export async function completeAIUsage(supabase: SupabaseServerClient, taskId: st
 }
 
 export async function releaseAIUsage(supabase: SupabaseServerClient, taskId: string) {
-  const { data, error } = await supabase.rpc("release_ai_usage", { p_task_id: taskId });
+  const { admin, userId } = await quotaMutationContext(supabase);
+  const { data, error } = await admin.rpc("release_ai_usage_server", { p_user_id: userId, p_task_id: taskId });
   if (error) throw new Error("AI 任务失败后的次数返还失败");
   return aiQuotaSchema.parse(data);
 }

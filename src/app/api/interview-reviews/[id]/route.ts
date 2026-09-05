@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { interviewReviewInputSchema, reviewDateToTimestamp } from "@/lib/interviews/review";
+import { assertInterviewReferenceOwnership, InterviewReferenceError } from "@/lib/interviews/ownership";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -11,6 +12,7 @@ export async function PATCH(request: Request, context: RouteContext<"/api/interv
 
   try {
     const [{ id }, input] = await Promise.all([context.params, request.json().then((value) => interviewReviewInputSchema.parse(value))]);
+    if (!z.string().uuid().safeParse(id).success) return NextResponse.json({ error: "复盘编号无效" }, { status: 400 });
     const { data: existing, error: existingError } = await supabase
       .from("interview_reviews")
       .select("id,interview_id")
@@ -18,6 +20,8 @@ export async function PATCH(request: Request, context: RouteContext<"/api/interv
       .eq("user_id", userId)
       .single();
     if (existingError || !existing?.interview_id) return NextResponse.json({ error: "复盘不存在或无权编辑" }, { status: 404 });
+
+    await assertInterviewReferenceOwnership(supabase, userId, input);
 
     const { error: interviewError } = await supabase.from("interviews").update({
       application_id: input.applicationId,
@@ -45,7 +49,8 @@ export async function PATCH(request: Request, context: RouteContext<"/api/interv
 
     return NextResponse.json({ review: { ...input, id: review.id, interviewId: existing.interview_id, updatedAt: review.updated_at } });
   } catch (error) {
-    const message = error instanceof z.ZodError ? "面试复盘字段不完整" : error instanceof Error ? error.message : "更新失败";
-    return NextResponse.json({ error: message }, { status: 400 });
+    if (error instanceof InterviewReferenceError) return NextResponse.json({ error: error.message }, { status: error.status });
+    if (error instanceof z.ZodError || error instanceof SyntaxError) return NextResponse.json({ error: "面试复盘字段不完整" }, { status: 400 });
+    return NextResponse.json({ error: "面试复盘更新失败，请稍后再试" }, { status: 500 });
   }
 }

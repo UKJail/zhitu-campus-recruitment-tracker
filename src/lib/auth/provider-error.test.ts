@@ -10,11 +10,16 @@ describe("Supabase auth failure classification", () => {
   it("recognizes blocked or unavailable network access", () => {
     expect(classifyAuthFailure({ name: "AuthRetryableFetchError", message: "fetch failed", status: 0 })).toBe("auth_service_unreachable");
     expect(getAuthFailureStatus("auth_service_unreachable")).toBe(503);
-    expect(getAuthFailureMessage("auth_service_unreachable")).toContain("无法连接认证服务");
+    expect(getAuthFailureMessage("auth_service_unreachable")).toContain("认证服务暂时无法连接");
   });
 
   it("falls back safely when no session is returned", () => {
     expect(classifyAuthFailure(null, false)).toBe("missing_session");
     expect(classifyAuthFailure(null, true)).toBeNull();
+  });
+
+  it("treats a provider outage as unavailable rather than invalid credentials", () => {
+    expect(classifyAuthFailure({ status: 500, code: "unexpected_failure" })).toBe("auth_service_unreachable");
+    expect(getAuthFailureStatus("auth_service_unreachable")).toBe(503);
   });
 });

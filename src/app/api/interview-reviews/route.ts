@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { interviewReviewInputSchema, reviewDateToTimestamp, timestampToReviewDate } from "@/lib/interviews/review";
+import { assertInterviewReferenceOwnership, InterviewReferenceError } from "@/lib/interviews/ownership";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -71,6 +72,7 @@ export async function POST(request: Request) {
 
   try {
     const input = interviewReviewInputSchema.parse(await request.json());
+    await assertInterviewReferenceOwnership(supabase, userId, input);
     const { data: interview, error: interviewError } = await supabase.from("interviews").insert({
       user_id: userId,
       application_id: input.applicationId,
@@ -101,7 +103,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ review: { ...input, id: review.id, interviewId: interview.id, updatedAt: review.updated_at } }, { status: 201 });
   } catch (error) {
-    const message = error instanceof z.ZodError ? "面试复盘字段不完整" : error instanceof Error ? error.message : "保存失败";
-    return NextResponse.json({ error: message }, { status: 400 });
+    if (error instanceof InterviewReferenceError) return NextResponse.json({ error: error.message }, { status: error.status });
+    if (error instanceof z.ZodError || error instanceof SyntaxError) return NextResponse.json({ error: "面试复盘字段不完整" }, { status: 400 });
+    return NextResponse.json({ error: "面试复盘保存失败，请稍后再试" }, { status: 500 });
   }
 }

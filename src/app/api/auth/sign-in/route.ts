@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createHash } from "node:crypto";
-import { consumeRegistrationAttempt, registrationClientKey } from "@/lib/auth/registration-rate-limit";
+import { consumeAuthAttempt } from "@/lib/auth/attempt-limit";
 import { createSupabaseAuthClient, createSupabaseServerClient } from "@/lib/supabase/server";
 import { classifyAuthFailure, getAuthFailureMessage, getAuthFailureStatus } from "@/lib/auth/provider-error";
 
@@ -30,20 +29,13 @@ export async function POST(request: Request) {
   try {
     const input = signInSchema.parse(await request.json());
     const email = input.email.toLowerCase();
-    if (input.method !== "password") {
-      // Shared by signup confirmation and passwordless login. Never log codes or emails.
-      const operation = input.method === "otp" ? "verify" : "send";
-      const emailKey = createHash("sha256").update(email).digest("hex");
-      const limits = [
-        consumeRegistrationAttempt(`otp:${operation}:ip:${registrationClientKey(request)}`),
-        consumeRegistrationAttempt(`otp:${operation}:email:${emailKey}`),
-      ];
-      if (limits.some((limit) => !limit.allowed)) {
-        return NextResponse.json({ error: "验证码操作过于频繁，请稍后再试", code: "rate_limited" }, {
-          status: 429,
-          headers: { ...responseHeaders, "Retry-After": String(Math.max(...limits.map((limit) => limit.retryAfterSeconds))) },
-        });
-      }
+    const operation = input.method === "otp" ? "verify" : input.method === "password" ? "password" : "send";
+    const limit = consumeAuthAttempt(request, email, operation);
+    if (!limit.allowed) {
+      return NextResponse.json({ error: "认证操作过于频繁，请稍后再试", code: "rate_limited" }, {
+        status: 429,
+        headers: { ...responseHeaders, "Retry-After": String(limit.retryAfterSeconds) },
+      });
     }
     const authClient = createSupabaseAuthClient();
 
@@ -52,6 +44,11 @@ export async function POST(request: Request) {
         email,
         options: { shouldCreateUser: false },
       });
+      // Keep unknown addresses indistinguishable from existing ones. No account
+      // is created because shouldCreateUser is false.
+      if (result.error?.code === "otp_disabled" || result.error?.code === "user_not_found") {
+        return NextResponse.json({ sent: true }, { headers: responseHeaders });
+      }
       if (result.error) {
         const code = classifyAuthFailure(result.error) ?? "missing_session";
         console.warn("Supabase OTP request rejected", {
@@ -61,7 +58,7 @@ export async function POST(request: Request) {
         });
         return NextResponse.json({ error: getAuthFailureMessage(code), code }, {
           status: getAuthFailureStatus(code),
-          headers: responseHeaders,
+          headers: { ...responseHeaders, ...(getAuthFailureStatus(code) === 429 ? { "Retry-After": "60" } : {}) },
         });
       }
       return NextResponse.json({ sent: true }, { headers: responseHeaders });
@@ -103,7 +100,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ authenticated: true }, { headers: responseHeaders });
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (error instanceof z.ZodError || error instanceof SyntaxError) {
       return NextResponse.json({ error: "登录信息格式不正确" }, {
         status: 400,
         headers: responseHeaders,

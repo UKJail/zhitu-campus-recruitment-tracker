@@ -1,6 +1,6 @@
-import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { analysisFingerprint } from "@/lib/ai/analysis-fingerprint";
 import { analysisSchema, getAIProvider, structuredResumeSchema } from "@/lib/ai/provider";
 import { completeAIUsage, releaseAIUsage, reserveAIUsage } from "@/lib/ai/quota";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
@@ -16,21 +16,6 @@ const requestSchema = z.object({
   targetRole: z.string().trim().max(120).optional().default(""),
   forceRefresh: z.boolean().optional().default(false),
 });
-
-function analysisFingerprint(input: {
-  resumeText: string;
-  jobDescription: string;
-  targetCompany: string;
-  targetRole: string;
-}) {
-  return createHash("sha256").update(JSON.stringify({
-    version: "resume-optimization-v2",
-    resumeText: input.resumeText,
-    jobDescription: input.jobDescription.trim(),
-    targetCompany: input.targetCompany.trim(),
-    targetRole: input.targetRole.trim(),
-  })).digest("hex");
-}
 
 export async function POST(request: Request) {
   const { supabase, userId } = await getAuthenticatedUserId();
@@ -56,6 +41,7 @@ export async function POST(request: Request) {
 
   let taskId = "";
   let runId = "";
+  let resultSaved = false;
   try {
     const input = parsedInput.data;
     const { data: resume, error: resumeError } = await supabase
@@ -68,27 +54,31 @@ export async function POST(request: Request) {
     if (resume.parse_status !== "ready" || !resume.parsed_text) return NextResponse.json({ error: "简历尚未解析完成" }, { status: 409 });
 
     const fingerprint = analysisFingerprint({
+      resumeId: resume.id,
       resumeText: resume.parsed_text,
       jobDescription: input.jobDescription,
       targetCompany: input.targetCompany,
       targetRole: input.targetRole,
     });
 
-    let reservation = await reserveAIUsage(supabase, {
+    const reservation = await reserveAIUsage(supabase, {
       kind: "resume_optimization",
       operationKey: input.operationId,
       inputFingerprint: fingerprint,
       forceNew: input.forceRefresh,
     });
 
-    if (reservation.cached && reservation.resultRunId) {
-      const { data: cachedRun } = await supabase.from("ai_runs")
+    if (reservation.cached) {
+      const { data: cachedRun, error: cachedError } = reservation.resultRunId ? await supabase.from("ai_runs")
         .select("id,output")
         .eq("id", reservation.resultRunId)
         .eq("user_id", userId)
         .eq("kind", "job_match")
         .eq("status", "completed")
-        .maybeSingle();
+        .maybeSingle() : { data: null, error: null };
+      if (cachedError) {
+        return NextResponse.json({ error: "分析结果暂时无法读取，请稍后重试；本次不会重新扣费", code: "AI_RESULT_TEMPORARILY_UNAVAILABLE" }, { status: 503 });
+      }
       const cachedAnalysis = analysisSchema.safeParse(cachedRun?.output);
       const cachedStructured = structuredResumeSchema.safeParse(resume.structured_data);
       if (cachedRun && cachedAnalysis.success) {
@@ -100,12 +90,13 @@ export async function POST(request: Request) {
           quota: reservation.quota,
         });
       }
-      reservation = await reserveAIUsage(supabase, {
-        kind: "resume_optimization",
-        operationKey: input.operationId,
-        inputFingerprint: fingerprint,
-        forceNew: true,
-      });
+      // Keep the completed usage record: recovering missing content must not
+      // refund a previously consumed task or silently spend another allowance.
+      return NextResponse.json({
+        error: "旧分析结果已不可用，请重新分析；重新生成会使用一次 AI 额度",
+        code: "AI_RESULT_UNAVAILABLE",
+        quota: reservation.quota,
+      }, { status: 409 });
     }
 
     if (!reservation.allowed) {
@@ -159,10 +150,23 @@ export async function POST(request: Request) {
       .eq("id", run.id)
       .eq("user_id", userId);
     if (updateError) throw new Error("无法保存 AI 分析结果");
-    const quota = await completeAIUsage(supabase, taskId, run.id);
+    resultSaved = true;
+    // Completion is idempotent for the same task/run. Retry once if its response
+    // was lost, without making another provider request or reserving again.
+    const quota = await completeAIUsage(supabase, taskId, run.id)
+      .catch(() => completeAIUsage(supabase, taskId, run.id));
 
     return NextResponse.json({ ...output, runId: run.id, structured: structured.data, cached: false, quota });
   } catch (error) {
+    if (resultSaved) {
+      // The settlement may already have committed. Preserve the finished result
+      // and reservation instead of marking it failed or refunding ambiguously.
+      return NextResponse.json({
+        error: "分析结果已保存，但额度结算暂时无法确认。请稍后重新打开简历查看，不要立即重复生成",
+        code: "AI_QUOTA_SETTLEMENT_PENDING",
+        runId,
+      }, { status: 503 });
+    }
     if (runId) {
       await supabase.from("ai_runs").update({
         status: "failed",

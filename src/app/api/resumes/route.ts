@@ -12,6 +12,7 @@ export async function GET() {
   const { data, error } = await supabase
     .from("resumes")
     .select("id,name,mime_type,size_bytes,parse_status,structured_data,created_at,updated_at")
+    .eq("user_id", userId)
     .eq("active", true)
     .order("updated_at", { ascending: false });
 
@@ -24,6 +25,7 @@ export async function POST(request: Request) {
   if (!userId) return NextResponse.json({ error: "请先登录后上传简历" }, { status: 401 });
 
   let storagePath = "";
+  let createdResumeId = "";
   try {
     const form = await request.formData();
     const file = form.get("file");
@@ -32,10 +34,12 @@ export async function POST(request: Request) {
     }
     validateResumeFile(file);
 
-    const { count } = await supabase
+    const { count, error: countError } = await supabase
       .from("resumes")
       .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
       .eq("active", true);
+    if (countError) return NextResponse.json({ error: "读取简历数量失败，请稍后重试" }, { status: 500 });
     if ((count || 0) >= 3) {
       return NextResponse.json({ error: "最多保留 3 份活跃简历" }, { status: 409 });
     }
@@ -62,7 +66,8 @@ export async function POST(request: Request) {
       })
       .select("id,name,mime_type,size_bytes,parse_status,structured_data,created_at,updated_at")
       .single();
-    if (insertError) throw new Error(`保存简历记录失败: ${insertError.message}`);
+    if (insertError || !resume) throw new Error("保存简历记录失败");
+    createdResumeId = resume.id;
 
     const { error: versionError } = await supabase.from("resume_versions").insert({
       resume_id: resume.id,
@@ -74,7 +79,18 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ resume }, { status: 201 });
   } catch (error) {
-    if (storagePath) await supabase.storage.from("resumes").remove([storagePath]);
+    let canRemoveFile = true;
+    if (createdResumeId) {
+      const { error: rollbackError } = await supabase.from("resumes")
+        .delete().eq("id", createdResumeId).eq("user_id", userId);
+      // If the metadata rollback fails, retain its file so the remaining
+      // record does not become an unusable "ready" resume with a missing blob.
+      if (rollbackError) {
+        canRemoveFile = false;
+        console.error("[resume-upload] metadata rollback failed");
+      }
+    }
+    if (storagePath && canRemoveFile) await supabase.storage.from("resumes").remove([storagePath]);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "简历上传失败" },
       { status: 400 },

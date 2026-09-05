@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { matchesResumeAnalysis } from "@/lib/ai/analysis-fingerprint";
 import { analysisSchema } from "@/lib/ai/provider";
 import { patchResumeTemplateDocx } from "@/lib/resumes/template-docx";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
@@ -34,8 +35,15 @@ export async function POST(request: Request) {
     if (analysisError || !analysisRun || analysisRun.kind !== "job_match" || analysisRun.status !== "completed") return NextResponse.json({ error: "找不到已完成的岗位匹配分析" }, { status: 404 });
     if (resume.parse_status !== "ready" || !resume.parsed_text) return NextResponse.json({ error: "简历尚未完成文本解析" }, { status: 409 });
 
-    const expectedFingerprint = createHash("sha256").update(`${resume.id}\n${input.jobDescription}`).digest("hex");
-    if (analysisRun.input_fingerprint !== expectedFingerprint) return NextResponse.json({ error: "当前 JD 与这次匹配分析不一致，请重新分析" }, { status: 409 });
+    if (!matchesResumeAnalysis({
+      resumeId: resume.id,
+      resumeText: resume.parsed_text,
+      jobDescription: input.jobDescription,
+      targetCompany: input.targetCompany,
+      targetRole: input.targetRole,
+    }, analysisRun)) {
+      return NextResponse.json({ error: "简历、JD 或目标岗位与这次分析不一致，或分析版本过旧，请重新分析" }, { status: 409 });
+    }
 
     const analysis = analysisSchema.parse(analysisRun.output);
     const acceptedSuggestions = input.acceptedSuggestionIndexes.map((index) => analysis.suggestions[index]).filter(Boolean);

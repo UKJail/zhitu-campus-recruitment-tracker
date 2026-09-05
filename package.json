@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@11.19.0",
+  "overrides": {
+    "@xmldom/xmldom": "0.8.15"
+  },
   "scripts": {
     "dev": "node --env-file-if-exists=.env.local scripts/start-local-dev.mjs",
     "build": "next build",

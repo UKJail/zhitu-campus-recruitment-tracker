@@ -2,5 +2,8 @@ packages:
   - "."
   - "browser-extension"
 
+overrides:
+  "@xmldom/xmldom": "0.8.15"
+
 allowBuilds:
   unrs-resolver: true

@@ -4,6 +4,27 @@ import { calendarEventFromEmail } from "./calendar";
 const now = new Date("2026-08-15T00:00:00.000Z");
 
 describe("recruiting calendar", () => {
+  it("does not move a past yearless invitation into next year when reopened", () => {
+    const event = calendarEventFromEmail({
+      id: "old-mail",
+      subject: "面试邀请",
+      category: "interview",
+      received_at: "2026-08-15T00:00:00.000Z",
+      extracted_data: { eventTimeText: "8月20日 14:30" },
+    }, new Date("2026-09-06T00:00:00.000Z"));
+    expect(event?.scheduledAt).toBe("2026-08-20T06:30:00.000Z");
+  });
+
+  it("keeps a cross-year invitation anchored to its receipt date", () => {
+    const event = calendarEventFromEmail({
+      id: "new-year-mail",
+      subject: "面试邀请",
+      category: "interview",
+      received_at: "2026-12-28T00:00:00.000Z",
+      extracted_data: { eventTimeText: "1月5日 10:00" },
+    }, new Date("2027-06-01T00:00:00.000Z"));
+    expect(event?.scheduledAt).toBe("2027-01-05T02:00:00.000Z");
+  });
   it("uses the deadline for assessments even when an event time is also present", () => {
     const event = calendarEventFromEmail({
       id: "mail-1",
@@ -45,4 +66,3 @@ describe("recruiting calendar", () => {
     expect(event?.title).toBe("面试时间待定");
   });
 });
-
