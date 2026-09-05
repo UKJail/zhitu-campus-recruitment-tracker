@@ -88,8 +88,60 @@ describe("LoginPage session redirect", () => {
     fireEvent.change(screen.getByLabelText("确认密码"), { target: { value: "career2026" } });
     fireEvent.click(screen.getByRole("button", { name: /注册账号/ }));
 
-    await waitFor(() => expect(screen.getByRole("heading", { name: "请检查注册邮箱" })).toBeTruthy());
+    await waitFor(() => expect(screen.getByRole("heading", { name: "输入注册验证码" })).toBeTruthy());
     expect(screen.getByText(/如果这个邮箱已经注册或完成验证/)).toBeTruthy();
-    expect(screen.getByRole("button", { name: "重新发送验证邮件" })).toBeTruthy();
+    expect((screen.getByRole("button", { name: /秒后可重新发送/ }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByLabelText("注册邮箱") as HTMLInputElement).value).toBe("candidate@example.com");
+    expect(screen.getByLabelText("6 位验证码")).toBeTruthy();
+  });
+
+  function openPendingRegistration() {
+    render(<LoginPage />);
+    fireEvent.click(screen.getByRole("button", { name: "继续验证注册邮箱" }));
+    fireEvent.change(screen.getByLabelText("注册邮箱"), { target: { value: "Candidate@Example.com" } });
+  }
+
+  it("verifies a signup code via the existing secure OTP endpoint", async () => {
+    authMocks.fetch.mockImplementation((input: string) => Promise.resolve({ ok: input === "/api/auth/sign-in" }));
+    openPendingRegistration();
+    fireEvent.change(screen.getByLabelText("6 位验证码"), { target: { value: "001234" } });
+    fireEvent.click(screen.getByRole("button", { name: "验证并进入职途" }));
+    await waitFor(() => expect(authMocks.replace).toHaveBeenCalledWith("/app"));
+    expect(authMocks.fetch).toHaveBeenCalledWith("/api/auth/sign-in", expect.objectContaining({
+      credentials: "same-origin", body: JSON.stringify({ method: "otp", email: "candidate@example.com", token: "001234" }),
+    }));
+  });
+
+  it("keeps the email and shows invalid-code errors without navigating", async () => {
+    authMocks.fetch.mockImplementation(() => Promise.resolve({ ok: false, json: async () => ({ error: "验证码错误或已过期" }) }));
+    openPendingRegistration();
+    fireEvent.change(screen.getByLabelText("6 位验证码"), { target: { value: "123456" } });
+    fireEvent.click(screen.getByRole("button", { name: "验证并进入职途" }));
+    await waitFor(() => expect(screen.getByText("验证码错误或已过期")).toBeTruthy());
+    expect(authMocks.replace).not.toHaveBeenCalled();
+    expect((screen.getByLabelText("注册邮箱") as HTMLInputElement).value).toBe("Candidate@Example.com");
+  });
+
+  it("resends without submitting passwords and starts a cooldown", async () => {
+    authMocks.fetch.mockImplementation((input: string) => Promise.resolve({
+      ok: input === "/api/auth/resend-confirmation", json: async () => ({ message: "请检查最新验证码邮件" }),
+    }));
+    openPendingRegistration();
+    fireEvent.click(screen.getByRole("button", { name: "重新发送验证码" }));
+    await waitFor(() => expect(screen.getByText("请检查最新验证码邮件")).toBeTruthy());
+    expect(authMocks.fetch).toHaveBeenCalledWith("/api/auth/resend-confirmation", expect.objectContaining({ body: JSON.stringify({ email: "candidate@example.com" }) }));
+    expect((screen.getByRole("button", { name: /秒后可重新发送/ }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("clears a pending code when the email changes or the user leaves", async () => {
+    authMocks.fetch.mockResolvedValue({ ok: false });
+    openPendingRegistration();
+    fireEvent.change(screen.getByLabelText("6 位验证码"), { target: { value: "123456" } });
+    fireEvent.change(screen.getByLabelText("注册邮箱"), { target: { value: "another@example.com" } });
+    expect((screen.getByLabelText("6 位验证码") as HTMLInputElement).value).toBe("");
+    fireEvent.change(screen.getByLabelText("6 位验证码"), { target: { value: "001234" } });
+    fireEvent.click(screen.getByRole("button", { name: "返回登录" }));
+    fireEvent.click(screen.getByRole("button", { name: "继续验证注册邮箱" }));
+    expect((screen.getByLabelText("6 位验证码") as HTMLInputElement).value).toBe("");
   });
 });

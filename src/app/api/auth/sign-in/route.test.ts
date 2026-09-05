@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "./route";
+import { resetRegistrationRateLimitForTests } from "@/lib/auth/registration-rate-limit";
 
 const authMocks = vi.hoisted(() => ({
   signInWithPassword: vi.fn(),
@@ -23,6 +24,7 @@ function request(body: unknown) {
 
 describe("POST /api/auth/sign-in", () => {
   beforeEach(() => {
+    resetRegistrationRateLimitForTests();
     authMocks.signInWithPassword.mockReset();
     authMocks.signInWithOtp.mockReset();
     authMocks.verifyOtp.mockReset();
@@ -109,5 +111,46 @@ describe("POST /api/auth/sign-in", () => {
 
     expect(response.status).toBe(400);
     expect(authMocks.verifyOtp).not.toHaveBeenCalled();
+  });
+
+  it.each(["12345", "1234567", "abcdef"])("rejects malformed code %s", async (token) => {
+    expect((await POST(request({ method: "otp", email: "user@example.com", token }))).status).toBe(400);
+    expect(authMocks.verifyOtp).not.toHaveBeenCalled();
+  });
+
+  it("does not set cookies for an expired, incorrect or already used code", async () => {
+    authMocks.verifyOtp.mockResolvedValue({ data: { session: null }, error: { code: "otp_expired", status: 403 } });
+    const response = await POST(request({ method: "otp", email: "user@example.com", token: "000001" }));
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ error: "验证码错误或已过期，请重新获取最新验证码", code: "otp_expired" });
+    expect(authMocks.setSession).not.toHaveBeenCalled();
+  });
+
+  it("does not report success if the verified session cannot be persisted", async () => {
+    authMocks.verifyOtp.mockResolvedValue({ data: { session: { access_token: "token", refresh_token: "refresh" } }, error: null });
+    authMocks.setSession.mockResolvedValue({ error: { code: "session_write_failed" } });
+    const response = await POST(request({ method: "otp", email: "user@example.com", token: "000001" }));
+    expect(response.status).toBe(500);
+  });
+
+  it("limits repeated code guesses before contacting Supabase", async () => {
+    authMocks.verifyOtp.mockResolvedValue({ data: { session: null }, error: { code: "otp_expired" } });
+    for (let i = 0; i < 10; i += 1) await POST(request({ method: "otp", email: "user@example.com", token: "123456" }));
+    const response = await POST(request({ method: "otp", email: "user@example.com", token: "123456" }));
+    expect(response.status).toBe(429);
+    expect(Number(response.headers.get("Retry-After"))).toBeGreaterThan(0);
+    expect(authMocks.verifyOtp).toHaveBeenCalledTimes(10);
+  });
+
+  it("also limits guesses for the same email from different IPs", async () => {
+    authMocks.verifyOtp.mockResolvedValue({ data: { session: null }, error: { code: "otp_expired" } });
+    let response: Response | undefined;
+    for (let i = 0; i < 11; i += 1) {
+      const input = request({ method: "otp", email: "USER@example.com", token: "123456" });
+      input.headers.set("x-forwarded-for", `192.0.2.${i}`);
+      response = await POST(input);
+    }
+    expect(response?.status).toBe(429);
+    expect(authMocks.verifyOtp).toHaveBeenCalledTimes(10);
   });
 });

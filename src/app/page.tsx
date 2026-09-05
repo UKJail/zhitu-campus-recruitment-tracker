@@ -22,10 +22,18 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [resendingConfirmation, setResendingConfirmation] = useState(false);
   const [confirmationNotice, setConfirmationNotice] = useState("");
+  const [registrationOtp, setRegistrationOtp] = useState("");
+  const [confirmationCooldown, setConfirmationCooldown] = useState(0);
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [authServiceError, setAuthServiceError] = useState("");
   const [screen, setScreen] = useState<"login" | "register" | "registration-sent" | "otp" | "recovery" | "recovery-sent">("login");
+
+  useEffect(() => {
+    if (confirmationCooldown <= 0) return;
+    const timer = window.setTimeout(() => setConfirmationCooldown((seconds) => Math.max(0, seconds - 1)), 1000);
+    return () => window.clearTimeout(timer);
+  }, [confirmationCooldown]);
 
   useEffect(() => {
     let active = true;
@@ -100,6 +108,12 @@ export default function LoginPage() {
     const result = await response.json().catch(() => null) as { requiresEmailConfirmation?: boolean } | null;
     setLoading(false);
     if (result?.requiresEmailConfirmation) {
+      setRegistrationEmail(normalizedEmail);
+      setRegistrationPassword("");
+      setRegistrationConfirmPassword("");
+      setRegistrationOtp("");
+      setConfirmationNotice("");
+      setConfirmationCooldown(60);
       setScreen("registration-sent");
       return;
     }
@@ -108,6 +122,12 @@ export default function LoginPage() {
   }
 
   async function resendRegistrationConfirmation() {
+    if (resendingConfirmation || loading || confirmationCooldown > 0) return;
+    if (!registrationEmail.trim()) {
+      setError("请先填写注册时使用的邮箱地址");
+      return;
+    }
+    setError("");
     setResendingConfirmation(true);
     setConfirmationNotice("");
     const response = await fetch("/api/auth/resend-confirmation", {
@@ -118,9 +138,48 @@ export default function LoginPage() {
     }).catch(() => null);
     const result = await response?.json().catch(() => null) as { error?: string; message?: string } | null;
     setResendingConfirmation(false);
+    if (response?.ok || response?.status === 429) {
+      const retryAfter = Number(response.headers?.get("Retry-After"));
+      setConfirmationCooldown(Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : 60);
+    }
     setConfirmationNotice(response?.ok
       ? (result?.message || "如果账号尚未确认，新的验证邮件会发送到该邮箱。")
       : (result?.error || "暂时无法重新发送，请稍后再试。"));
+  }
+
+  async function verifyRegistrationCode(event: FormEvent) {
+    event.preventDefault();
+    if (loading || resendingConfirmation) return;
+    if (!/^\d{6}$/.test(registrationOtp)) {
+      setError("请输入邮件中的 6 位数字验证码");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    const response = await fetch("/api/auth/sign-in", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ method: "otp", email: registrationEmail.trim().toLowerCase(), token: registrationOtp }),
+    }).catch(() => null);
+    if (!response?.ok) {
+      const result = await response?.json().catch(() => null) as { error?: string } | null;
+      setError(result?.error || "验证暂时失败，请稍后重试；已验证的账号可以返回密码登录。");
+      setLoading(false);
+      return;
+    }
+    setRegistrationOtp("");
+    router.replace("/app");
+    router.refresh();
+  }
+
+  function openRegistrationVerification() {
+    setError("");
+    setLoginPassword("");
+    setRegistrationEmail(loginEmail.trim().toLowerCase());
+    setRegistrationOtp("");
+    setConfirmationNotice("");
+    setScreen("registration-sent");
   }
 
   async function requestPasswordReset(event: FormEvent) {
@@ -193,6 +252,7 @@ export default function LoginPage() {
     setRegistrationPassword("");
     setRegistrationConfirmPassword("");
     setOtp("");
+    setRegistrationOtp("");
     setOtpSent(false);
     setConfirmationNotice("");
     setResendingConfirmation(false);
@@ -226,7 +286,7 @@ export default function LoginPage() {
           <div className="password-label-row"><label htmlFor="password">密码</label><button type="button" onClick={() => { setError(""); setLoginPassword(""); setRecoveryEmail(""); setScreen("recovery"); }}>忘记密码？</button></div><input id="password" name="login-password" type="password" required autoComplete="current-password" value={loginPassword} onChange={(event) => setLoginPassword(event.target.value)} placeholder="输入登录密码" />
           {error && <p className="form-error" role="alert">{error}</p>}
           <button className="primary-button wide" type="submit" disabled={loading}>{loading ? "正在登录…" : "登录"}{!loading && <ArrowRight size={17} />}</button>
-        </form><button className="secondary-button wide auth-method-button" type="button" onClick={openRegistration}><UserPlus size={16} />注册新账号</button><button className="secondary-button wide auth-method-button" type="button" onClick={() => { setError(""); setLoginPassword(""); setOtpEmail(""); setScreen("otp"); }}><Mail size={16} />使用邮箱验证码登录</button><p className="activation-hint">公开测试期间可直接注册；旧激活链接仍可继续使用。</p><p className="legal-copy">继续即代表你同意《服务条款》和《隐私政策》。</p>
+        </form><button className="secondary-button wide auth-method-button" type="button" onClick={openRegistration}><UserPlus size={16} />注册新账号</button><button className="secondary-button wide auth-method-button" type="button" onClick={() => { setError(""); setLoginPassword(""); setOtpEmail(""); setScreen("otp"); }}><Mail size={16} />使用邮箱验证码登录</button><button className="auth-back-button" type="button" disabled={loading} onClick={openRegistrationVerification}>继续验证注册邮箱</button><p className="activation-hint">公开测试期间可直接注册；旧激活链接仍可继续使用。</p><p className="legal-copy">继续即代表你同意《服务条款》和《隐私政策》。</p>
       </>}
       {screen === "register" && <>
         <span className="mini-icon recovery-icon"><KeyRound size={18} /></span><h2>注册职途</h2><p>无需邀请码，使用邮箱创建你的公开测试账号。</p><form onSubmit={register}>
@@ -239,7 +299,15 @@ export default function LoginPage() {
         </form><button className="auth-back-button" type="button" onClick={returnToLogin}><ArrowLeft size={15} />返回登录</button>
       </>}
       {screen === "registration-sent" && <div className="recovery-sent-state">
-        <span className="mail-orbit"><MailCheck size={27} /></span><h2>请检查注册邮箱</h2><p>如果这是新账号，验证邮件会发送到 <strong>{registrationEmail.trim().toLowerCase()}</strong>。请同时检查垃圾邮件；如果这个邮箱已经注册或完成验证，系统不会重复发送，请直接登录或找回密码。</p>{confirmationNotice && <p className="form-notice" role="status">{confirmationNotice}</p>}<button className="primary-button wide" type="button" disabled={resendingConfirmation} onClick={() => void resendRegistrationConfirmation()}>{resendingConfirmation ? "正在重新发送…" : "重新发送验证邮件"}</button><button className="secondary-button wide" type="button" onClick={returnToLogin}><ArrowLeft size={15} />返回登录</button>
+        <span className="mail-orbit"><MailCheck size={27} /></span><h2>输入注册验证码</h2><p>请在下方输入注册邮件中的 6 位数字，无需点击验证链接。没有收到？请检查垃圾邮件，并使用最新邮件中的验证码。如果这个邮箱已经注册或完成验证，请直接登录或找回密码。</p>
+        <form onSubmit={verifyRegistrationCode}>
+          <label htmlFor="confirmation-email">注册邮箱</label><input id="confirmation-email" name="confirmation-email" type="email" required autoComplete="email" disabled={loading || resendingConfirmation} value={registrationEmail} onChange={(event) => { setRegistrationEmail(event.target.value); setRegistrationOtp(""); setError(""); setConfirmationNotice(""); }} placeholder="name@example.com" />
+          <label htmlFor="registration-otp">6 位验证码</label><input id="registration-otp" name="registration-otp" type="text" required inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} disabled={loading || resendingConfirmation} value={registrationOtp} onChange={(event) => setRegistrationOtp(event.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="输入邮件中的验证码" />
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <button className="primary-button wide" type="submit" disabled={loading || resendingConfirmation}>{loading ? "正在验证…" : "验证并进入职途"}</button>
+        </form>
+        {confirmationNotice && <p className="form-notice" role="status">{confirmationNotice}</p>}
+        <button className="secondary-button wide" type="button" disabled={loading || resendingConfirmation || confirmationCooldown > 0} onClick={() => void resendRegistrationConfirmation()}>{resendingConfirmation ? "正在重新发送…" : confirmationCooldown > 0 ? `${confirmationCooldown} 秒后可重新发送` : "重新发送验证码"}</button><button className="auth-back-button" type="button" disabled={loading || resendingConfirmation} onClick={returnToLogin}><ArrowLeft size={15} />返回登录</button>
       </div>}
       {screen === "otp" && <>
         <span className="mini-icon recovery-icon"><Mail size={18} /></span><h2>验证码登录</h2><p>已注册账号可以使用，验证码会发送到你的登录邮箱。</p><form onSubmit={otpSent ? verifyLoginCode : requestLoginCode}>

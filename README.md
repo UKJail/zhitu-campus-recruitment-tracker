@@ -34,6 +34,9 @@ Next.js 16 · React 19 · TypeScript · Supabase · PostgreSQL / RLS · DeepSeek
 - 15 张业务表全部启用行级权限（RLS），用户简历、申请、邮件和复盘彼此隔离。
 - `resumes` 私有存储桶已创建，限制 PDF/DOCX、单文件不超过 10MB。
 - 邮箱验证码登录使用 Supabase SSR，会话由 `proxy.ts` 刷新。
+- 注册确认使用同一个安全 OTP 校验入口：填写邮箱和密码 → 收取 6 位验证码 → 输入并进入职途。页面关闭后可从首页「继续验证注册邮箱」重新进入；不会保存密码或验证码。旧确认链接仍兼容，找回密码流程不变。
+- 托管 Supabase 的 Authentication → Emails → Confirm sign up：标题使用「职途｜注册邮箱验证码」，正文使用 `supabase/templates/confirmation.html`（`{{ .Token }}`，不是确认链接）。Sign In / Providers → Email 中保持邮箱确认开启，Email OTP Length 为 6；验证码登录模板也需包含 `{{ .Token }}`。此 HTML 是版本化配置副本，Git 部署不会自动更新托管邮件模板。
+- 验证码校验和发送均有按 IP、按邮箱的进程内限流，并依赖 Supabase 自身的验证限流；多实例部署时需改用共享限流存储。邮件是否进入收件箱由收件方决定，验证码方式不会自动消除垃圾邮件问题。
 - 简历中心已接入真实上传、PDF/DOCX 文本解析、列表和删除接口。
 - DeepSeek JD 分析与面试准备共用每日 AI 任务额度；简历上传解析、JD 分析和优化建议合并计为一次成功任务，最终简历导出不扣次数。
 - Resend Inbound Webhook 已按 Svix 签名规范实现，支持邮件去重、分类、职位匹配、用户确认后更新进度，以及单封邮件敏感内容删除。

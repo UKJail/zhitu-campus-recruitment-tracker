@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { createHash } from "node:crypto";
+import { consumeRegistrationAttempt, registrationClientKey } from "@/lib/auth/registration-rate-limit";
 import { createSupabaseAuthClient, createSupabaseServerClient } from "@/lib/supabase/server";
 import { classifyAuthFailure, getAuthFailureMessage, getAuthFailureStatus } from "@/lib/auth/provider-error";
 
@@ -27,8 +29,23 @@ const responseHeaders = { "Cache-Control": "private, no-store" };
 export async function POST(request: Request) {
   try {
     const input = signInSchema.parse(await request.json());
-    const authClient = createSupabaseAuthClient();
     const email = input.email.toLowerCase();
+    if (input.method !== "password") {
+      // Shared by signup confirmation and passwordless login. Never log codes or emails.
+      const operation = input.method === "otp" ? "verify" : "send";
+      const emailKey = createHash("sha256").update(email).digest("hex");
+      const limits = [
+        consumeRegistrationAttempt(`otp:${operation}:ip:${registrationClientKey(request)}`),
+        consumeRegistrationAttempt(`otp:${operation}:email:${emailKey}`),
+      ];
+      if (limits.some((limit) => !limit.allowed)) {
+        return NextResponse.json({ error: "验证码操作过于频繁，请稍后再试", code: "rate_limited" }, {
+          status: 429,
+          headers: { ...responseHeaders, "Retry-After": String(Math.max(...limits.map((limit) => limit.retryAfterSeconds))) },
+        });
+      }
+    }
+    const authClient = createSupabaseAuthClient();
 
     if (input.method === "request-otp") {
       const result = await authClient.auth.signInWithOtp({
