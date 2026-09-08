@@ -14,6 +14,7 @@ import { initialSuggestions, jobs as seedJobs, journey, resumes as seedResumes, 
 import { formatLocalChineseDate, greetingWithId } from "@/lib/local-time";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { InterviewPrepPage } from "@/components/interview-prep-page";
+import { ResumePdfPreview } from "@/components/resume-pdf-preview";
 import { BrandMascot } from "@/components/brand-mascot";
 import { CareerPortalDirectory } from "@/components/career-portal-directory";
 import { allowedConfirmationLinks, forwardingConfirmationProvider, forwardingVerificationState, gmailForwardingConfirmationCode, gmailRecruitmentFilterQuery, hasRecentInboundEmail, isGmailForwardingConfirmation, isQqForwardingConfirmation, recruitmentFilterKeywords } from "@/lib/mail/forwarding";
@@ -23,7 +24,7 @@ import type { InterviewReview, Job, Resume, Suggestion } from "@/lib/types";
 import type { RecruitingCalendarEvent } from "@/lib/mail/calendar";
 import { DEFAULT_DAILY_APPLICATION_TARGET, DEFAULT_JOB_PREFERENCES, hasJobPreferences, type JobPreferences } from "@/lib/account/preferences";
 import { matchJobPreferences } from "@/lib/jobs/preferences";
-import { downloadResumePdf } from "@/lib/resumes/pdf-download";
+import { downloadResumePdf, prepareResumePdf, downloadPreparedResumePdf, type PreparedResumePdf } from "@/lib/resumes/pdf-download";
 
 type PageKey = "home" | "jobs" | "resumes" | "progress" | "prep" | "reviews";
 type AccountProfile = { displayName: string | null; email: string; isAdmin: boolean; dailyApplicationTarget: number; jobPreferences: JobPreferences };
@@ -244,7 +245,6 @@ export function TrackerApp() {
           <button className="menu-button" onClick={() => setSidebar(true)} aria-label="打开菜单"><Menu /></button>
           <div><p>职途tracker</p><h1>{title}</h1></div>
           <div className="topbar-actions">
-            <label className="global-search" title="全局搜索暂未开放，请到职位库搜索职位与公司"><Search size={17} /><input aria-label="全局搜索（暂未开放）" placeholder="全局搜索暂未开放" disabled /></label>
             <span className="ai-quota-chip" title="简历优化与面试准备共用额度；北京时间 00:00 重置"><Sparkles size={15} /><strong>{aiQuota.remaining}</strong><small>/ {aiQuota.limit} 次</small></span>
             <div className="notification-wrap">
               <button className={`icon-button ${notifications.length > 0 ? "has-count" : ""}`} aria-label={`通知${notifications.length > 0 ? `，${notifications.length} 条` : ""}`} onClick={() => setNotificationsOpen(!notificationsOpen)}>
@@ -733,6 +733,8 @@ export function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQu
   const [generatedVersion, setGeneratedVersion] = useState<{ versionId: string; targetCompany: string; targetRole: string; acceptedCount: number; createdAt: string; qualityChecks: DeliveryQualityCheck[]; downloadUrl: string } | null>(null);
   const [pdfExport, setPdfExport] = useState<{ versionId: string; state: "loading" | "ready" | "failed"; message: string } | null>(null);
   const pdfRequest = useRef<{ versionId: string; controller: AbortController } | null>(null);
+  const pdfDocument = useRef<{ versionId: string; document: PreparedResumePdf; url: string } | null>(null);
+  const [pdfPreview, setPdfPreview] = useState<{ versionId: string; url: string; blob: Blob } | null>(null);
   const generationRequest = useRef<{ controller: AbortController } | null>(null);
   const deliveryEpoch = useRef(0);
   const mounted = useRef(true);
@@ -746,6 +748,9 @@ export function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQu
     deliveryEpoch.current += 1;
     pdfRequest.current?.controller.abort();
     pdfRequest.current = null;
+    if (pdfDocument.current) URL.revokeObjectURL(pdfDocument.current.url);
+    pdfDocument.current = null;
+    setPdfPreview(null);
     generationRequest.current?.controller.abort();
     generationRequest.current = null;
     setPdfExport(null);
@@ -759,23 +764,39 @@ export function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQu
       deliveryEpoch.current += 1;
       pdfRequest.current?.controller.abort();
       pdfRequest.current = null;
+      if (pdfDocument.current) URL.revokeObjectURL(pdfDocument.current.url);
+      pdfDocument.current = null;
       generationRequest.current?.controller.abort();
       generationRequest.current = null;
     };
   }, []);
 
-  async function exportPdf(version: { versionId: string }) {
+  async function exportPdf(version: { versionId: string }, preview = false) {
     if (!mounted.current || pdfRequest.current) return;
+    const cached = pdfDocument.current;
+    if (cached?.versionId === version.versionId) {
+      if (preview) setPdfPreview({ versionId: version.versionId, url: cached.url, blob: cached.document.blob });
+      else downloadPreparedResumePdf(cached.document);
+      return;
+    }
     const controller = new AbortController();
     const request = { versionId: version.versionId, controller };
     pdfRequest.current = request;
-    setPdfExport({ versionId: version.versionId, state: "loading", message: "正在生成并检查一页 A4 PDF，不会再次调用 AI 或扣除次数。" });
+    setPdfExport({ versionId: version.versionId, state: "loading", message: "正在生成 PDF…" });
     try {
-      await downloadResumePdf(version.versionId, controller.signal);
+      const document = preview
+        ? await prepareResumePdf(version.versionId, controller.signal)
+        : await downloadResumePdf(version.versionId, controller.signal);
       if (controller.signal.aborted) return;
-      const message = "PDF 已通过一页 A4 和文字保留检查，已开始下载。投递前请预览字体、留白、遮挡与阅读顺序；这不代表完整 ATS 或视觉验收。";
+      if (document) {
+        if (pdfDocument.current) URL.revokeObjectURL(pdfDocument.current.url);
+        const url = URL.createObjectURL(document.blob);
+        pdfDocument.current = { versionId: version.versionId, document, url };
+        if (preview) setPdfPreview({ versionId: version.versionId, url, blob: document.blob });
+      }
+      const message = "PDF 已通过一页 A4 和文字保留检查，请确认排版。";
       setPdfExport({ versionId: version.versionId, state: "ready", message });
-      notify("PDF 已开始下载，请打开预览确认排版");
+      notify(preview ? "简历已生成" : "PDF 已开始下载");
     } catch (error) {
       if (controller.signal.aborted) return;
       const message = error instanceof Error ? error.message : "PDF 导出失败，请稍后重试";
@@ -1007,8 +1028,8 @@ export function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQu
       if (!mounted.current || generationRequest.current !== pending || pending.controller.signal.aborted) return;
       if (!response.ok) throw new Error(payload.error || "生成定制简历失败");
       setGeneratedVersion(payload);
-      notify("已保存确认文字，正在生成并检查 PDF");
-      await exportPdf(payload);
+      notify("正在生成简历…");
+      await exportPdf(payload, true);
     } catch (error) {
       if (mounted.current && generationRequest.current === pending && !pending.controller.signal.aborted) notify(error instanceof Error ? error.message : "生成定制简历失败");
     } finally {
@@ -1061,15 +1082,14 @@ export function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQu
   const deliveryQualityChecks = generatedVersion?.qualityChecks ?? [];
   const currentPdfExport = pdfExport?.versionId === generatedVersion?.versionId ? pdfExport : null;
   return <div className="page-stack">
-    <section className="page-intro"><div><p className="eyebrow">简历中心</p><h2>让经历被准确看见</h2><span>所有修改由你确认，职途不会编造任何经历或数据。</span></div><label className="primary-button file-button"><Upload size={17} />上传新简历<input type="file" accept=".pdf,.docx" onChange={upload} /></label></section>
+    <section className="page-intro"><div><p className="eyebrow">简历中心</p><h2>让经历被准确看见</h2></div><label className="primary-button file-button"><Upload size={17} />上传新简历<input type="file" accept=".pdf,.docx" onChange={upload} /></label></section>
     {uploadName && <div className="upload-banner"><FileCheck2 /><span><strong>{uploadName}</strong> {uploading ? "正在解析" : "已完成解析"}</span><em>{uploading ? "请勿关闭页面" : "已安全保存"}</em></div>}
     <div className="resume-layout">
-      <aside className="resume-list panel"><div className="section-heading compact"><h3>我的简历</h3><span>{resumeItems.length}/3</span></div>{resumeItems.map((resume) => <article key={resume.id} className={`resume-entry ${selected?.id === resume.id ? "selected" : ""}`}><button className="resume-select" onClick={() => { setSelected(resume); setRealResumeId(resume.id.startsWith("resume-") ? null : resume.id); if (!resume.id.startsWith("resume-")) void restoreWorkspace(resume.id).catch((error) => notify(error instanceof Error ? error.message : "读取上次岗位分析失败")); }}><span className="file-type">{resume.fileType}</span><span><strong>{resume.name}</strong><small>{resume.updatedAt}{resume.completeness ? ` · 完整度 ${resume.completeness}%` : " · 已解析"}</small></span></button><button className="resume-delete" aria-label={`删除 ${resume.name}`} title="删除简历" disabled={deletingId === resume.id} onClick={() => void deleteResume(resume)}>{deletingId === resume.id ? <Clock3 size={15} /> : <Trash2 size={15} />}</button></article>)}<div className="privacy-note"><FileCheck2 size={17} /><span><strong>仅你可见</strong><small>文件使用私有存储和短时链接</small></span></div></aside>
-      {loading ? <section className="resume-empty panel" aria-live="polite"><FileText size={30} /><h3>正在读取你的简历</h3><p>文件将通过私有存储安全加载。</p></section> : !selected ? <section className="resume-empty panel"><Upload size={32} /><h3>{loadError ? "简历列表暂时无法加载" : "上传第一份简历"}</h3><p>{loadError || "支持 PDF、DOCX，文件不超过 10MB。上传后即可解析经历并进行 JD 匹配。"}</p>{!loadError && <label className="primary-button file-button"><Upload size={17} />选择简历文件<input type="file" accept=".pdf,.docx" onChange={upload} /></label>}</section> : <section className="resume-workspace panel">
-        <div className="resume-toolbar"><div><p className="eyebrow">当前简历</p><h3>{selected.name}</h3><small>原文件预览与导出暂未开放；定制版本生成后可下载 DOCX。</small></div><span><button className="secondary-button" disabled><FileText size={16} />预览（暂未开放）</button><button className="secondary-button" disabled>导出（暂未开放）</button></span></div>
-        <div className="ai-processing-note"><ShieldCheck size={16} /><span><strong>DeepSeek 只处理解析文本</strong><small>不发送原 PDF/DOCX；所有改写建议均需你逐条确认。</small></span></div>
-        <div className="match-hero"><div className="score-ring"><strong>{structured ? <Check size={23} /> : "AI"}</strong><small>{structured ? "已解析" : "待分析"}</small></div><div><p>简历解析与岗位匹配</p><h4>{structured ? `${structured.experiences.length} 段经历 · ${structured.projects.length} 个项目` : "上传、解析与 JD 建议合并为一个任务"}</h4><span>{structured ? <><i>{structured.skills.reduce((total, group) => total + group.items.length, 0)} 项技能</i><i className="warn">{structured.uncertainItems.length} 项待确认</i></> : <i>只在完整分析成功后计 1 次</i>}</span></div><span className="analysis-bundle-label"><Sparkles size={14} />随 JD 一起分析</span></div>
-        <div className="jd-analyzer"><div><p className="eyebrow">目标岗位 JD</p><h4>粘贴真实岗位要求后，获得匹配度与逐条优化建议</h4><small>成功生成完整结果计 1 次，失败不扣；今日剩余 {aiQuota.remaining}/{aiQuota.limit} 次。</small>{analysisNeedsRefresh && <p role="status">旧分析结果已不可用。点击下方“重新分析”将创建新任务并使用 1 次额度，不会自动生成。</p>}</div><div className="target-fields"><label>目标公司<input value={targetCompany} onChange={(event) => { setTargetCompany(event.target.value); invalidateAnalysis(); }} placeholder="例如：字节跳动" /></label><label>岗位名称<input value={targetRole} onChange={(event) => { setTargetRole(event.target.value); invalidateAnalysis(); }} placeholder="例如：推荐算法工程师" /></label></div><textarea value={jobDescription} onChange={(event) => { setJobDescription(event.target.value); invalidateAnalysis(); }} placeholder="粘贴职位描述、岗位职责和任职要求…" /><button className="primary-button" disabled={analyzing || jobDescription.trim().length < 20} onClick={analyze}><Sparkles size={15} />{analyzing ? "分析中…" : analysisSummary || analysisNeedsRefresh ? "重新分析（计 1 次）" : "分析并获取建议（计 1 次）"}</button></div>
+      <aside className="resume-list panel"><div className="section-heading compact"><h3>我的简历</h3><span>{resumeItems.length}/3</span></div>{resumeItems.map((resume) => <article key={resume.id} className={`resume-entry ${selected?.id === resume.id ? "selected" : ""}`}><button className="resume-select" onClick={() => { setSelected(resume); setRealResumeId(resume.id.startsWith("resume-") ? null : resume.id); if (!resume.id.startsWith("resume-")) void restoreWorkspace(resume.id).catch((error) => notify(error instanceof Error ? error.message : "读取上次岗位分析失败")); }}><span className="file-type">{resume.fileType}</span><span><strong>{resume.name}</strong><small>{resume.updatedAt}{resume.completeness ? ` · 完整度 ${resume.completeness}%` : " · 已解析"}</small></span></button><button className="resume-delete" aria-label={`删除 ${resume.name}`} title="删除简历" disabled={deletingId === resume.id} onClick={() => void deleteResume(resume)}>{deletingId === resume.id ? <Clock3 size={15} /> : <Trash2 size={15} />}</button></article>)}</aside>
+      {loading ? <section className="resume-empty panel" aria-live="polite"><FileText size={30} /><h3>正在读取你的简历</h3></section> : !selected ? <section className="resume-empty panel"><Upload size={32} /><h3>{loadError ? "简历列表暂时无法加载" : "上传第一份简历"}</h3><p>{loadError || "支持 PDF、DOCX，不超过 10MB。"}</p>{!loadError && <label className="primary-button file-button"><Upload size={17} />选择简历文件<input type="file" accept=".pdf,.docx" onChange={upload} /></label>}</section> : <section className="resume-workspace panel">
+        <div className="resume-toolbar"><div><p className="eyebrow">当前简历</p><h3>{selected.name}</h3></div>{realResumeId && <a className="secondary-button" href={`/api/resumes/${encodeURIComponent(realResumeId)}/file`}><Download size={16} />下载原文件</a>}</div>
+        <div className="match-hero"><div className="score-ring"><strong>{structured ? <Check size={23} /> : "AI"}</strong><small>{structured ? "已解析" : "待分析"}</small></div><div><p>简历解析与岗位匹配</p><h4>{structured ? `${structured.experiences.length} 段经历 · ${structured.projects.length} 个项目` : "匹配目标岗位"}</h4>{structured && <span><i>{structured.skills.reduce((total, group) => total + group.items.length, 0)} 项技能</i><i className="warn">{structured.uncertainItems.length} 项待确认</i></span>}</div></div>
+        <div className="jd-analyzer"><div><p className="eyebrow">目标岗位 JD</p>{analysisNeedsRefresh && <p role="status">旧分析结果已不可用。点击下方“重新分析”将创建新任务并使用 1 次额度，不会自动生成。</p>}</div><div className="target-fields"><label>目标公司<input value={targetCompany} onChange={(event) => { setTargetCompany(event.target.value); invalidateAnalysis(); }} placeholder="例如：字节跳动" /></label><label>岗位名称<input value={targetRole} onChange={(event) => { setTargetRole(event.target.value); invalidateAnalysis(); }} placeholder="例如：推荐算法工程师" /></label></div><textarea value={jobDescription} onChange={(event) => { setJobDescription(event.target.value); invalidateAnalysis(); }} placeholder="粘贴职位描述、岗位职责和任职要求…" /><button className="primary-button" disabled={analyzing || jobDescription.trim().length < 20} onClick={analyze}><Sparkles size={15} />{analyzing ? "分析中…" : analysisSummary || analysisNeedsRefresh ? "重新分析（计 1 次）" : "分析并获取建议（计 1 次）"}</button></div>
         {analysisSummary && <div className="match-hero match-result"><div className="score-ring"><strong>{analysisSummary.score}</strong><small>匹配分</small></div><div><p>真实 JD 分析结果</p><h4>已匹配 {analysisSummary.matchedKeywords.length} 个关键词</h4><span><i>{analysisSummary.matchedKeywords.slice(0, 3).join(" · ") || "暂无明确匹配词"}</i><i className="warn">待补充 {analysisSummary.missingKeywords.length} 项</i></span></div></div>}
         {analysisSummary && <section className="resume-evaluation">
           <div className="evaluation-heading"><div><p className="eyebrow">岗位门槛与整份简历取舍</p><h4>先判断能否申请，再决定保留什么</h4></div><span>{analysisSummary.requirementAnalysis.preferredRequirements.length} 项加分项 · {analysisSummary.requirementAnalysis.unknownRequirements.length} 项待确认</span></div>
@@ -1078,13 +1098,19 @@ export function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQu
           {analysisSummary.contentStrategy.consistencyWarnings.length > 0 && <div className="consistency-warning"><ShieldCheck size={15} /><span><strong>一致性待确认</strong>{analysisSummary.contentStrategy.consistencyWarnings.join("；")}</span></div>}
           {analysisSummary.deliveryChecklist.length > 0 && <div className="analysis-checklist">{analysisSummary.deliveryChecklist.map((item, index) => <span key={index} className={`check-${item.status}`}><i>{item.status === "通过" ? <CheckCircle2 size={14} /> : <Clock3 size={14} />}</i><strong>{item.check}</strong><small>{item.scope}检查 · {item.detail}</small></span>)}</div>}
         </section>}
-        <div className="suggestion-heading"><div><h4>逐条优化建议</h4><span>已接受 {accepted}/{suggestions.length} 条</span></div><p>{suggestions.length ? "建议只基于你的原始经历，带数字的内容请确认真实有效。" : "完成真实 JD 分析后，建议会在这里逐条展示；每条都保留原文供你确认。"}</p></div>
+        <div className="suggestion-heading"><div><h4>逐条优化建议</h4><span>已接受 {accepted}/{suggestions.length} 条</span></div>{suggestions.length === 0 && <p>分析后查看建议</p>}</div>
         <div className="suggestion-list">{suggestions.map((item) => <article className={`suggestion ${item.state}`} key={item.id}><header><span>{item.section}</span><span className="suggestion-flags">{item.action === "删除" && <em className="delete-flag">建议删除</em>}{item.stretchRisk && item.stretchRisk !== "无" && <em className="risk-flag">夸大风险 {item.stretchRisk}</em>}{item.requiresConfirmation && <em className="confirm-flag">需确认真实性</em>}<em className={`impact impact-${item.impact}`}>{item.impact}影响</em></span></header><div className="copy-compare"><div><small>原文</small><p>{item.original}</p></div><div className="revised"><small><Sparkles size={13} />{item.action === "删除" ? "取舍建议" : "建议版本"}</small><p>{item.action === "删除" ? "删除这条完整内容" : item.revised}</p>{item.jdRequirement && <em>对应 JD：{item.jdRequirement}</em>}</div></div><footer><span><Sparkles size={14} />{item.reason}{item.evidence?.length ? ` · 证据：${item.evidence.slice(0, 1).join("；")}` : ""}</span>{item.state === "pending" ? <div><button onClick={() => decide(item.id, false)}><X size={15} />保留原文</button><button className="accept" onClick={() => decide(item.id, true)}><Check size={15} />{item.action === "删除" ? "确认删除" : "接受建议"}</button></div> : <strong>{item.state === "accepted" ? <><CheckCircle2 size={15} />已接受</> : <><XCircle size={15} />已跳过</>}</strong>}</footer></article>)}</div>
-        {suggestions.length > 0 && <section className={`delivery-version ${generatedVersion ? "ready" : ""} ${selected.fileType !== "DOCX" ? "needs-template" : ""}`}>
+        {(suggestions.length > 0 || generatedVersion) && <section className={`delivery-version ${generatedVersion ? "ready" : ""} ${selected.fileType !== "DOCX" ? "needs-template" : ""}`}>
           <div className="version-stamp"><FileCheck2 /><span>{generatedVersion ? "READY" : selected.fileType === "DOCX" ? "DRAFT" : "DOCX"}</span></div>
           <div><p className="eyebrow">投递版本 · 原格式保真</p><h4>{generatedVersion ? `${generatedVersion.targetCompany} · ${generatedVersion.targetRole}` : selected.fileType === "DOCX" ? "在原始 Word 模板中替换已接受文字" : "请上传并选择原始 DOCX 简历"}</h4><span>{generatedVersion ? `采用 ${generatedVersion.acceptedCount} 条已确认建议 · 字体、字号、页边距与栏目结构继承原文件` : selected.fileType === "DOCX" ? `当前已接受 ${accepted} 条建议，只替换文字，不重新设计排版` : "PDF 无法进行原格式编辑，系统不会再用通用模板生成"}</span></div>
           {generatedVersion ? <div className="delivery-actions"><button className="primary-button" disabled={currentPdfExport?.state === "loading"} onClick={() => void exportPdf(generatedVersion)}><Download size={16} />{currentPdfExport?.state === "loading" ? "正在检查 PDF…" : currentPdfExport?.state === "failed" ? "重试导出 PDF" : "下载一页 PDF"}</button><a className="secondary-button" href={generatedVersion.downloadUrl}><Download size={16} />下载 DOCX</a><p role="status">{currentPdfExport?.message ?? "按原模板生成 PDF 并检查一页 A4 和文字层，不额外使用 AI 次数。下载后仍请预览排版。"}{currentPdfExport?.state === "failed" && " 已确认文字和 DOCX 版本均已保留，不会自动重写、删减或重新扣次。"}</p><label><span>原始岗位链接</span><input aria-label="原始岗位链接" value={manualApplicationUrl} onChange={(event) => { setManualApplicationUrl(event.target.value); setApplicationRecorded(false); }} placeholder="https://…" /></label><button className="secondary-button" disabled={recordingApplication || applicationRecorded} onClick={recordManualApplication}>{applicationRecorded ? <><CheckCircle2 size={15} />已记录投递</> : recordingApplication ? "记录中…" : "记录已投递"}</button></div> : selected.fileType === "DOCX" ? <button className="primary-button" disabled={generating || accepted === 0} onClick={generateResume}><FilePenLine size={16} />{generating ? "生成中…" : "生成投递简历"}</button> : <label className="primary-button file-button"><Upload size={16} />上传原始 DOCX<input type="file" accept=".docx" onChange={upload} /></label>}
           {deliveryQualityChecks.length > 0 && <div className="delivery-quality">{deliveryQualityChecks.map((check) => <span key={check.key} className={check.status}><i>{check.status === "passed" ? <CheckCircle2 size={14} /> : <Clock3 size={14} />}</i><strong>{check.label}</strong><small>{check.detail}</small></span>)}</div>}
+          {generatedVersion && <div className="resume-preview-actions"><button className="secondary-button" disabled={currentPdfExport?.state === "loading"} onClick={() => void exportPdf(generatedVersion, true)}><FileText size={16} />预览 PDF</button></div>}
+          {pdfPreview?.versionId === generatedVersion?.versionId && pdfPreview && <section className="resume-pdf-preview" aria-label="简历 PDF 预览">
+            <header><h4>简历预览</h4><button className="icon-button" aria-label="关闭简历预览" onClick={() => setPdfPreview(null)}><X size={18} /></button></header>
+            <ResumePdfPreview key={pdfPreview.url} blob={pdfPreview.blob} />
+            <a href={pdfPreview.url} target="_blank" rel="noopener noreferrer">在新窗口查看 PDF</a>
+          </section>}
         </section>}
       </section>}
     </div>

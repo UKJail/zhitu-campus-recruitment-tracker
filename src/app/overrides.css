@@ -1143,11 +1143,31 @@
   white-space: nowrap;
 }
 
-.jd-analyzer > div:first-child > small {
-  display: block;
-  margin-top: 5px;
-  color: var(--muted);
-  font-size: 9px;
+.jd-analyzer {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.jd-analyzer > .target-fields {
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
+}
+
+.jd-analyzer .target-fields input,
+.jd-analyzer textarea {
+  min-width: 0;
+  width: 100%;
+}
+
+.jd-analyzer > button {
+  grid-column: 1 / -1;
+  justify-self: end;
+}
+
+@media (max-width: 600px) {
+  .jd-analyzer > .target-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 760px) {
@@ -1212,6 +1232,15 @@
   color: var(--muted);
   overflow-wrap: anywhere;
 }
+.prep-generate-row > .primary-button { margin-left: auto; }
+.resume-preview-actions, .resume-pdf-preview { grid-column: 1 / -1; min-width: 0; }
+.resume-pdf-preview { width: 100%; margin-top: 12px; }
+.resume-pdf-preview header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.resume-pdf-canvas { overflow: auto; max-height: 80vh; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.resume-pdf-canvas canvas { display: block; width: 100%; height: auto; }
+.resume-pdf-canvas canvas[hidden] { display: none; }
+.resume-pdf-canvas > p { padding: 24px; color: var(--muted); }
+.resume-pdf-preview > a { display: inline-block; margin-top: 10px; font-size: 12px; }
 .delivery-version.ready .delivery-actions input { width: 100%; }
 @media (max-width: 760px) {
   .delivery-version.ready .delivery-actions { grid-template-columns: minmax(0, 1fr); }

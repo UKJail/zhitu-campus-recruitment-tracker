@@ -3,8 +3,17 @@
 ARG RENDERER_BASE_IMAGE
 FROM ${RENDERER_BASE_IMAGE}
 
-RUN apt-get update \
-    && apt-get install --no-install-recommends -y libreoffice-writer coreutils poppler-utils python3-minimal fonts-noto-cjk fonts-dejavu-core fonts-liberation \
+# The optional Alibaba VPC mirror changes transport only. Keep the image's
+# Debian archive keyring, Signed-By declarations and all APT signature checks.
+# Never accept an arbitrary build-time repository or trusted=yes override.
+ARG DEBIAN_MIRROR=official
+RUN case "$DEBIAN_MIRROR" in \
+      official) ;; \
+      aliyun-vpc) sed -i 's|http://deb.debian.org/|http://mirrors.cloud.aliyuncs.com/|g' /etc/apt/sources.list.d/debian.sources ;; \
+      *) exit 1 ;; \
+    esac \
+    && apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=60 update \
+    && apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=60 install --no-install-recommends -y libreoffice-writer coreutils poppler-utils python3-minimal fonts-noto-cjk fonts-dejavu-core fonts-liberation \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && test -x /usr/bin/libreoffice \

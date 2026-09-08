@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { downloadResumePdf } from "./pdf-download";
+import { downloadResumePdf, prepareResumePdf, downloadPreparedResumePdf } from "./pdf-download";
 
 const fetchMock = vi.fn();
 const createObjectURL = vi.fn(() => "blob:local-resume");
@@ -19,6 +19,18 @@ describe("browser PDF export download", () => {
     vi.stubGlobal("URL", { createObjectURL, revokeObjectURL });
   });
   afterEach(() => { vi.runOnlyPendingTimers(); vi.useRealTimers(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+
+  it("prepares preview bytes without a download, then downloads those same bytes without another request", async () => {
+    fetchMock.mockResolvedValue(new Response("%PDF-1.7", { headers }));
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    const document = await prepareResumePdf("version-1", new AbortController().signal);
+    expect(document?.filename).toBe("示例.pdf");
+    expect(click).not.toHaveBeenCalled();
+    expect(createObjectURL).not.toHaveBeenCalled();
+    downloadPreparedResumePdf(document!);
+    expect(click).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
 
   it("uses an explicit private POST and starts a local download only for verified output", async () => {
     fetchMock.mockResolvedValue(new Response("%PDF", { headers }));

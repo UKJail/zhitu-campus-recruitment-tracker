@@ -1,5 +1,7 @@
-/** Browser-only download helper. Never falls back to generating or paying for AI. */
-export async function downloadResumePdf(versionId: string, signal: AbortSignal) {
+export type PreparedResumePdf = { blob: Blob; filename: string };
+
+/** Fetch once for both preview and download. Never calls or pays for AI. */
+export async function prepareResumePdf(versionId: string, signal: AbortSignal): Promise<PreparedResumePdf | undefined> {
   const response = await fetch(`/api/resumes/versions/${encodeURIComponent(versionId)}/pdf`, {
     method: "POST",
     headers: { "X-Resume-Export": "pdf" },
@@ -24,6 +26,10 @@ export async function downloadResumePdf(versionId: string, signal: AbortSignal) 
   if (encoded) {
     try { filename = decodeURIComponent(encoded).replace(/[\\/\u0000-\u001f\u007f]/g, "_"); } catch { /* Use a safe fallback filename. */ }
   }
+  return { blob, filename };
+}
+
+export function downloadPreparedResumePdf({ blob, filename }: PreparedResumePdf) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
@@ -34,4 +40,11 @@ export async function downloadResumePdf(versionId: string, signal: AbortSignal) 
     // Let the browser consume the Blob before releasing its local URL.
     setTimeout(() => URL.revokeObjectURL(url), 1_000);
   }
+}
+
+/** Kept as a convenience for callers which only need a download. */
+export async function downloadResumePdf(versionId: string, signal: AbortSignal) {
+  const document = await prepareResumePdf(versionId, signal);
+  if (document && !signal.aborted) downloadPreparedResumePdf(document);
+  return document;
 }

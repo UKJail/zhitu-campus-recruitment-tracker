@@ -77,3 +77,31 @@
 6. 通过后才推送并部署 PDF 网站版本；保留上一 `.next` 和回退路径，最后检查健康、权限、下载回退及额度不变。
 
 所有临时验收目录只存代码或合成样本；本轮没有进行清理删除。不要把临时目录当作正式发布目录。
+
+## 2026-09-09 续验收：生成、预览和下载补齐（未上线）
+
+- 在隔离工作树 `.qa/website-release-20260908` 补充生成后的 PDF 预览、PDF/DOCX 下载和原文件下载；生成成功先预览，不自动触发下载。
+- 同一生成版本的预览和下载复用本地 Blob，不重复调用转换或 AI；切换简历/离开页面取消请求、撤销 Blob URL、终止预览 worker 并清除画布。
+- 历史版本即使对应分析不可读，仍保留下载入口。原文件接口按登录用户和所属简历双重筛选，私有下载、不缓存，不生成公开存储链接。
+- 实测发现 `iframe sandbox=""` 的原生 PDF 预览为空白，已替换为按需加载的 PDF.js 画布预览（同站 worker，不加载 PDF 脚本、表单或链接交互）。真实合成 PDF 在内嵌浏览器显示成功；这是预览器验收，不是服务器 DOCX 转换验收。
+- 最终画布预览修改后的全量回归：75 个测试文件、547 项通过；TypeScript、相关 lint 和 `next build --webpack` 通过，36/36 静态页面生成。
+- 本地生产构建预览已恢复在 `http://127.0.0.1:3000/app`，未配置真实 Supabase 身份，不能用演示页证明真实账号生成链路。
+- 当前原格式生成仍需 DOCX 原模板；PDF-only 输入的原位置重写/重建未实现，不能宣称所有输入格式都已交付。
+
+### 服务器已完成的隔离准备
+
+- 真实应用目录只读确认是 `/opt/zhitu-tracker`；现场健康检查 HTTP 200。没有修改正式环境变量、构建或账号。
+- 官方 Debian 固定来源材料完整校验并上传 `/tmp/debian-trixie-slim-amd64.docker.tar`：29,796,352 字节，SHA256 `c63e038754d130aa5dd515070a9e2832aabf95373ac6ce83ce4104bf23f1baeb`。
+- `docker load` 成功，镜像 ID `sha256:e426a54f50cc4cf82dd5cab8ba8426ed02c391840cb5a62dfd987542dbabea3b` 与校验配置一致；不含镜像标签覆盖。
+- 转换代码和五份合成样例包 `/tmp/pdf-renderer-reviewed-20260908.tar` SHA256 `a31a4810d14034ffcaf5f71500132989e2a9bf3e7c42df0f6244ca3aef796398`，解到新的私有目录 `/opt/zhitu-pdf-qa-reviewed-20260908`；只链接现有 node_modules，不包含网站配置或用户资料。
+- 服务器 `--check-fixtures` 通过：5 份、合计 26,271 字节、3 个实际运行模块预编译与安全档案检查成功。输出明确为 `realRenderPerformed:false`。
+- 转换镜像构建已启动，限制 768MB 内存/无额外 swap/1 CPU，日志 `/tmp/zhitu-pdf-build-reviewed-20260908.log`；仅使用官方 Debian 源。基础镜像中安装约 192MB 的组件下载很慢，最后观察到第 23 个包（libreoffice-common），尚未得到最终转换镜像 ID。
+- **尚未进行真实 DOCX→PDF 转换、中文/双栏视觉验收或正式部署。** 不因自动测试或预览器样例通过而放行。
+
+### 继续时先做
+
+1. 读取上述构建日志并检查 Docker 镜像，不重复启动同一构建。阿里云标签页最新终端为 `5f5y5kqb2h`；操作前核实连接。
+2. 若构建成功，记录不可变镜像 ID，再在隔离目录运行 `node scripts/qa-resume-pdf-real.mjs --image=sha256:<实际ID> --docker=/usr/bin/docker --out=/tmp/zhitu-pdf-real-<新的目录>`；不得加载 `.env`。
+3. 下载合成 PDF/检查报告，逐页转 PNG 并目视核验。通过后再做真实身份下网页生成→预览→双格式下载且额度不变的联调。
+4. 用户已明确允许阿里云官方镜像站。仅构建时可选 `DEBIAN_MIRROR=aliyun-vpc`，使用阿里云文档规定的 VPC HTTP 地址；与基础镜像原 HTTP 传输方式相同，保持原 Debian Signed-By/keyring 与签名/哈希校验，不使用 `trusted=yes`、不关闭 TLS 验证、不改宿主机源。新包 SHA256 `4feddd35f7ec77bef49fb0035d0907cea4f98c454c879f26b634362b5880518a`，新日志 `/tmp/zhitu-pdf-build-aliyun-20260909.log`；先检查这个构建的最终结果。
+5. 本地服务端口 3000 已确认 LISTENING、HTTP 200；但内嵌浏览器旧标签仍返回连接失败页。未绕过浏览器限制，不能宣称本地完整网页浏览器联调通过。独立端口的合成 PDF 预览器已实际显示成功。

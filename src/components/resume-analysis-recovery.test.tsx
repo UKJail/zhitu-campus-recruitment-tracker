@@ -36,11 +36,20 @@ describe("explicitly recover missing resume analyses", () => {
     expect(bodies[1].operationId).not.toBe(bodies[0].operationId);
   });
 
-  it("clearly disables the unavailable original-file actions instead of presenting working buttons", async () => {
+  it("omits unavailable original-file actions and repeated explanatory copy", async () => {
     render(<ResumesPage suggestions={[]} setSuggestions={setSuggestions} notify={notify} aiQuota={quota} onQuotaChanged={vi.fn()} />);
-    const preview = await screen.findByRole("button", { name: "预览（暂未开放）" });
-    expect((preview as HTMLButtonElement).disabled).toBe(true);
-    expect((screen.getByRole("button", { name: "导出（暂未开放）" }) as HTMLButtonElement).disabled).toBe(true);
-    expect(screen.getByText("原文件预览与导出暂未开放；定制版本生成后可下载 DOCX。")).toBeTruthy();
+    await screen.findByRole("heading", { name: "candidate.docx" });
+    expect(screen.queryByRole("button", { name: /预览|暂未开放/ })).toBeNull();
+    expect(screen.queryByText(/原文件预览与导出暂未开放/)).toBeNull();
+    expect(screen.queryByText(/DeepSeek 只处理解析文本/)).toBeNull();
+    expect(screen.queryByText(/不发送原 PDF\/DOCX/)).toBeNull();
+    expect(screen.queryByText(/私有存储|短时链接/)).toBeNull();
+    expect(screen.queryByText(/只在完整分析成功后计/)).toBeNull();
+    expect(screen.queryByText(/成功生成完整结果计/)).toBeNull();
+    expect(screen.queryByText(/上传、解析与 JD 建议合并/)).toBeNull();
+    expect(screen.getByRole("textbox", { name: "目标公司" })).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "岗位名称" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "分析并获取建议（计 1 次）" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "删除 candidate.docx" })).toBeTruthy();
   });
 });

@@ -4,8 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Suggestion } from "@/lib/types";
 import { analysisSchema } from "@/lib/ai/provider";
 
-const { downloadResumePdf } = vi.hoisted(() => ({ downloadResumePdf: vi.fn() }));
-vi.mock("@/lib/resumes/pdf-download", () => ({ downloadResumePdf }));
+const { downloadResumePdf, prepareResumePdf, downloadPreparedResumePdf } = vi.hoisted(() => ({ downloadResumePdf: vi.fn(), prepareResumePdf: vi.fn(), downloadPreparedResumePdf: vi.fn() }));
+vi.mock("@/lib/resumes/pdf-download", () => ({ downloadResumePdf, prepareResumePdf, downloadPreparedResumePdf }));
+vi.mock("@/lib/resumes/pdf-preview", () => ({ renderResumePdfPreview: vi.fn().mockResolvedValue(undefined) }));
 import { ResumesPage } from "./tracker-app";
 
 const fetchMock = vi.fn();
@@ -39,7 +40,11 @@ function deferGeneration() {
 }
 
 describe("one-page PDF delivery UI", () => {
-  beforeEach(() => { vi.clearAllMocks(); vi.stubGlobal("fetch", fetchMock); downloadResumePdf.mockResolvedValue(undefined); });
+  beforeEach(() => {
+    vi.clearAllMocks(); vi.stubGlobal("fetch", fetchMock); downloadResumePdf.mockResolvedValue(undefined);
+    prepareResumePdf.mockResolvedValue({ blob: new Blob(["%PDF-1.7"]), filename: "简历.pdf" });
+    vi.stubGlobal("URL", { createObjectURL: vi.fn(() => "blob:resume-preview"), revokeObjectURL: vi.fn() });
+  });
   afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
   it("does not convert restored history until the user explicitly clicks", async () => {
@@ -57,12 +62,41 @@ describe("one-page PDF delivery UI", () => {
     fixture(false); render(<Harness />);
     fireEvent.click(await screen.findByRole("button", { name: "接受建议" }));
     fireEvent.click(screen.getByRole("button", { name: "生成投递简历" }));
-    await waitFor(() => expect(downloadResumePdf).toHaveBeenCalledTimes(1));
-    expect(downloadResumePdf).toHaveBeenCalledWith(version.versionId, expect.any(AbortSignal));
+    await waitFor(() => expect(prepareResumePdf).toHaveBeenCalledTimes(1));
+    expect(prepareResumePdf).toHaveBeenCalledWith(version.versionId, expect.any(AbortSignal));
+    expect(await screen.findByTitle("已生成简历 PDF")).toBeTruthy();
+    expect(downloadResumePdf).not.toHaveBeenCalled();
     expect(fetchMock.mock.calls.filter(([url]) => url === "/api/ai/generate-resume")).toHaveLength(1);
     const body = JSON.parse(fetchMock.mock.calls.find(([url]) => url === "/api/ai/generate-resume")?.[1]?.body);
     expect(body.acceptedSuggestionIndexes).toEqual([0]);
     expect(await screen.findByRole("link", { name: "下载 DOCX" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "下载一页 PDF" }));
+    expect(downloadPreparedResumePdf).toHaveBeenCalledTimes(1);
+    expect(prepareResumePdf).toHaveBeenCalledTimes(1);
+  });
+
+  it("previews a restored version and releases its private URL when switching resumes", async () => {
+    fixture(true, true); render(<Harness />);
+    fireEvent.click(await screen.findByRole("button", { name: "预览 PDF" }));
+    const frame = await screen.findByTitle("已生成简历 PDF");
+    expect(frame.tagName).toBe("CANVAS");
+    fireEvent.click(screen.getByRole("button", { name: /^DOCX.*second\.docx/ }));
+    await screen.findByRole("heading", { name: "second.docx" });
+    expect(screen.queryByTitle("已生成简历 PDF")).toBeNull();
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:resume-preview");
+  });
+
+  it("keeps the generated download available even when its old analysis is unavailable", async () => {
+    fixture(true);
+    const base = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation(async (url: string) => {
+      const response = await base(url);
+      if (!url.endsWith("/workspace")) return response;
+      return { ok: true, json: async () => ({ ...await response.json(), analysis: null }) };
+    });
+    render(<Harness />);
+    expect(await screen.findByRole("link", { name: "下载 DOCX" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "预览 PDF" })).toBeTruthy();
   });
 
   it("preserves DOCX and explains failed PDF checks, then retries only on another click", async () => {
