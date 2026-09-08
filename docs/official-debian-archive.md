@@ -38,12 +38,74 @@ that directory. This command downloads public official artifacts but does not ca
 ```
 
 No arguments or `--help` prints usage without network access or file writes.
-The script accepts only its two fixed HTTPS URLs, refuses redirects and unexpected
+The download mode accepts only its two fixed HTTPS URLs, refuses redirects and unexpected
 HTTP content encoding, limits byte counts and download time, preserves the original
 config bytes, and creates a private directory with exclusive-create files.
 It neither reads `.env` nor requests credentials. A failed run retains private
 intermediates for operator review and never writes a successful provenance report.
 Never load a partial archive from a failed run. Nothing automatically retries.
+
+## Offline preparation from an official Git fetch
+
+If `github.com` is reachable while Docker Hub and `raw.githubusercontent.com` are
+not, an operator may obtain exactly these same pinned files using the official
+repository's Git transport. This is still the same upstream, not a mirror. The
+Node helper's offline mode does **not** run Git or access the network itself:
+
+```sh
+/usr/bin/node scripts/prepare-official-debian-archive.mjs --offline-dir=/absolute/pinned-files --out=/tmp/zhitu-official-debian-NEW-UNIQUE
+```
+
+The input directory must contain regular, non-symlink `index.json` and
+`rootfs.tar.gz`. Only these two names are opened. Their private output copies are
+bounded and checked against the same pinned manifest/config/layer hashes and
+uncompressed diffID as HTTPS mode. Wrong size, modified bytes, special files,
+existing output directories and missing files stop preparation. Input files are
+not modified. No credentials, `.env`, Git settings, or other directory files are read.
+`prepareFromFiles({ sourceDirectory, out })` is also exported for operator code.
+Its successful report has `sourceMode: "offline-pinned-files"`.
+
+### Minimal partial Git acquisition (operator only)
+
+First check the server's Git version supports partial fetch. Run the following in
+a separate shell. It creates its own private temporary repository, never changes
+the website repository, avoids global/system Git configuration and credentials,
+keeps TLS verification enabled, and refuses HTTP redirects. It fetches one pinned
+commit at depth 1 with blobs omitted, then requests only the two needed contents.
+No checkout is done, so no other working-tree files or hooks are loaded.
+[Git fetch filtering](https://git-scm.com/docs/git-fetch),
+[partial-clone lazy fetching](https://git-scm.com/docs/partial-clone),
+[git show](https://git-scm.com/docs/git-show).
+
+```sh
+(
+set -eu
+umask 077
+export GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null GIT_TERMINAL_PROMPT=0
+task_debian_git=$(mktemp -d /tmp/zhitu-debian-git.XXXXXX)
+git -C "$task_debian_git" init -q
+git -C "$task_debian_git" remote add origin https://github.com/debuerreotype/docker-debian-artifacts.git
+git -C "$task_debian_git" config credential.helper ''
+git -C "$task_debian_git" config http.sslVerify true
+git -C "$task_debian_git" config http.followRedirects false
+git -C "$task_debian_git" config remote.origin.promisor true
+git -C "$task_debian_git" config remote.origin.partialclonefilter blob:none
+git -C "$task_debian_git" -c protocol.version=2 fetch --depth=1 --filter=blob:none --no-tags --no-recurse-submodules origin bae6d64d90b4068b09ff9d8b564c2773ef5d8d83
+test "$(git -C "$task_debian_git" rev-parse FETCH_HEAD)" = bae6d64d90b4068b09ff9d8b564c2773ef5d8d83
+mkdir "$task_debian_git/artifacts"
+git -C "$task_debian_git" show 'bae6d64d90b4068b09ff9d8b564c2773ef5d8d83:trixie/slim/oci/index.json' > "$task_debian_git/artifacts/index.json"
+git -C "$task_debian_git" show 'bae6d64d90b4068b09ff9d8b564c2773ef5d8d83:trixie/slim/oci/blobs/rootfs.tar.gz' > "$task_debian_git/artifacts/rootfs.tar.gz"
+printf 'offline_dir=%s/artifacts\n' "$task_debian_git"
+)
+```
+
+Inspect progress during the fetch. If filtering is unsupported/ignored or an
+unexpectedly large pack is transferred, stop. Do not remove the filter, perform
+a full clone, follow a third-party URL, disable TLS, or substitute another commit.
+Sparse checkout is unnecessary for this two-file task; it would add a working
+tree without reducing transfer further than the two explicit blob requests.
+These instructions are an acquisition recipe, **not a claim that this server's
+Git transport or the resulting Docker archive has already been verified live**.
 
 On success, the directory contains:
 

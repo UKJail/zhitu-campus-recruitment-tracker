@@ -4,8 +4,8 @@
  * Node >=22. No dependencies. See docs/official-debian-archive.md for provenance.
  */
 import { createHash } from "node:crypto";
-import { createReadStream } from "node:fs";
-import { link, mkdir, open, readFile, unlink, writeFile } from "node:fs/promises";
+import { constants, createReadStream } from "node:fs";
+import { link, lstat, mkdir, open, readFile, unlink, writeFile } from "node:fs/promises";
 import { isAbsolute, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { createGunzip } from "node:zlib";
@@ -27,13 +27,20 @@ export const PIN = Object.freeze({
 });
 const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const fail = (code) => { throw new Error(code); };
+const safeAbsolutePath = (path) => typeof path === "string" && isAbsolute(path) && !/[\r\n\0]/.test(path);
 
 export function optionsFromArgs(args) {
   if (!args.length || (args.length === 1 && args[0] === "--help")) return null;
-  if (args.length !== 2 || args[0] !== "--download" || !args[1].startsWith("--out=")) fail("INVALID_ARGUMENTS");
+  if (args.length !== 2 || !args[1].startsWith("--out=")) fail("INVALID_ARGUMENTS");
   const out = args[1].slice(6);
-  if (!isAbsolute(out) || /[\r\n\0]/.test(out)) fail("INVALID_ARGUMENTS");
-  return { out };
+  if (!safeAbsolutePath(out)) fail("INVALID_ARGUMENTS");
+  if (args[0] === "--download") return { out, mode: "download" };
+  if (args[0].startsWith("--offline-dir=")) {
+    const sourceDirectory = args[0].slice(14);
+    if (!safeAbsolutePath(sourceDirectory)) fail("INVALID_ARGUMENTS");
+    return { out, mode: "offline", sourceDirectory };
+  }
+  fail("INVALID_ARGUMENTS");
 }
 
 function inlineBlob(descriptor, expectedHash, expectedSize) {
@@ -94,6 +101,42 @@ export async function download(url, destination, expectedBytes, expectedHash, fe
     controller.abort();
     await handle?.close();
   }
+}
+
+/** Copy only the two fixed offline artifact names. Never follows symlink files,
+ * scans a directory, reads a Git config/credential, or makes a network request.
+ * A private, exclusive-create copy decouples later verification from input edits.
+ */
+export async function copyOfflineArtifact(sourceDirectory, out, name) {
+  if (!safeAbsolutePath(sourceDirectory) || !safeAbsolutePath(out) || !["index.json", "rootfs.tar.gz"].includes(name)) fail("INVALID_OFFLINE_INPUT");
+  const source = join(sourceDirectory, name);
+  const metadata = await lstat(source);
+  if (!metadata.isFile() || metadata.isSymbolicLink()) fail("INVALID_OFFLINE_INPUT");
+  const layer = name === "rootfs.tar.gz";
+  const maxBytes = layer ? PIN.layerBytes : 16_384;
+  if (metadata.size < 1 || metadata.size > maxBytes || (layer && metadata.size !== PIN.layerBytes)) fail("OFFLINE_SIZE_MISMATCH");
+  const input = await open(source, constants.O_RDONLY | (constants.O_NOFOLLOW || 0));
+  let output;
+  let stream;
+  let timer;
+  try {
+    const opened = await input.stat();
+    if (!opened.isFile() || opened.dev !== metadata.dev || opened.ino !== metadata.ino || opened.size !== metadata.size) fail("INVALID_OFFLINE_INPUT");
+    output = await open(join(out, name), "wx", 0o600);
+    stream = input.createReadStream({ autoClose: false });
+    timer = setTimeout(() => stream.destroy(new Error("OFFLINE_READ_TIMEOUT")), 45_000);
+    let bytes = 0;
+    const digest = createHash("sha256");
+    for await (const chunk of stream) {
+      bytes += chunk.length;
+      if (bytes > maxBytes) fail("OFFLINE_SIZE_MISMATCH");
+      digest.update(chunk); await output.writeFile(chunk);
+    }
+    const sha256 = digest.digest("hex");
+    if (bytes !== metadata.size || (layer && sha256 !== PIN.layer)) fail("OFFLINE_DIGEST_MISMATCH");
+    await output.sync();
+    return { bytes, sha256 };
+  } finally { clearTimeout(timer); stream?.destroy(); await output?.close(); await input.close(); }
 }
 
 export async function verifyUncompressedLayer(path, expectedDiffId, maxBytes = 512 * 1024 * 1024) {
@@ -157,20 +200,8 @@ export async function createDockerArchive(path, configBytes, layerPath, layerByt
   } finally { await handle.close(); }
 }
 
-async function main() {
-  const options = optionsFromArgs(process.argv.slice(2));
-  if (!options) {
-    console.log("Prepare only, no Docker calls: node scripts/prepare-official-debian-archive.mjs --download --out=/absolute/new-private-directory\nDownloads only pinned official GitHub index and 29,792,658-byte layer; refuses redirects, hash mismatches, and existing output directories. Does not load/import or change any container.");
-    return;
-  }
-  if (process.env.NODE_TLS_REJECT_UNAUTHORIZED === "0") fail("INSECURE_TLS_CONFIGURATION");
-  const { out } = options;
-  await mkdir(out, { mode: 0o700 }); // No recursive mkdir or replacement of existing files.
-  const indexPath = join(out, "index.json");
-  await download(PIN.indexUrl, indexPath);
-  const metadata = verifyIndex(await readFile(indexPath));
+async function finishArchive(out, metadata, sourceMode) {
   const layerPath = join(out, "rootfs.tar.gz");
-  await download(PIN.layerUrl, layerPath, PIN.layerBytes, PIN.layer);
   const uncompressed = await verifyUncompressedLayer(layerPath, metadata.diffId);
   const partialArchive = join(out, "debian-trixie-slim-amd64.docker.tar.partial");
   const archive = await createDockerArchive(partialArchive, metadata.configBytes, layerPath, PIN.layerBytes);
@@ -178,14 +209,43 @@ async function main() {
   // publishes a partial file under the final loadable name.
   await link(partialArchive, join(out, "debian-trixie-slim-amd64.docker.tar"));
   await unlink(partialArchive);
-  const report = { verified: true, dockerLoaded: false, sources: PIN, expectedImageId: `sha256:${PIN.config}`, uncompressed, archive };
+  const report = { verified: true, dockerLoaded: false, sourceMode, sources: PIN, expectedImageId: `sha256:${PIN.config}`, uncompressed, archive };
   await writeFile(join(out, "provenance.json"), JSON.stringify(report, null, 2) + "\n", { flag: "wx", mode: 0o600 });
+  return report;
+}
+
+export async function prepareFromFiles({ sourceDirectory, out }) {
+  if (!safeAbsolutePath(sourceDirectory) || !safeAbsolutePath(out)) fail("INVALID_ARGUMENTS");
+  const directory = await lstat(sourceDirectory);
+  if (!directory.isDirectory() || directory.isSymbolicLink()) fail("INVALID_OFFLINE_INPUT");
+  await mkdir(out, { mode: 0o700 });
+  await copyOfflineArtifact(sourceDirectory, out, "index.json");
+  const metadata = verifyIndex(await readFile(join(out, "index.json")));
+  await copyOfflineArtifact(sourceDirectory, out, "rootfs.tar.gz");
+  return finishArchive(out, metadata, "offline-pinned-files");
+}
+
+async function main() {
+  const options = optionsFromArgs(process.argv.slice(2));
+  if (!options) {
+    console.log("Prepare only, no Docker calls:\nnode scripts/prepare-official-debian-archive.mjs --download --out=/absolute/new-private-directory\nnode scripts/prepare-official-debian-archive.mjs --offline-dir=/absolute/pinned-files --out=/absolute/new-private-directory\nOffline mode reads only index.json and rootfs.tar.gz, with the same fixed upstream hashes and bounded diffID verification; it never calls the network. Does not load/import or change any container.");
+    return;
+  }
+  if (options.mode === "offline") { console.log(JSON.stringify(await prepareFromFiles(options))); return; }
+  if (process.env.NODE_TLS_REJECT_UNAUTHORIZED === "0") fail("INSECURE_TLS_CONFIGURATION");
+  const { out } = options;
+  await mkdir(out, { mode: 0o700 });
+  const indexPath = join(out, "index.json");
+  await download(PIN.indexUrl, indexPath);
+  const metadata = verifyIndex(await readFile(indexPath));
+  await download(PIN.layerUrl, join(out, "rootfs.tar.gz"), PIN.layerBytes, PIN.layer);
+  const report = await finishArchive(out, metadata, "official-https");
   console.log(JSON.stringify(report));
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((error) => {
-    const safeCodes = new Set(["INVALID_ARGUMENTS", "METADATA_DIGEST_MISMATCH", "INVALID_METADATA", "WRONG_PLATFORM", "LAYER_DESCRIPTOR_MISMATCH", "INVALID_CONFIG", "NON_OFFICIAL_SOURCE", "DOWNLOAD_FAILED", "DOWNLOAD_SIZE_MISMATCH", "UNEXPECTED_HTTP_ENCODING", "DOWNLOAD_DIGEST_MISMATCH", "LAYER_VERIFICATION_TIMEOUT", "UNCOMPRESSED_SIZE_LIMIT", "LAYER_DIFFID_MISMATCH", "INVALID_TAR_ENTRY", "LAYER_CHANGED_AFTER_VERIFICATION", "INSECURE_TLS_CONFIGURATION"]);
+    const safeCodes = new Set(["INVALID_ARGUMENTS", "METADATA_DIGEST_MISMATCH", "INVALID_METADATA", "WRONG_PLATFORM", "LAYER_DESCRIPTOR_MISMATCH", "INVALID_CONFIG", "NON_OFFICIAL_SOURCE", "DOWNLOAD_FAILED", "DOWNLOAD_SIZE_MISMATCH", "UNEXPECTED_HTTP_ENCODING", "DOWNLOAD_DIGEST_MISMATCH", "LAYER_VERIFICATION_TIMEOUT", "UNCOMPRESSED_SIZE_LIMIT", "LAYER_DIFFID_MISMATCH", "INVALID_TAR_ENTRY", "LAYER_CHANGED_AFTER_VERIFICATION", "INSECURE_TLS_CONFIGURATION", "INVALID_OFFLINE_INPUT", "OFFLINE_SIZE_MISMATCH", "OFFLINE_DIGEST_MISMATCH", "OFFLINE_READ_TIMEOUT"]);
     console.error(JSON.stringify({ event: "official_debian_archive_failed", code: safeCodes.has(error?.message) ? error.message : "PREPARATION_FAILED", verified: false, dockerLoaded: false, message: "Preparation failed closed; do not load any partial archive. Existing private output is retained for inspection." }));
     process.exitCode = 1;
   });
