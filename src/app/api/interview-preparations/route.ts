@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getAIProvider, interviewPreparationSchema } from "@/lib/ai/provider";
 import { completeAIUsage, releaseAIUsage, reserveAIUsage } from "@/lib/ai/quota";
+import { bindAIUsageRun } from "@/lib/ai/quota-reconciliation";
 import { extractResumeText, validateResumeFile } from "@/lib/resumes/parse";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
 
@@ -115,6 +116,13 @@ export async function POST(request: Request) {
       }
       return NextResponse.json({ error: "旧面试准备结果已不可用，请重新生成；重新生成会使用一次 AI 额度", code: "AI_RESULT_UNAVAILABLE", quota: reservation.quota }, { status: 409 });
     }
+    if (!reservation.reserved && ["expired", "released"].includes(reservation.taskStatus)) {
+      return NextResponse.json({
+        error: "上一次面试准备任务已结束或超时，本次没有重新生成。请先查看已有结果；如仍需生成，请再次点击生成按钮新建任务",
+        code: "AI_TASK_EXPIRED",
+        quota: reservation.quota,
+      }, { status: 409 });
+    }
     if (!reservation.reserved || !reservation.taskId) {
       return NextResponse.json({ error: "这项面试准备正在处理中，请稍后查看结果", quota: reservation.quota }, { status: 409 });
     }
@@ -131,6 +139,8 @@ export async function POST(request: Request) {
     }).select("id").single();
     if (runError || !run) throw new Error("无法创建 AI 面试准备记录");
     runId = run.id;
+    stage = "task_binding";
+    await bindAIUsageRun(supabase, taskId, runId);
 
     stage = "ai_generation";
     const result = await getAIProvider().prepareInterview({ resumeText, jobDescription: input.jobDescription, company: input.company, role: input.role });

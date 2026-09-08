@@ -4,6 +4,7 @@ const { getAuthenticatedUserId } = vi.hoisted(() => ({ getAuthenticatedUserId: v
 
 vi.mock("@/lib/supabase/server", () => ({ getAuthenticatedUserId }));
 vi.mock("@/lib/ai/provider", () => ({ getAIProvider: vi.fn() }));
+vi.mock("@/lib/ai/quota-reconciliation", () => ({ bindAIUsageRun: vi.fn() }));
 
 import { POST } from "./route";
 

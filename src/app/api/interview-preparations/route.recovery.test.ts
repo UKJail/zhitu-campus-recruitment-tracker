@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ auth: vi.fn(), reserve: vi.fn(), complete: vi.fn(), release: vi.fn(), prepare: vi.fn(), extract: vi.fn(), validate: vi.fn() }));
+const mocks = vi.hoisted(() => ({ auth: vi.fn(), reserve: vi.fn(), complete: vi.fn(), release: vi.fn(), prepare: vi.fn(), extract: vi.fn(), validate: vi.fn(), bind: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ getAuthenticatedUserId: mocks.auth }));
 vi.mock("@/lib/ai/quota", () => ({ reserveAIUsage: mocks.reserve, completeAIUsage: mocks.complete, releaseAIUsage: mocks.release }));
+vi.mock("@/lib/ai/quota-reconciliation", () => ({ bindAIUsageRun: mocks.bind }));
 vi.mock("@/lib/resumes/parse", () => ({ extractResumeText: mocks.extract, validateResumeFile: mocks.validate }));
 vi.mock("@/lib/ai/provider", async (importOriginal) => ({
   ...await importOriginal<typeof import("@/lib/ai/provider")>(),
@@ -50,6 +51,7 @@ describe("interview preparation settlement recovery", () => {
     mocks.reserve.mockResolvedValue({ allowed: true, reserved: true, cached: false, taskId, resultRunId: null, quota });
     mocks.complete.mockResolvedValue(quota);
     mocks.release.mockResolvedValue(quota);
+    mocks.bind.mockResolvedValue(undefined);
   });
 
   it("retries settlement without generating twice or deleting finished artifacts", async () => {
@@ -81,5 +83,32 @@ describe("interview preparation settlement recovery", () => {
     expect(writes.some((write) => write.value?.status === "failed")).toBe(true);
     expect(remove).toHaveBeenCalledTimes(1);
     expect(mocks.release).toHaveBeenCalledTimes(1);
+  });
+  it("records task binding before calling the interview provider", async () => {
+    fixture();
+    expect((await POST(request())).status).toBe(201);
+    expect(mocks.bind).toHaveBeenCalledExactlyOnceWith(expect.anything(), taskId, runId);
+    expect(mocks.bind.mock.invocationCallOrder[0]).toBeLessThan(mocks.prepare.mock.invocationCallOrder[0]);
+  });
+  it("does not run AI on an uncertain bind and cleans only the unfinished upload", async () => {
+    const { writes, remove } = fixture();
+    mocks.bind.mockRejectedValue(new Error("无法绑定 AI 任务，尚未开始生成"));
+    expect((await POST(request())).status).toBe(400);
+    expect(mocks.prepare).not.toHaveBeenCalled();
+    expect(mocks.complete).not.toHaveBeenCalled();
+    expect(mocks.release).toHaveBeenCalledWith(expect.anything(), taskId);
+    expect(writes.some((write) => write.value?.status === "failed")).toBe(true);
+    expect(remove).toHaveBeenCalledTimes(1);
+  });
+  it.each(["expired", "released"])("does not upload or regenerate a %s operation", async (taskStatus) => {
+    const { writes, upload } = fixture();
+    mocks.reserve.mockResolvedValue({ allowed: true, reserved: false, cached: false, taskId, taskStatus, quota });
+    const response = await POST(request());
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({ code: "AI_TASK_EXPIRED", quota });
+    expect(mocks.bind).not.toHaveBeenCalled();
+    expect(mocks.prepare).not.toHaveBeenCalled();
+    expect(upload).not.toHaveBeenCalled();
+    expect(writes).toEqual([]);
   });
 });

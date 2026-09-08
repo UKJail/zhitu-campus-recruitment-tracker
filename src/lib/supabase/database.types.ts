@@ -830,6 +830,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      bind_ai_usage_run_server: {
+        Args: { p_user_id: string; p_task_id: string; p_run_id: string }
+        Returns: boolean
+      }
+      reconcile_ai_usage_server: {
+        Args: { p_user_id?: string; p_limit?: number }
+        Returns: Json
+      }
       reserve_ai_usage_server: {
         Args: { p_user_id: string; p_kind: string; p_operation_key: string; p_input_fingerprint: string; p_force_new?: boolean }
         Returns: Json

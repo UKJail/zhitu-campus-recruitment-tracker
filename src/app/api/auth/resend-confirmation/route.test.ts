@@ -41,8 +41,8 @@ describe("POST /api/auth/resend-confirmation", () => {
     expect(await response.json()).toMatchObject({ accepted: true });
   });
 
-  it("does not reveal whether the email is already registered", async () => {
-    resendMocks.resend.mockResolvedValue({ error: { code: "email_confirmed", status: 422 } });
+  it.each(["email_confirmed", "user_not_found", "user_already_exists", "email_exists"])("does not reveal account state %s", async (code) => {
+    resendMocks.resend.mockResolvedValue({ error: { code, status: 422 } });
 
     const response = await POST(request({ email: "existing@example.com" }));
 
@@ -67,5 +67,60 @@ describe("POST /api/auth/resend-confirmation", () => {
 
     expect(response.status).toBe(502);
     expect(await response.json()).toEqual({ error: "验证邮件服务暂时不可用" });
+  });
+
+  it.each([
+    { name: "AuthRetryableFetchError", message: "fetch failed: private-provider-detail", status: 0 },
+    { name: "AuthFetchError", message: "network unavailable: private-provider-detail" },
+    { message: "request timed out: private-provider-detail", status: 408 },
+  ])("does not disguise an SDK transport failure as accepted: %j", async (error) => {
+    resendMocks.resend.mockResolvedValue({ error });
+    const response = await POST(request({ email: "candidate@example.com" }));
+    expect(response.status).toBe(503);
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+    expect(await response.json()).toEqual({ error: "验证邮件服务暂时不可用" });
+    expect(resendMocks.resend).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    { code: "email_address_not_authorized", status: 422 },
+    { code: "bad_jwt", status: 401 },
+    { code: "email_provider_disabled", status: 422 },
+    { code: "captcha_failed", status: 403 },
+    { code: "unrecognized_failure", status: 422 },
+    { code: "user_not_found", status: 0 },
+    { code: "email_confirmed", status: 500 },
+    { code: "unknown_failure" },
+  ])("fails clearly on configuration/unknown failure instead of returning success: %j", async (error) => {
+    resendMocks.resend.mockResolvedValue({ error: { ...error, message: "private-provider-detail" } });
+    const response = await POST(request({ email: "candidate@example.com" }));
+    expect(response.status).toBe(502);
+    expect(await response.json()).toEqual({ error: "验证邮件服务暂时不可用" });
+    expect(resendMocks.resend).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([{ status: 429 }, { code: "over_email_send_rate_limit", status: 422 }, { code: "over_request_rate_limit", status: 400 }])("preserves provider rate limits and retry headers: %j", async (error) => {
+    resendMocks.resend.mockResolvedValue({ error });
+    const response = await POST(request({ email: "candidate@example.com" }));
+    expect(response.status).toBe(429);
+    expect(response.headers.get("Retry-After")).toBe("60");
+    expect(await response.json()).toEqual({ error: "发送次数过多，请稍后再试" });
+  });
+
+  it("reports a thrown network error without automatically sending a second code", async () => {
+    resendMocks.resend.mockRejectedValue(new Error("fetch failed: private-provider-detail"));
+    const response = await POST(request({ email: "candidate@example.com" }));
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "验证邮件服务暂时不可用" });
+    expect(resendMocks.resend).toHaveBeenCalledTimes(1);
+  });
+
+  it("still blocks the eleventh send before contacting the provider", async () => {
+    resendMocks.resend.mockResolvedValue({ error: null });
+    for (let i = 0; i < 10; i += 1) await POST(request({ email: "candidate@example.com" }));
+    const response = await POST(request({ email: "candidate@example.com" }));
+    expect(response.status).toBe(429);
+    expect(Number(response.headers.get("Retry-After"))).toBeGreaterThan(0);
+    expect(resendMocks.resend).toHaveBeenCalledTimes(10);
   });
 });

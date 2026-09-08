@@ -3,6 +3,7 @@ import { z } from "zod";
 import { analysisFingerprint } from "@/lib/ai/analysis-fingerprint";
 import { analysisSchema, getAIProvider, structuredResumeSchema } from "@/lib/ai/provider";
 import { completeAIUsage, releaseAIUsage, reserveAIUsage } from "@/lib/ai/quota";
+import { bindAIUsageRun } from "@/lib/ai/quota-reconciliation";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
 import type { Json } from "@/lib/supabase/database.types";
 
@@ -102,6 +103,13 @@ export async function POST(request: Request) {
     if (!reservation.allowed) {
       return NextResponse.json({ error: "今日 AI 使用次数已用完", quota: reservation.quota }, { status: 429 });
     }
+    if (!reservation.reserved && ["expired", "released"].includes(reservation.taskStatus)) {
+      return NextResponse.json({
+        error: "上一次分析任务已结束或超时，本次没有重新生成。请先查看已有结果；如仍需分析，请再次点击分析按钮新建任务",
+        code: "AI_TASK_EXPIRED",
+        quota: reservation.quota,
+      }, { status: 409 });
+    }
     if (!reservation.reserved || !reservation.taskId) {
       return NextResponse.json({ error: "这项分析正在处理中，请稍后查看结果", quota: reservation.quota }, { status: 409 });
     }
@@ -116,6 +124,7 @@ export async function POST(request: Request) {
     }).select("id").single();
     if (runError || !run) throw new Error("无法创建 AI 分析记录");
     runId = run.id;
+    await bindAIUsageRun(supabase, taskId, runId);
 
     let structured = structuredResumeSchema.safeParse(resume.structured_data);
     if (!structured.success) {

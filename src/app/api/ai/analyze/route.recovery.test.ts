@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ auth: vi.fn(), reserve: vi.fn(), complete: vi.fn(), release: vi.fn(), analyze: vi.fn(), parse: vi.fn() }));
+const mocks = vi.hoisted(() => ({ auth: vi.fn(), reserve: vi.fn(), complete: vi.fn(), release: vi.fn(), analyze: vi.fn(), parse: vi.fn(), bind: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ getAuthenticatedUserId: mocks.auth }));
 vi.mock("@/lib/ai/quota", () => ({ reserveAIUsage: mocks.reserve, completeAIUsage: mocks.complete, releaseAIUsage: mocks.release }));
+vi.mock("@/lib/ai/quota-reconciliation", () => ({ bindAIUsageRun: mocks.bind }));
 vi.mock("@/lib/ai/provider", async (importOriginal) => ({
   ...await importOriginal<typeof import("@/lib/ai/provider")>(),
   getAIProvider: () => ({ analyzeResume: mocks.analyze, parseResume: mocks.parse }),
@@ -45,6 +46,7 @@ describe("analysis cache and settlement recovery", () => {
     mocks.complete.mockResolvedValue(quota);
     mocks.release.mockResolvedValue(quota);
     mocks.analyze.mockResolvedValue(analysis);
+    mocks.bind.mockResolvedValue(undefined);
   });
 
   it.each([null, { broken: true }])("does not release or re-reserve a completed task when cached output is unusable (%j)", async (output) => {
@@ -116,5 +118,32 @@ describe("analysis cache and settlement recovery", () => {
     expect(writes.some((write) => write.value.status === "failed")).toBe(true);
     expect(mocks.release).toHaveBeenCalledWith(expect.anything(), taskId);
     expect(mocks.complete).not.toHaveBeenCalled();
+  });
+  it("binds the exact task and run before calling any provider", async () => {
+    fixture();
+    expect((await POST(request())).status).toBe(200);
+    expect(mocks.bind).toHaveBeenCalledExactlyOnceWith(expect.anything(), taskId, runId);
+    expect(mocks.bind.mock.invocationCallOrder[0]).toBeLessThan(mocks.analyze.mock.invocationCallOrder[0]);
+  });
+  it("does not generate when task binding fails or its response is uncertain", async () => {
+    const { writes } = fixture();
+    mocks.bind.mockRejectedValue(new Error("无法绑定 AI 任务，尚未开始生成"));
+    expect((await POST(request())).status).toBe(400);
+    expect(mocks.analyze).not.toHaveBeenCalled();
+    expect(mocks.parse).not.toHaveBeenCalled();
+    expect(mocks.complete).not.toHaveBeenCalled();
+    expect(mocks.release).toHaveBeenCalledWith(expect.anything(), taskId);
+    expect(writes.some((write) => write.value.status === "failed")).toBe(true);
+  });
+  it.each(["expired", "released"])("asks for a new operation without running again for %s", async (taskStatus) => {
+    const { writes } = fixture();
+    mocks.reserve.mockResolvedValue({ allowed: true, reserved: false, cached: false, taskId, taskStatus, quota });
+    const response = await POST(request());
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({ code: "AI_TASK_EXPIRED", quota });
+    expect(mocks.bind).not.toHaveBeenCalled();
+    expect(mocks.analyze).not.toHaveBeenCalled();
+    expect(mocks.release).not.toHaveBeenCalled();
+    expect(writes).toEqual([]);
   });
 });
