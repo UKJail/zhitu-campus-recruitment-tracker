@@ -38,7 +38,11 @@ def inspect():
     width, height = float(size[1]), float(size[2])
     if rotation and int(rotation[1]) % 360 != 0:
         width, height = 0, 0  # Rejected as PAGE_SIZE, not silently accepted as upright A4.
-    text = bounded_output(["/usr/bin/pdftotext", "-enc", "UTF-8", "-layout", "-nopgbrk", PDF_PATH, "-"], MAX_TEXT_BYTES) if pages == 1 else ""
+    # Use Poppler's reading-order extraction. Physical-layout output inserts
+    # left-column words into wrapped right-column sentences, causing an intact
+    # DOCX run to fail the downstream exact-text check. Do not weaken that check
+    # or use raw content-stream order as a fallback when extraction disagrees.
+    text = bounded_output(["/usr/bin/pdftotext", "-enc", "UTF-8", "-nopgbrk", PDF_PATH, "-"], MAX_TEXT_BYTES) if pages == 1 else ""
     payload = json.dumps({"pageCount": pages, "pages": [{"width": width, "height": height}], "text": text},
                          ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     if len(payload) > MAX_TEXT_BYTES:
@@ -46,8 +50,9 @@ def inspect():
     sys.stdout.buffer.write(payload + b"\n")
 
 
-try:
-    inspect()
-except Exception:
-    # No PDF text, customer data, temporary paths or parser logs are emitted.
-    sys.exit(1)
+if __name__ == "__main__":
+    try:
+        inspect()
+    except Exception:
+        # No PDF text, customer data, temporary paths or parser logs are emitted.
+        sys.exit(1)

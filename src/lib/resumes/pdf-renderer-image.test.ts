@@ -38,4 +38,11 @@ describe("portable restricted PDF image build contract", () => {
     const ignore = (await readFile(imagePath + ".dockerignore", "utf8")).trim().split(/\r?\n/);
     expect(ignore).toEqual(["*", "!Dockerfile", "!render.sh", "!render-job.sh", "!inspect-pdf.py"]);
   });
+
+  it("extracts reading order without physical-row or raw-stream fallback", async () => {
+    const inspector = await readFile(imagePath + "inspect-pdf.py", "utf8");
+    expect(inspector).toContain('["/usr/bin/pdftotext", "-enc", "UTF-8", "-nopgbrk", PDF_PATH, "-"]');
+    expect(inspector).not.toContain('"-layout"');
+    expect(inspector).not.toContain('"-raw"');
+  });
 });

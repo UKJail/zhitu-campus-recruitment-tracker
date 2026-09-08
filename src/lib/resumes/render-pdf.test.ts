@@ -105,6 +105,20 @@ describe("actual PDF acceptance rules", () => {
     expect(verifyResumePdfInspection(validInspection(), [sampleText]).layoutReviewRequired).toBe(true);
   });
 
+  it("keeps the exact-run gate when physical rows interleave two columns", () => {
+    const left = "Excel SQL Python";
+    const right = "参与团队讨论，解释清洗步骤与检查范围，不将团队成果归为个人独立成果。";
+    const physicalRows = right.replace("个人独立", `个人\n${left}\n独立`);
+    expect(() => verifyResumePdfInspection(validInspection(physicalRows), [left, right]))
+      .toThrow(expect.objectContaining({ code: "TEXT_MISMATCH" }));
+    const readingOrder = `${left}\n${right.replace("个人独立", "个人\n独立")}`;
+    expect(verifyResumePdfInspection(validInspection(readingOrder), [left, right]).textLayerVerified).toBe(true);
+    for (const changed of [readingOrder.replace("个人", "团队"), readingOrder + "成果", readingOrder.replace(left, "")]) {
+      expect(() => verifyResumePdfInspection(validInspection(changed), [left, right]))
+        .toThrow(expect.objectContaining({ code: "TEXT_MISMATCH" }));
+    }
+  });
+
   it("rejects two pages instead of truncating the PDF", () => {
     expect(() => verifyResumePdfInspection({ ...validInspection(), pageCount: 2 }, [sampleText])).toThrow(expect.objectContaining({ code: "PAGE_COUNT" }));
   });
