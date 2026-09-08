@@ -1,3 +1,5 @@
 *
 !Dockerfile
 !render.sh
+!render-job.sh
+!inspect-pdf.py
