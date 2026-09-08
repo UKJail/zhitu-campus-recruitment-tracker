@@ -126,3 +126,40 @@
 3. 用新 ID 跑同一五份样例，输出新的 `/tmp/zhitu-pdf-real-20260909-b`；全部符合预期且页面目视通过后才继续。
 4. 完成获授权的真实身份生成→预览→PDF/DOCX 下载联调与额度不变检查。仍然只支持 DOCX 原模板生成；PDF-only 重建尚未实现。
 5. 上述条件通过后才推送网站发布、备份旧构建并部署；当前未启用正式 PDF 环境变量，未更换正式网页构建。
+
+## 2026-09-09 02:40 最新状态：五份真实转换通过，视觉与网页联调仍待完成
+
+用户重新连接 `5f5y5kqb2h` 后，继续在 `/opt/zhitu-pdf-qa-reviewed-20260908` 验收，没有修改正式网站配置、构建、账号或宿主机软件源。本节为最新状态。
+
+### 实际发现与修复
+
+- 默认 BuildKit 将裸 `sha256:<本地镜像ID>` 当远程镜像名解析，访问 Docker Hub 超时；随后使用 `DOCKER_BUILDKIT=0 docker build --pull=false`，继续从已校验的本地基础镜像构建。维持 768MB 内存/无额外 swap、CPU period/quota 100000/100000；不更改全局 Docker 设置。
+- 默认阅读顺序候选镜像 `sha256:f204136408954ae1ca4019c0d515d768b61fd65b9eb752437a51d7239f0cfa84` 的实际输出目录 `...20260909-b` 仍有双栏 `TEXT_MISMATCH`。右栏“完成可复查的”和“字段说明”之间被插入左栏工具信息，不能发布这一候选版。
+- 只读检查合成 PDF 的 `-bbox-layout` 坐标后，改用固定的栏目空白递归分组，不读取预期 DOCX 来选择顺序。所有文字必须保留，原有逐 run 与字符计数门槛不变；有歧义时仍可能拒绝，不能据此宣称全 ATS 或视觉通过。
+- 首次坐标镜像 `sha256:14820c38d22be0ed2e7b69e1e36d2581413281b922052fee84258acce9a7a894` 因 Debian `python3-minimal` 缺少 `xml` 模块，`...20260909-c` 五份均正确以 `RENDER_FAILED` 失败，未向用户返回假文件。
+- 在隔离镜像中安装完整 `python3` 标准库，并新增构建时 `import math, xml.etree.ElementTree` 检查。APT 仍使用用户批准的阿里云官方镜像站，Debian 签名与哈希验证不变。
+
+### 最终服务器验收证据
+
+- 最终镜像：`zhitu-resume-pdf:spatial-stdlib-20260909`，不可变 ID **`sha256:3a84c5d3db4e7980807aaeb643c5cf9dd33aa9083ba163dd4345656f1ea1c2ed`**。
+- 构建日志：`/tmp/zhitu-pdf-build-spatial-stdlib-20260909.log`。
+- 实际执行：`node scripts/qa-resume-pdf-real.mjs --image=sha256:3a84c5d3db4e7980807aaeb643c5cf9dd33aa9083ba163dd4345656f1ea1c2ed --docker=/usr/bin/docker --out=/tmp/zhitu-pdf-real-20260909-d`。
+- `report.json` 返回 `passed:true`，完成于 `2026-09-08T18:39:26.364Z`。五份均保持原始 DOCX 不变，独占锁拒绝并发、跳过并发预处理、只准备一次的检查为真。
+
+| 样例 | 实际结果 | PDF SHA256 |
+| --- | --- | --- |
+| 单栏 A4 | 1 页，595.304 × 841.89 pt，文字一致 | `0c1f2e5f9e959c2afc0380c84b5dbb07cac6e04f233a59a845d2ff9d7734863d` |
+| 双栏表格 A4 | 1 页，595.304 × 841.89 pt，文字一致 | `bc3a0df653b16d4659d9a16a83b789c4664a8aed6191a37d35e8031d9164d2cf` |
+| 页眉页脚 A4 | 1 页，595.304 × 841.89 pt，文字一致 | `6b5fb984d6465d0f69236215468f88cc0606f1ea924bcaf058ed8175f648ac43` |
+| 两页溢出 | 正确拒绝 `PAGE_COUNT` | `d8dc16f1073f737c56c6970489a3964dd79a3446aa5c71f2c33a7f02f50233eb` |
+| Letter | 正确拒绝 `PAGE_SIZE` | `3705e1bb53d69e9ae7ab37eba64f2371b9a3fce945de4dcde9a969fae63ad731` |
+
+- 最新归档：`/opt/zhitu-pdf-qa-reviewed-20260908/zhitu-pdf-qa-final-20260909.tar`，SHA256 **`fce7c91fe8936b974d58791ed1dd41a40b2c3436daccd15869001f821366ca60`**。仅上述合成样例、报告与 QA 编译代码，无环境文件、密钥或用户资料。不要再让用户下载旧版失败包作最终验收。
+- 本地最新完整回归：75 文件、549 项通过；10 项 Python 提取器测试在本机和服务器均通过；相关 lint、diff 检查通过。
+- 最后从服务器读取正式首页 `HTTP 200`。没有发布网页、启用 PDF 配置、推送远端或重启正式应用。
+
+### 剩余发布门槛（不得省略）
+
+1. 内嵌浏览器此前下载地址被拦截，尚无本地实际 PDF，也没有视觉验收。需要用户下载上述新归档并提供本地文件，先校验哈希，再渲染全部页面目视检查。
+2. 获授权的真实身份下完成生成→预览→PDF/DOCX 下载及额度不变联调；演示页、单独 PDF 画布测试不能替代。
+3. 通过后正常推送分支/合并与备份部署，并配置上述实际镜像 ID。仍不支持 PDF-only 输入的原版式重建，不作全格式交付承诺。

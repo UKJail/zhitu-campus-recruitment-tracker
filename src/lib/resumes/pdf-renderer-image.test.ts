@@ -21,6 +21,8 @@ describe("portable restricted PDF image build contract", () => {
     const dockerfile = await readFile(imagePath + "Dockerfile", "utf8");
     for (const command of ["libreoffice", "timeout", "pdfinfo", "pdftotext"]) expect(dockerfile).toContain(`test -x /usr/bin/${command}`);
     expect(dockerfile).toContain('python3 -I -c "import json, os, re, subprocess, sys"');
+    expect(dockerfile).toContain('install --no-install-recommends -y python3 ');
+    expect(dockerfile).toContain('python3 -I -c "import math, xml.etree.ElementTree"');
     expect(dockerfile).toContain("/bin/sh -n /usr/local/bin/zhitu-render");
     expect(dockerfile).toContain("/bin/sh -n /usr/local/bin/zhitu-render-job");
     expect(dockerfile).toContain("compile(open('/usr/local/bin/zhitu-inspect-pdf'");
@@ -39,9 +41,9 @@ describe("portable restricted PDF image build contract", () => {
     expect(ignore).toEqual(["*", "!Dockerfile", "!render.sh", "!render-job.sh", "!inspect-pdf.py"]);
   });
 
-  it("extracts reading order without physical-row or raw-stream fallback", async () => {
+  it("extracts spatial line boxes without physical-row or raw-stream fallback", async () => {
     const inspector = await readFile(imagePath + "inspect-pdf.py", "utf8");
-    expect(inspector).toContain('["/usr/bin/pdftotext", "-enc", "UTF-8", "-nopgbrk", PDF_PATH, "-"]');
+    expect(inspector).toContain('["/usr/bin/pdftotext", "-enc", "UTF-8", "-bbox-layout", PDF_PATH, "-"]');
     expect(inspector).not.toContain('"-layout"');
     expect(inspector).not.toContain('"-raw"');
   });

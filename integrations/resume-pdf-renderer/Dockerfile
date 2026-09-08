@@ -22,6 +22,15 @@ RUN case "$DEBIAN_MIRROR" in \
     && test -x /usr/bin/pdftotext \
     && /usr/bin/python3 -I -c "import json, os, re, subprocess, sys"
 
+# Debian's python3-minimal omits XML modules used by spatial text inspection.
+# Keep the large reviewed LibreOffice layer reusable, then install the complete
+# standard library and verify imports before this image can be accepted.
+RUN apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=60 update \
+    && apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=60 install --no-install-recommends -y python3 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && /usr/bin/python3 -I -c "import math, xml.etree.ElementTree"
+
 # Plain COPY plus fixed-path chmod works with Docker 26's legacy builder too.
 # Do not require BuildKit-only COPY flags just to set executable permissions.
 COPY render.sh /usr/local/bin/zhitu-render
