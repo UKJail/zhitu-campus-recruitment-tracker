@@ -16,6 +16,10 @@ docker build --build-arg RENDERER_BASE_IMAGE=debian:bookworm-slim@sha256:REVIEWE
 docker image inspect zhitu-resume-pdf:reviewed --format '{{.Id}}'
 ```
 
+On the constrained Docker 26 host, the Dockerfile also supports the legacy builder. If BuildKit is unavailable or build limits cannot be applied, the operator may use `DOCKER_BUILDKIT=0 docker build --memory=768m --memory-swap=768m --cpu-period=100000 --cpu-quota=100000 --force-rm ...` with the same pinned base and exact small context. These are build limits, separate from the stricter 512 MB runtime limit. Verify free host memory first and do not raise limits or disable runtime isolation to hide an out-of-memory failure. Legacy building is deprecated upstream, so this is compatibility for the existing Docker 26 host, not a long-term builder recommendation.
+
+The image uses plain `COPY` followed by fixed-path `chmod 0555`, normalizes Windows checkout line endings, and checks shell/Python syntax and all runtime command/module dependencies at build time. Debian trixie's `python3-minimal` supplies `json`, `os`, `re`, `subprocess` and `sys`; no pip packages are needed. The image's `/work` is root-owned `0755`; the runtime overlays it with the required non-root-owned private `0700` tmpfs. Launching without that writable private mount is expected to fail, not a reason to make the image directory world writable.
+
 Configure the application only after the image passes the acceptance checks below:
 
 ```text
