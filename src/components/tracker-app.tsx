@@ -733,22 +733,39 @@ export function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQu
   const [generatedVersion, setGeneratedVersion] = useState<{ versionId: string; targetCompany: string; targetRole: string; acceptedCount: number; createdAt: string; qualityChecks: DeliveryQualityCheck[]; downloadUrl: string } | null>(null);
   const [pdfExport, setPdfExport] = useState<{ versionId: string; state: "loading" | "ready" | "failed"; message: string } | null>(null);
   const pdfRequest = useRef<{ versionId: string; controller: AbortController } | null>(null);
+  const generationRequest = useRef<{ controller: AbortController } | null>(null);
+  const deliveryEpoch = useRef(0);
+  const mounted = useRef(true);
   const [manualApplicationUrl, setManualApplicationUrl] = useState("");
   const [recordingApplication, setRecordingApplication] = useState(false);
   const [applicationRecorded, setApplicationRecorded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
+  const resetDelivery = useCallback(() => {
+    deliveryEpoch.current += 1;
+    pdfRequest.current?.controller.abort();
+    pdfRequest.current = null;
+    generationRequest.current?.controller.abort();
+    generationRequest.current = null;
+    setPdfExport(null);
+    setGeneratedVersion(null);
+    setGenerating(false);
+  }, []);
   useEffect(() => {
-    if (pdfRequest.current && pdfRequest.current.versionId !== generatedVersion?.versionId) {
-      pdfRequest.current.controller.abort();
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      deliveryEpoch.current += 1;
+      pdfRequest.current?.controller.abort();
       pdfRequest.current = null;
-    }
-  }, [generatedVersion?.versionId]);
-  useEffect(() => () => { pdfRequest.current?.controller.abort(); }, []);
+      generationRequest.current?.controller.abort();
+      generationRequest.current = null;
+    };
+  }, []);
 
   async function exportPdf(version: { versionId: string }) {
-    if (pdfRequest.current) return;
+    if (!mounted.current || pdfRequest.current) return;
     const controller = new AbortController();
     const request = { versionId: version.versionId, controller };
     pdfRequest.current = request;
@@ -770,18 +787,20 @@ export function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQu
   }
 
   const restoreWorkspace = useCallback(async (resumeId: string) => {
+    resetDelivery();
+    const epoch = deliveryEpoch.current;
     setAnalysisNeedsRefresh(false);
     setAnalysisSummary(null);
     setAnalysisRunId(null);
     setJobDescription("");
     setTargetCompany("");
     setTargetRole("");
-    setGeneratedVersion(null);
     setManualApplicationUrl("");
     setApplicationRecorded(false);
     setSuggestions([]);
     const response = await fetch(`/api/resumes/${resumeId}/workspace`, { cache: "no-store" });
     const payload = await response.json().catch(() => ({}));
+    if (!mounted.current || deliveryEpoch.current !== epoch) return;
     if (!response.ok) throw new Error(payload.error || "读取上次岗位分析失败");
     setAnalysisSummary(payload.analysis ?? null);
     setAnalysisRunId(payload.analysisRunId ?? null);
@@ -797,7 +816,7 @@ export function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQu
       id: `deepseek-${payload.analysisRunId}-${index}`,
       state: accepted.has(index) ? "accepted" as const : hasGeneratedVersion ? "rejected" as const : "pending" as const,
     })) : []);
-  }, [setSuggestions]);
+  }, [setSuggestions, resetDelivery]);
 
   useEffect(() => {
     let active = true;
@@ -861,7 +880,7 @@ export function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQu
       setAnalysisSummary(null);
       setAnalysisNeedsRefresh(false);
       setAnalysisRunId(null);
-      setGeneratedVersion(null);
+      resetDelivery();
       setSuggestions([]);
       notify("简历解析完成，可以开始匹配岗位");
     } catch (error) {
@@ -892,7 +911,7 @@ export function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQu
         setStructured(null);
         setAnalysisSummary(null);
         setAnalysisRunId(null);
-        setGeneratedVersion(null);
+        resetDelivery();
         setSuggestions([]);
         if (next && !next.id.startsWith("resume-")) {
           const listResponse = await fetch("/api/resumes", { cache: "no-store" });
@@ -941,7 +960,7 @@ export function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQu
       setAnalysisSummary(payload);
       setAnalysisRunId(payload.runId);
       if (payload.structured) setStructured(payload.structured as StructuredResume);
-      setGeneratedVersion(null);
+      resetDelivery();
       setSuggestions(payload.suggestions.map((item: Omit<Suggestion, "id" | "state">, index: number) => ({ ...item, sourceIndex: index, id: `deepseek-${payload.runId}-${index}`, state: "pending" as const })));
       notify(payload.cached ? `已读取现有分析，匹配分 ${payload.score}` : `DeepSeek 分析完成，匹配分 ${payload.score}，已使用 1 次`);
     } catch (error) {
@@ -954,21 +973,25 @@ export function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQu
     const suggestion = suggestions.find((item) => item.id === id);
     if (accept && suggestion?.requiresConfirmation && !window.confirm("这条建议包含原简历中未明确出现的内容。请确认其中新增的课程、技能、工具和经历全部真实，再选择“确定”。")) return;
     setSuggestions(applySuggestion(suggestions, id, accept));
-    setGeneratedVersion(null);
+    resetDelivery();
     notify(accept ? "已接受并确认这条建议" : "已保留原文");
   }
 
   async function generateResume() {
+    if (generationRequest.current) return;
     const acceptedItems = suggestions.filter((item) => item.state === "accepted" && item.sourceIndex !== undefined);
     if (!realResumeId || !analysisRunId) return notify("请先完成一次真实 JD 匹配分析");
     if (selected?.fileType !== "DOCX") return notify("保持原排版必须选择原始 DOCX 简历；PDF 只能用于阅读，无法原格式编辑");
     if (!targetCompany.trim() || !targetRole.trim()) return notify("请填写目标公司和岗位名称");
     if (!/[A-Za-z\u4e00-\u9fff]/.test(targetCompany) || !/[A-Za-z\u4e00-\u9fff]/.test(targetRole)) return notify("目标公司和岗位名称不能只填写数字");
     if (acceptedItems.length === 0) return notify("请先接受至少一条真实有效的建议");
+    const pending = { controller: new AbortController() };
+    generationRequest.current = pending;
     setGenerating(true);
     try {
       const response = await fetch("/api/ai/generate-resume", {
         method: "POST",
+        signal: pending.controller.signal,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           resumeId: realResumeId,
@@ -981,14 +1004,18 @@ export function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQu
         }),
       });
       const payload = await response.json();
+      if (!mounted.current || generationRequest.current !== pending || pending.controller.signal.aborted) return;
       if (!response.ok) throw new Error(payload.error || "生成定制简历失败");
       setGeneratedVersion(payload);
       notify("已保存确认文字，正在生成并检查 PDF");
       await exportPdf(payload);
     } catch (error) {
-      notify(error instanceof Error ? error.message : "生成定制简历失败");
+      if (mounted.current && generationRequest.current === pending && !pending.controller.signal.aborted) notify(error instanceof Error ? error.message : "生成定制简历失败");
     } finally {
-      setGenerating(false);
+      if (generationRequest.current === pending) {
+        generationRequest.current = null;
+        if (mounted.current) setGenerating(false);
+      }
     }
   }
 
@@ -1023,7 +1050,7 @@ export function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQu
     setAnalysisNeedsRefresh(false);
     setAnalysisSummary(null);
     setAnalysisRunId(null);
-    setGeneratedVersion(null);
+    resetDelivery();
     setSuggestions([]);
   }
   const accepted = suggestions.filter((s) => s.state === "accepted").length;
