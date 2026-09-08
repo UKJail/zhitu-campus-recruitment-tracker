@@ -1,9 +1,12 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { atomicWriteJson } from "./atomic-json-file.mjs";
 
 const projectRoot = process.cwd();
 const defaultSourcePath = "C:\\Users\\k'k\\WorkBuddy\\zhitu-career-jobs\\latest\\career-portals.json";
-const sourcePath = path.resolve(process.argv[2] || defaultSourcePath);
+const args = process.argv.slice(2);
+const dryRun = args.includes("--dry-run");
+const sourcePath = path.resolve(args.find(argument => !argument.startsWith("--")) || defaultSourcePath);
 const outputPath = path.join(projectRoot, "src", "data", "career-portals.json");
 
 const source = JSON.parse(await readFile(sourcePath, "utf8"));
@@ -16,7 +19,9 @@ const portals = source.portals.map((item) => {
   const name = String(item.companyName || "").trim();
   const industry = String(item.industry || "").trim();
   const url = String(item.officialCareerUrl || "").trim();
-  if (!key || !name || !industry || !/^https?:\/\//i.test(url)) {
+  let validUrl = false;
+  try { validUrl = ["http:", "https:"].includes(new URL(url).protocol); } catch { /* Reject malformed URLs. */ }
+  if (!key || !name || !industry || !validUrl) {
     throw new Error(`企业入口字段无效：${name || key || "未知记录"}`);
   }
   return { key, name, industry, url };
@@ -27,6 +32,8 @@ if (duplicateKeys.length > 0) {
   throw new Error(`企业入口 key 重复：${duplicateKeys.slice(0, 5).map((item) => item.key).join(", ")}`);
 }
 
-await mkdir(path.dirname(outputPath), { recursive: true });
-await writeFile(outputPath, `${JSON.stringify({ generatedAt: source.generatedAt, count: portals.length, portals }, null, 2)}\n`, "utf8");
-console.log(`已生成 ${portals.length} 条企业校招入口：${outputPath}`);
+if (!portals.length || typeof source.generatedAt !== "string" || !Number.isFinite(Date.parse(source.generatedAt))) {
+  throw new Error("企业入口为空或来源生成时间无效");
+}
+if (!dryRun) await atomicWriteJson(outputPath, { generatedAt: source.generatedAt, count: portals.length, portals }, 2);
+console.log(`${dryRun ? "已校验（未写入）" : "已生成"} ${portals.length} 条企业校招入口：${outputPath}`);

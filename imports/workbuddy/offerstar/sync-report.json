@@ -1,92 +1,94 @@
 {
   "source": "offerstar",
   "sourcePath": "C:\\Users\\k'k\\WorkBuddy\\zhitu-career-jobs\\latest\\offerstar-to-zhitu.json",
-  "syncedAt": "2026-08-31T08:38:17.450Z",
+  "syncedAt": "2026-09-08T07:46:18.331Z",
+  "sourceModifiedAt": "2026-09-07T11:58:35.458Z",
+  "sourceSha256": "4526cbd17d42053b0644393cbf77e07fc68ae8a65d7edb0d95eef68b09c405cd",
   "dryRun": false,
-  "received": 21524,
-  "accepted": 21524,
+  "received": 22287,
+  "accepted": 22287,
   "duplicates": 0,
   "rejected": 0,
-  "wechatApplyUrls": 19452,
+  "wechatApplyUrls": 20213,
   "byRecruitmentType": {
     "其他": 10,
-    "实习": 342,
-    "校招": 21172
+    "实习": 343,
+    "校招": 21934
   },
   "fieldCoverage": [
     {
       "label": "公司名称",
       "key": "company",
-      "filled": 21524,
-      "total": 21524,
+      "filled": 22287,
+      "total": 22287,
       "coverage": 1
     },
     {
       "label": "标题",
       "key": "title",
-      "filled": 21524,
-      "total": 21524,
+      "filled": 22287,
+      "total": 22287,
       "coverage": 1
     },
     {
       "label": "批次",
       "key": "offerstarType",
-      "filled": 21524,
-      "total": 21524,
+      "filled": 22287,
+      "total": 22287,
       "coverage": 1
     },
     {
       "label": "更新时间",
       "key": "postDate",
-      "filled": 21524,
-      "total": 21524,
+      "filled": 22287,
+      "total": 22287,
       "coverage": 1
     },
     {
       "label": "招聘岗位",
       "key": "position",
-      "filled": 21501,
-      "total": 21524,
-      "coverage": 0.9989
+      "filled": 22253,
+      "total": 22287,
+      "coverage": 0.9985
     },
     {
       "label": "工作地点",
       "key": "location",
-      "filled": 21524,
-      "total": 21524,
+      "filled": 22287,
+      "total": 22287,
       "coverage": 1
     },
     {
       "label": "行业",
       "key": "industry",
-      "filled": 21524,
-      "total": 21524,
+      "filled": 22287,
+      "total": 22287,
       "coverage": 1
     },
     {
       "label": "招聘类型",
       "key": "recruitmentType",
-      "filled": 21524,
-      "total": 21524,
+      "filled": 22287,
+      "total": 22287,
       "coverage": 1
     },
     {
       "label": "截止时间",
       "key": "deadline",
-      "filled": 21524,
-      "total": 21524,
+      "filled": 22287,
+      "total": 22287,
       "coverage": 1
     },
     {
       "label": "操作链接",
       "key": "applyUrl",
-      "filled": 21524,
-      "total": 21524,
+      "filled": 22287,
+      "total": 22287,
       "coverage": 1
     }
   ],
   "displayContractWarnings": [
-    "招聘岗位(position) 覆盖 21501/21524"
+    "招聘岗位(position) 覆盖 22253/22287"
   ],
   "rejectedSamples": []
 }

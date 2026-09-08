@@ -1,5 +1,7 @@
-import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import path from "node:path";
+import { atomicWriteJson } from "./atomic-json-file.mjs";
 
 const defaultSource = "C:\\Users\\k'k\\WorkBuddy\\zhitu-career-jobs\\latest\\offerstar-to-zhitu.json";
 const argumentsList = process.argv.slice(2);
@@ -9,7 +11,6 @@ const sourcePath = path.resolve(sourceArgument || defaultSource);
 const outputDirectory = path.resolve("imports", "workbuddy", "offerstar");
 const outputPath = path.join(outputDirectory, "offerstar-jobs.json");
 const reportPath = path.join(outputDirectory, "sync-report.json");
-const temporaryPath = `${outputPath}.tmp`;
 
 function text(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -75,7 +76,9 @@ function fieldCoverage(records) {
   });
 }
 
-const raw = JSON.parse(await readFile(sourcePath, "utf8"));
+const sourceBytes = await readFile(sourcePath);
+const sourceInfo = await stat(sourcePath);
+const raw = JSON.parse(sourceBytes.toString("utf8"));
 if (!Array.isArray(raw)) throw new Error("OfferStar 交付文件必须是 JSON 数组");
 
 const records = [];
@@ -133,6 +136,8 @@ const report = {
   source: "offerstar",
   sourcePath,
   syncedAt: new Date().toISOString(),
+  sourceModifiedAt: sourceInfo.mtime.toISOString(),
+  sourceSha256: createHash("sha256").update(sourceBytes).digest("hex"),
   dryRun,
   received: raw.length,
   accepted: records.length,
@@ -151,10 +156,7 @@ const report = {
 };
 
 if (!dryRun) {
-  await mkdir(outputDirectory, { recursive: true });
-  await writeFile(temporaryPath, JSON.stringify({ generatedAt: report.syncedAt, records }), "utf8");
-  await rm(outputPath, { force: true });
-  await rename(temporaryPath, outputPath);
-  await writeFile(reportPath, JSON.stringify(report, null, 2), "utf8");
+  await atomicWriteJson(outputPath, { generatedAt: report.syncedAt, sourceModifiedAt: report.sourceModifiedAt, sourceSha256: report.sourceSha256, records });
+  await atomicWriteJson(reportPath, report, 2);
 }
 console.log(JSON.stringify(report, null, 2));
