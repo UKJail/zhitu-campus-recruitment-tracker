@@ -1,0 +1,45 @@
+# Reviewed production template. Installation and secret provisioning are separate.
+[Unit]
+Description=Zhitu AI quota reconciliation
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=zhitu-quota
+Group=zhitu-quota
+WorkingDirectory=/opt/zhitu-tracker
+# Read by systemd as root, not by the unprivileged process. Exactly two Supabase variables.
+EnvironmentFile=/etc/zhitu-ai-quota-reconciliation/service.env
+ExecStart=/usr/bin/node --max-old-space-size=96 /opt/zhitu-tracker/scripts/reconcile-ai-quota.mjs --run --expected-project-ref ijnhswcolasqlfjtjbkf --limit 50
+TimeoutStartSec=30s
+TimeoutStopSec=5s
+Restart=no
+KillMode=control-group
+UMask=0077
+LimitCORE=0
+LimitNOFILE=128
+TasksMax=32
+MemoryAccounting=true
+MemoryMax=192M
+CPUAccounting=true
+CPUQuota=25%
+Nice=10
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+# Do not give this user filesystem access to website or dedicated credential files.
+InaccessiblePaths=/etc/zhitu-ai-quota-reconciliation
+InaccessiblePaths=-/opt/zhitu-tracker/.env -/opt/zhitu-tracker/.env.local -/opt/zhitu-tracker/.env.production -/opt/zhitu-tracker/.env.production.local -/opt/zhitu-tracker/.env.development -/opt/zhitu-tracker/.env.development.local -/opt/zhitu-tracker/.env.test -/opt/zhitu-tracker/.env.test.local
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=zhitu-ai-quota-reconciliation

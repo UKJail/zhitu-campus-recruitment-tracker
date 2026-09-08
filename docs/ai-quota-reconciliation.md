@@ -21,50 +21,15 @@
 
 不挂在职位采集 worker 的两小时间隔上，也不依赖 Next.js 某个请求结束后的内存定时器。使用主机已有 systemd 定期运行一个短进程，停机后第一次触发继续检查数据库中的持久执行关联。
 
-先只读核实 Node 22+ 的绝对路径、网站部署目录、可用的非 root 服务用户，以及两个环境是否各自持有正确凭证。专用私有环境文件只需 `SUPABASE_URL` 和 `SUPABASE_SERVICE_ROLE_KEY`，文件和父目录只能由服务用户/管理员读取；绝不放入 Git。URL 必须与显式提供的 `--expected-project-ref` 一致；若 `NEXT_PUBLIC_SUPABASE_URL` 也存在，也必须指向同一项目。环境变量会优先于 Node 环境文件中的同名项，因此要核对运行时有效环境，而不是仅看文件。[Node 官方环境文件说明](https://nodejs.org/api/cli.html#--env-filefile)。
+可审阅的具体单元、环境示例、只读验收器和完整安装/回退步骤已放入 [integrations/ai-quota-reconciliation](../integrations/ai-quota-reconciliation/README.md)。它们不自动安装、不读取网站环境、不创建账号，也不证明主机验收已经完成。
 
-以下值都是占位符，需现场替换后才能安装；没有创建、启用任何主机服务：
+正式模板绑定 `/opt/zhitu-tracker`、`/usr/bin/node`、项目 `ijnhswcolasqlfjtjbkf`；要求现场核实 Node 22+ 和 systemd 239+。进程使用独立非 root 用户 `zhitu-quota`，无 sudo/Docker 权限。专用 `service.env` 只有两项 Supabase 配置，由 systemd/root 读取后传给进程；文件 `root:root 0600`、父目录 `root:root 0700`，不能把完整网站环境复制过去或打印真实内容。服务本身通过沙箱看不到常用网站环境文件和专用凭证目录。OS 权限独立不改变 Supabase service-role 凭证本身的高权限属性。
 
-```ini
-# /etc/systemd/system/zhitu-ai-quota-reconciliation.service
-[Unit]
-Description=Zhitu AI quota reconciliation
-Wants=network-online.target
-After=network-online.target
+模板每批 50 条，RPC 请求超时 20 秒，systemd 整个进程 30 秒，内存 192 MiB、V8 heap 96 MiB、CPU 25%、最多 32 个任务。`OnUnitInactiveSec=60s` 表示运行结束后约一分钟再次触发；同一 oneshot 仍在运行时不启动第二份，不能用多个手动 node 进程替代。启用到 `timers.target` 后按 `OnBootSec=60s` 在开机后恢复，不使用仅对 OnCalendar 有效的 Persistent 选项。[systemd timer 官方说明](https://github.com/systemd/systemd/blob/v239/man/systemd.timer.xml)。
 
-[Service]
-Type=oneshot
-User=VERIFIED_NONROOT_USER
-WorkingDirectory=VERIFIED_DEPLOY_DIRECTORY
-ExecStart=VERIFIED_NODE_PATH --env-file=VERIFIED_PRIVATE_ENV_FILE scripts/reconcile-ai-quota.mjs --run --expected-project-ref VERIFIED_PROJECT_REF --limit 50
-TimeoutStartSec=30s
-TimeoutStopSec=5s
-Restart=no
-UMask=0077
-NoNewPrivileges=true
-PrivateTmp=true
-StandardOutput=journal
-StandardError=journal
-```
+顺序：先测试库故障恢复 → 应用迁移 → 部署网站及脚本 → 审核、安装并验证实际 unit → 获授权手动运行一次 service → 启用 timer → 不人工触发，观察连续至少两次定时成功 → 在另行获授权的维护窗口验证停止/重启恢复。不可为此擅自重启正式服务器。
 
-```ini
-# /etc/systemd/system/zhitu-ai-quota-reconciliation.timer
-[Unit]
-Description=Run Zhitu quota reconciliation periodically
-
-[Timer]
-OnBootSec=60s
-OnUnitInactiveSec=60s
-AccuracySec=5s
-Unit=zhitu-ai-quota-reconciliation.service
-
-[Install]
-WantedBy=timers.target
-```
-
-每批最多 100 条，默认 50 条；脚本自身请求超时为 20 秒，systemd 额外限制整个进程 30 秒。同一 oneshot 仍在执行时不启动第二份；不用 `RemainAfterExit=yes`。[systemd timer 官方说明](https://github.com/systemd/systemd/blob/main/man/systemd.timer.xml)。
-
-上线步骤：先测试库故障恢复 → 应用迁移 → 部署网站及脚本 → 在目标主机手动运行一次可信脚本 → 核对只有数量的完成输出 → 用 `systemd-analyze verify` 验证实际 unit → 安装启用 timer → 验证连续至少两次触发及重启后恢复。启动失败/网络失败退出非零，只打印固定脱敏错误码；不能把“网站 HTTP 200”当作定时器运行证明。
+`verify-deployment.mjs --since <本次实际 UTC ISO 时间>` 只读检查单元状态、资源限制、凭证文件元数据（不读内容）以及脱敏计数日志，至少两次不同进程且有时间间隔的成功才通过，不能把一次手动执行或网站 HTTP 200 当定时器证明。`hostBootRecoveryObserved=false` 时必须保留“主机重启恢复未实测”。
 
 批次有 `skippedLocked` 或 `examined` 持续等于上限时应检查积压；持续失败需由现有运维监控处理。本方案不新增邮件收件人、收费告警服务或外部通知，也不把 journal 有日志描述为“已经通知管理员”。停止 timer 只影响之后的维护，不撤销已经提交的结算。网页回退不能删除历史执行关联或恢复不安全的用户可调用 RPC 权限。
 
@@ -88,4 +53,6 @@ SQL 测试使用独立 PGlite PostgreSQL/WASM，包含真实 SQL 执行、迁移
 
 提供 `supabase/tests/ai_usage_reconciliation.sql` 供获授权独立测试项目在单连接中整份执行：只插入事务内合成行，通过断言后回滚，最终账户和任务残留计数均应为零。该文件也已纳入本地 SQL 测试。`supabase/tests/ai_usage_reconciliation_permissions.sql` 仅做只读 RPC 角色权限和 RLS 检查。
 
-尚需实际部署环境验证：多连接同时结算/预留的压力测试、维护进程跨重启恢复、定时入口访问控制。PGlite 单实例测试及静态锁顺序检查不是线上多连接并发证明。
+2026-09-08 在与线上一致的隔离版本 `55d7172` 重跑相关 7 文件/74 测试全部通过；另用无网络模拟确认客户端超时约 20 秒、单次 RPC、不自动重试。以上不是正式网络超时/数据库取消证明。
+
+尚需实际部署环境验证：多连接同时结算/预留的压力测试、维护进程跨重启恢复、定时入口访问控制。PGlite 单实例测试及静态锁顺序检查不是线上多连接并发证明。尤其需覆盖未遵循 advisory lock 的 profile 管理更新引起的行锁等待，以及队首热点用户占满批次的公平性；不在本轮扩大为生产 SQL 修改。

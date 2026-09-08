@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Zhitu quota reconciliation once per inactive minute
+
+[Timer]
+OnBootSec=60s
+OnUnitInactiveSec=60s
+AccuracySec=5s
+Unit=zhitu-ai-quota-reconciliation.service
+
+[Install]
+WantedBy=timers.target
