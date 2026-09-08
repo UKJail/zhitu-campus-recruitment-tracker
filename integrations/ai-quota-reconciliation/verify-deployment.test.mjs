@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { parseProperties, readOptions, SERVICE, summarizeJournal, TIMER, verifyPrivateMetadata, verifyProperties } from "./verify-deployment.mjs";
+import { journalArguments, parseProperties, readOptions, SERVICE, summarizeJournal, TIMER, verifyPrivateMetadata, verifyProperties } from "./verify-deployment.mjs";
 
 const time = Date.parse("2026-09-08T12:00:00.000Z");
 const now = time + 300_000;
@@ -33,6 +33,17 @@ describe("quota maintenance installation evidence", () => {
       expect(() => readOptions(["--since", since], now)).toThrow("RECENT_UTC_TIMESTAMP_REQUIRED");
     }
     expect(() => readOptions(["--since", "now", "--start"])).toThrow("INVALID_OPTIONS");
+  });
+  it("uses systemd 239-compatible epoch seconds instead of ISO T/Z without losing milliseconds", () => {
+    const original = "2026-09-08T13:01:33.000Z";
+    const options = readOptions(["--since", original], Date.parse(original) + 60_000);
+    expect(journalArguments(options)).toEqual(["--unit", SERVICE, "--since", "@1788872493.000", "--lines", "200", "--output=json", "--no-pager", "--quiet"]);
+    expect(journalArguments({ ...options, time: options.time + 123 })[3]).toBe("@1788872493.123");
+    expect(journalArguments({ ...options, time: options.time + 1 })[3]).toBe("@1788872493.001");
+    expect(journalArguments({ ...options, time: options.time + 999 })[3]).toBe("@1788872493.999");
+    for (const time of [NaN, Infinity, -1, 1.5]) expect(() => journalArguments({ time })).toThrow("RECENT_UTC_TIMESTAMP_REQUIRED");
+    const source = readFileSync(new URL("verify-deployment.mjs", import.meta.url), "utf8");
+    expect(source).toContain('command("/usr/bin/journalctl", journalArguments(options))');
   });
   it("checks credential metadata without needing content", () => {
     expect(() => verifyPrivateMetadata(metadata(0o700, "dir"), metadata(0o600))).not.toThrow();

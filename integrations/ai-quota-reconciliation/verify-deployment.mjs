@@ -29,6 +29,15 @@ export function parseProperties(text) {
   }));
 }
 
+export function journalArguments(options) {
+  if (!Number.isSafeInteger(options.time) || options.time < 0) throw new Error("RECENT_UTC_TIMESTAMP_REQUIRED");
+  // systemd 239 parse_timestamp() does not accept ISO 8601's T/Z form.
+  // Its @seconds.microseconds form is supported and independent of host TZ.
+  // Keep milliseconds exact; summarizeJournal still enforces the same window.
+  const since = `@${Math.floor(options.time / 1000)}.${String(options.time % 1000).padStart(3, "0")}`;
+  return ["--unit", SERVICE, "--since", since, "--lines", "200", "--output=json", "--no-pager", "--quiet"];
+}
+
 export function verifyPrivateMetadata(directory, file) {
   if (!directory.isDirectory() || directory.isSymbolicLink() || directory.uid !== 0 || directory.gid !== 0
     || (directory.mode & 0o7777) !== 0o700 || !file.isFile() || file.isSymbolicLink()
@@ -133,7 +142,7 @@ export function inspectHost(options) {
   const service = parseProperties(command("/usr/bin/systemctl", ["show", SERVICE, ...propertyNames.map(name => `--property=${name}`)]));
   const timer = parseProperties(command("/usr/bin/systemctl", ["show", TIMER, ...["FragmentPath", "DropInPaths", "NeedDaemonReload", "ActiveState", "SubState", "UnitFileState", "Unit"].map(name => `--property=${name}`)]));
   verifyProperties(service, timer);
-  const journal = command("/usr/bin/journalctl", ["--unit", SERVICE, "--since", options.since, "--lines", "200", "--output=json", "--no-pager", "--quiet"]);
+  const journal = command("/usr/bin/journalctl", journalArguments(options));
   return summarizeJournal(journal, options.time);
 }
 
