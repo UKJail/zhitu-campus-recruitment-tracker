@@ -57,8 +57,8 @@ export async function POST(request: Request) {
     const qualityChecks = [
       { key: "source_traceability", label: "修改来源可追溯", status: "passed", detail: "所有改写或删除均来自本次分析且已经用户确认" },
       { key: "docx_patch", label: "原模板替换预检", status: "passed", detail: "已在原始 DOCX 副本中成功应用全部修改" },
-      { key: "visual_layout", label: "页数与视觉排版", status: "manual_required", detail: "下载后请用 Word 打开，检查页数、分页、留白和项目符号" },
-      { key: "ats_text_layer", label: "ATS 文字层", status: "manual_required", detail: "如导出 PDF，请再检查联系方式、日期范围、文字顺序和乱码" },
+      { key: "visual_layout", label: "PDF 页数与视觉排版", status: "manual_required", detail: "PDF 导出时检查一页 A4；下载后仍请预览留白、字体、项目符号与遮挡情况" },
+      { key: "ats_text_layer", label: "PDF 文字层", status: "manual_required", detail: "PDF 导出时核对文字保留情况；不代表所有 ATS 系统均能正确识别，请仍检查阅读顺序" },
     ];
 
     const fingerprint = createHash("sha256").update(JSON.stringify({

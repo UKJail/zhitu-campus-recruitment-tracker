@@ -1,4 +1,5 @@
 import JSZip from "jszip";
+import { readBoundedDocxArchive } from "./safe-docx-archive";
 
 export type TextReplacement = { original: string; revised: string };
 
@@ -83,7 +84,12 @@ function patchParagraph(paragraphXml: string, replacement: TextReplacement) {
 }
 
 export async function patchResumeTemplateDocx(source: Uint8Array, replacements: TextReplacement[]) {
-  const zip = await JSZip.loadAsync(source);
+  // Verify actual inflation limits before any template processing. Never hand
+  // an uploaded compressed stream to JSZip's unbounded inflater.
+  const zip = new JSZip();
+  for (const [name, bytes] of readBoundedDocxArchive(source)) {
+    zip.file(name, bytes, { dir: name.endsWith("/"), createFolders: false });
+  }
   const documentPart = zip.file("word/document.xml");
   if (!documentPart) throw new Error("原始 DOCX 缺少正文结构");
   let xml = await documentPart.async("string");

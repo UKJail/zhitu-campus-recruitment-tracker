@@ -6,7 +6,7 @@ import {
   Copy, Download, ExternalLink, FileText, Inbox, KeyRound, LayoutDashboard, LogOut, Mail, Menu, MessageSquareText, MoreHorizontal,
   PenLine, Plus, RefreshCw, Save, Search, Send, ShieldCheck, Sparkles, Star, Target, Trash2, Upload, X, XCircle, MailCheck, MessageCircleMore,
 } from "lucide-react";
-import { type ChangeEvent, type Dispatch, type FormEvent, type SetStateAction, useCallback, useEffect, useMemo, useState } from "react";
+import { type ChangeEvent, type Dispatch, type FormEvent, type SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { applicationStatuses, applySuggestion, canTransition, confirmedApplicationCount, confirmedApplicationCountOnDate } from "@/lib/business";
@@ -23,6 +23,7 @@ import type { InterviewReview, Job, Resume, Suggestion } from "@/lib/types";
 import type { RecruitingCalendarEvent } from "@/lib/mail/calendar";
 import { DEFAULT_DAILY_APPLICATION_TARGET, DEFAULT_JOB_PREFERENCES, hasJobPreferences, type JobPreferences } from "@/lib/account/preferences";
 import { matchJobPreferences } from "@/lib/jobs/preferences";
+import { downloadResumePdf } from "@/lib/resumes/pdf-download";
 
 type PageKey = "home" | "jobs" | "resumes" | "progress" | "prep" | "reviews";
 type AccountProfile = { displayName: string | null; email: string; isAdmin: boolean; dailyApplicationTarget: number; jobPreferences: JobPreferences };
@@ -730,11 +731,43 @@ export function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQu
   const [generating, setGenerating] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [generatedVersion, setGeneratedVersion] = useState<{ versionId: string; targetCompany: string; targetRole: string; acceptedCount: number; createdAt: string; qualityChecks: DeliveryQualityCheck[]; downloadUrl: string } | null>(null);
+  const [pdfExport, setPdfExport] = useState<{ versionId: string; state: "loading" | "ready" | "failed"; message: string } | null>(null);
+  const pdfRequest = useRef<{ versionId: string; controller: AbortController } | null>(null);
   const [manualApplicationUrl, setManualApplicationUrl] = useState("");
   const [recordingApplication, setRecordingApplication] = useState(false);
   const [applicationRecorded, setApplicationRecorded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+
+  useEffect(() => {
+    if (pdfRequest.current && pdfRequest.current.versionId !== generatedVersion?.versionId) {
+      pdfRequest.current.controller.abort();
+      pdfRequest.current = null;
+    }
+  }, [generatedVersion?.versionId]);
+  useEffect(() => () => { pdfRequest.current?.controller.abort(); }, []);
+
+  async function exportPdf(version: { versionId: string }) {
+    if (pdfRequest.current) return;
+    const controller = new AbortController();
+    const request = { versionId: version.versionId, controller };
+    pdfRequest.current = request;
+    setPdfExport({ versionId: version.versionId, state: "loading", message: "正在生成并检查一页 A4 PDF，不会再次调用 AI 或扣除次数。" });
+    try {
+      await downloadResumePdf(version.versionId, controller.signal);
+      if (controller.signal.aborted) return;
+      const message = "PDF 已通过一页 A4 和文字保留检查，已开始下载。投递前请预览字体、留白、遮挡与阅读顺序；这不代表完整 ATS 或视觉验收。";
+      setPdfExport({ versionId: version.versionId, state: "ready", message });
+      notify("PDF 已开始下载，请打开预览确认排版");
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      const message = error instanceof Error ? error.message : "PDF 导出失败，请稍后重试";
+      setPdfExport({ versionId: version.versionId, state: "failed", message });
+      notify("PDF 暂未导出，已确认文字和 DOCX 版本均已保留");
+    } finally {
+      if (pdfRequest.current === request) pdfRequest.current = null;
+    }
+  }
 
   const restoreWorkspace = useCallback(async (resumeId: string) => {
     setAnalysisNeedsRefresh(false);
@@ -950,7 +983,8 @@ export function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQu
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "生成定制简历失败");
       setGeneratedVersion(payload);
-      notify("岗位定制简历已生成并保存到版本历史");
+      notify("已保存确认文字，正在生成并检查 PDF");
+      await exportPdf(payload);
     } catch (error) {
       notify(error instanceof Error ? error.message : "生成定制简历失败");
     } finally {
@@ -998,6 +1032,7 @@ export function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQu
     ...analysisSummary.requirementAnalysis.coreRequirements.map((item) => ({ ...item, kind: "核心要求" })),
   ] : [];
   const deliveryQualityChecks = generatedVersion?.qualityChecks ?? [];
+  const currentPdfExport = pdfExport?.versionId === generatedVersion?.versionId ? pdfExport : null;
   return <div className="page-stack">
     <section className="page-intro"><div><p className="eyebrow">简历中心</p><h2>让经历被准确看见</h2><span>所有修改由你确认，职途不会编造任何经历或数据。</span></div><label className="primary-button file-button"><Upload size={17} />上传新简历<input type="file" accept=".pdf,.docx" onChange={upload} /></label></section>
     {uploadName && <div className="upload-banner"><FileCheck2 /><span><strong>{uploadName}</strong> {uploading ? "正在解析" : "已完成解析"}</span><em>{uploading ? "请勿关闭页面" : "已安全保存"}</em></div>}
@@ -1021,7 +1056,7 @@ export function ResumesPage({ suggestions, setSuggestions, notify, aiQuota, onQu
         {suggestions.length > 0 && <section className={`delivery-version ${generatedVersion ? "ready" : ""} ${selected.fileType !== "DOCX" ? "needs-template" : ""}`}>
           <div className="version-stamp"><FileCheck2 /><span>{generatedVersion ? "READY" : selected.fileType === "DOCX" ? "DRAFT" : "DOCX"}</span></div>
           <div><p className="eyebrow">投递版本 · 原格式保真</p><h4>{generatedVersion ? `${generatedVersion.targetCompany} · ${generatedVersion.targetRole}` : selected.fileType === "DOCX" ? "在原始 Word 模板中替换已接受文字" : "请上传并选择原始 DOCX 简历"}</h4><span>{generatedVersion ? `采用 ${generatedVersion.acceptedCount} 条已确认建议 · 字体、字号、页边距与栏目结构继承原文件` : selected.fileType === "DOCX" ? `当前已接受 ${accepted} 条建议，只替换文字，不重新设计排版` : "PDF 无法进行原格式编辑，系统不会再用通用模板生成"}</span></div>
-          {generatedVersion ? <div className="delivery-actions"><a className="primary-button" href={generatedVersion.downloadUrl}><Download size={16} />下载 DOCX</a><label><span>原始岗位链接</span><input aria-label="原始岗位链接" value={manualApplicationUrl} onChange={(event) => { setManualApplicationUrl(event.target.value); setApplicationRecorded(false); }} placeholder="https://…" /></label><button className="secondary-button" disabled={recordingApplication || applicationRecorded} onClick={recordManualApplication}>{applicationRecorded ? <><CheckCircle2 size={15} />已记录投递</> : recordingApplication ? "记录中…" : "记录已投递"}</button></div> : selected.fileType === "DOCX" ? <button className="primary-button" disabled={generating || accepted === 0} onClick={generateResume}><FilePenLine size={16} />{generating ? "生成中…" : "生成投递简历"}</button> : <label className="primary-button file-button"><Upload size={16} />上传原始 DOCX<input type="file" accept=".docx" onChange={upload} /></label>}
+          {generatedVersion ? <div className="delivery-actions"><button className="primary-button" disabled={currentPdfExport?.state === "loading"} onClick={() => void exportPdf(generatedVersion)}><Download size={16} />{currentPdfExport?.state === "loading" ? "正在检查 PDF…" : currentPdfExport?.state === "failed" ? "重试导出 PDF" : "下载一页 PDF"}</button><a className="secondary-button" href={generatedVersion.downloadUrl}><Download size={16} />下载 DOCX</a><p role="status">{currentPdfExport?.message ?? "按原模板生成 PDF 并检查一页 A4 和文字层，不额外使用 AI 次数。下载后仍请预览排版。"}{currentPdfExport?.state === "failed" && " 已确认文字和 DOCX 版本均已保留，不会自动重写、删减或重新扣次。"}</p><label><span>原始岗位链接</span><input aria-label="原始岗位链接" value={manualApplicationUrl} onChange={(event) => { setManualApplicationUrl(event.target.value); setApplicationRecorded(false); }} placeholder="https://…" /></label><button className="secondary-button" disabled={recordingApplication || applicationRecorded} onClick={recordManualApplication}>{applicationRecorded ? <><CheckCircle2 size={15} />已记录投递</> : recordingApplication ? "记录中…" : "记录已投递"}</button></div> : selected.fileType === "DOCX" ? <button className="primary-button" disabled={generating || accepted === 0} onClick={generateResume}><FilePenLine size={16} />{generating ? "生成中…" : "生成投递简历"}</button> : <label className="primary-button file-button"><Upload size={16} />上传原始 DOCX<input type="file" accept=".docx" onChange={upload} /></label>}
           {deliveryQualityChecks.length > 0 && <div className="delivery-quality">{deliveryQualityChecks.map((check) => <span key={check.key} className={check.status}><i>{check.status === "passed" ? <CheckCircle2 size={14} /> : <Clock3 size={14} />}</i><strong>{check.label}</strong><small>{check.detail}</small></span>)}</div>}
         </section>}
       </section>}

@@ -1192,3 +1192,27 @@
 .admin-delete-actions button { padding: 12px 18px; border-radius: 9px; background: var(--mist); }
 .admin-delete-actions .admin-delete-submit { background: #a83232; color: #fff; }
 .admin-delete-confirm button:disabled, .admin-delete-user:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Keep PDF feedback readable without squeezing the confirmed-version heading. */
+.delivery-version.ready .delivery-actions {
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  width: 100%;
+}
+.delivery-version.ready .delivery-actions > a {
+  grid-row: auto;
+  align-self: stretch;
+  height: auto;
+}
+.delivery-version.ready .delivery-actions > p[role="status"] {
+  grid-column: 1 / -1;
+  margin: 4px 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.delivery-version.ready .delivery-actions input { width: 100%; }
+@media (max-width: 760px) {
+  .delivery-version.ready .delivery-actions { grid-template-columns: minmax(0, 1fr); }
+}
