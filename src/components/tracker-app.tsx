@@ -74,6 +74,7 @@ export function TrackerApp() {
   const [editingDailyTarget, setEditingDailyTarget] = useState(false);
   const [savingDailyTarget, setSavingDailyTarget] = useState(false);
   const [aiQuota, setAIQuota] = useState<AIQuota>(defaultAIQuota);
+  const quotaRequestId = useRef(0);
 
   const notify = useCallback((message: string) => {
     setToast(message);
@@ -134,13 +135,14 @@ export function TrackerApp() {
 
   const loadAIQuota = useCallback(async () => {
     if (isDemoMode) return;
+    const requestId = ++quotaRequestId.current;
     try {
       const response = await fetch("/api/ai/quota", { cache: "no-store" });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "AI 配额读取失败");
-      setAIQuota(payload.quota as AIQuota);
+      if (requestId === quotaRequestId.current) setAIQuota(payload.quota as AIQuota);
     } catch (quotaError) {
-      notify(quotaError instanceof Error ? quotaError.message : "AI 配额读取失败");
+      if (requestId === quotaRequestId.current) notify(quotaError instanceof Error ? quotaError.message : "AI 配额读取失败");
     }
   }, [notify]);
 
@@ -161,13 +163,16 @@ export function TrackerApp() {
 
   useEffect(() => {
     const refresh = () => { void loadAIQuota(); };
+    const refreshVisible = () => { if (document.visibilityState === "visible") refresh(); };
     const timer = window.setTimeout(refresh, 0);
     const interval = window.setInterval(refresh, 60_000);
     window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refreshVisible);
     return () => {
       window.clearTimeout(timer);
       window.clearInterval(interval);
       window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refreshVisible);
     };
   }, [loadAIQuota]);
 
@@ -268,7 +273,7 @@ export function TrackerApp() {
       </section>
       {settingsOpen && <MailSettings onClose={() => setSettingsOpen(false)} notify={notify} />}
       {accountOpen && <AccountSettings profile={profile} onClose={() => setAccountOpen(false)} notify={notify} onUpdated={(displayName) => setProfile((current) => current ? { ...current, displayName } : current)} onOpenAdmin={() => { setAccountOpen(false); setAdminOpen(true); }} />}
-      {adminOpen && <AdminPanel onClose={() => setAdminOpen(false)} notify={notify} />}
+      {adminOpen && <AdminPanel onClose={() => setAdminOpen(false)} notify={notify} onQuotaUpdated={loadAIQuota} />}
       {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} notify={notify} />}
       {toast && <div className="toast"><CheckCircle2 size={18} />{toast}</div>}
     </div>
@@ -1444,7 +1449,7 @@ function AccountSettings({ profile, onClose, notify, onUpdated, onOpenAdmin }: {
         <div className="password-mode-toggle" role="group" aria-label="密码设置方式"><button type="button" className={firstPasswordSetup ? "active" : ""} onClick={() => { setFirstPasswordSetup(true); setCurrentPassword(""); }}>首次设置</button><button type="button" className={!firstPasswordSetup ? "active" : ""} onClick={() => setFirstPasswordSetup(false)}>修改已有密码</button></div>
         <form className="account-form password-form" onSubmit={changePassword}>{!firstPasswordSetup && <><label htmlFor="current-password">当前密码</label><input id="current-password" type="password" required autoComplete="current-password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} /></>}<label htmlFor="new-password">{firstPasswordSetup ? "设置密码" : "新密码"}</label><input id="new-password" type="password" required minLength={8} maxLength={72} autoComplete="new-password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} placeholder="至少 8 位，包含字母和数字" /><label htmlFor="confirm-new-password">再次输入新密码</label><input id="confirm-new-password" type="password" required minLength={8} maxLength={72} autoComplete="new-password" value={passwordConfirmation} onChange={(event) => setPasswordConfirmation(event.target.value)} /><button className="primary-button" disabled={savingPassword}><KeyRound size={15} />{savingPassword ? "保存中…" : firstPasswordSetup ? "设置密码" : "确认修改密码"}</button></form>
       </section>
-      {profile?.isAdmin && <button className="admin-entry-button" onClick={onOpenAdmin}><ShieldCheck size={17} /><span><strong>管理员控制台</strong><small>用户、配额、来源状态与用户反馈</small></span><ArrowUpRight size={16} /></button>}
+      {profile?.isAdmin && <button className="admin-entry-button" onClick={onOpenAdmin}><ShieldCheck size={17} /><span><strong>管理员控制台</strong><small>用户、配额与用户反馈</small></span><ArrowUpRight size={16} /></button>}
       <footer><button className="account-signout" disabled={signingOut} onClick={() => void signOut()}><LogOut size={15} />{signingOut ? "退出中…" : "退出登录"}</button><button className="primary-button" onClick={onClose}>完成</button></footer>
     </section>
   </div>;
@@ -1746,11 +1751,10 @@ function FeedbackModal({ onClose, notify }: { onClose: () => void; notify: (text
 
 type AdminOverview = {
   users: Array<{ id: string; email: string; display_name: string | null; is_admin: boolean; ai_daily_limit: number; created_at: string }>;
-  sources: Array<{ id: string; name: string; kind: string; enabled: boolean; restricted_reason: string | null; last_success_at: string | null; latestRun: null | { status: string; jobs_seen: number; jobs_added: number; error_code: string | null; started_at: string } }>;
   feedback: Array<{ id: string; user_id: string; email: string; content: string; created_at: string }>;
 };
 
-export function AdminPanel({ onClose, notify }: { onClose: () => void; notify: (text: string) => void }) {
+export function AdminPanel({ onClose, notify, onQuotaUpdated }: { onClose: () => void; notify: (text: string) => void; onQuotaUpdated?: () => Promise<void> }) {
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [error, setError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<AdminOverview["users"][number] | null>(null);
@@ -1808,6 +1812,7 @@ export function AdminPanel({ onClose, notify }: { onClose: () => void; notify: (
       if (!response.ok) throw new Error(payload.error || "配额更新失败");
       setOverview((current) => current ? { ...current, users: current.users.map((user) => user.id === id ? { ...user, ai_daily_limit: dailyLimit } : user) } : current);
       notify("AI 配额已更新");
+      await onQuotaUpdated?.();
     } catch (quotaError) {
       notify(quotaError instanceof Error ? quotaError.message : "配额更新失败");
     }
@@ -1835,7 +1840,6 @@ export function AdminPanel({ onClose, notify }: { onClose: () => void; notify: (
         </section>
         <div className="admin-grid">
           <section><header><h4>用户与每日 AI 配额</h4><span>{overview.users.length} 位用户</span></header><div className="admin-list">{overview.users.map((user) => <article key={user.id}><div><strong>{user.display_name || user.email || "未命名用户"}{user.is_admin && <em>管理员</em>}</strong><span>{user.email}</span></div><label>每日<input type="number" min={0} max={500} defaultValue={user.ai_daily_limit} onBlur={(event) => void updateQuota(user.id, Number(event.target.value))} />次</label>{!user.is_admin && <button className="admin-delete-user" type="button" disabled={!user.email || deletingUser} aria-label={`删除用户 ${user.email}`} onClick={() => { setDeleteTarget(user); setConfirmationEmail(""); setDeleteError(""); }}><Trash2 size={14} />删除</button>}</article>)}</div></section>
-          <section><header><h4>采集来源健康度</h4><span>{overview.sources.filter((source) => source.latestRun?.status === "completed").length}/{overview.sources.length} 正常</span></header><div className="admin-list source-health">{overview.sources.map((source) => <article key={source.id}><i className={source.latestRun?.status === "completed" ? "healthy" : source.latestRun?.status === "restricted" ? "restricted" : "unknown"} /><div><strong>{source.name}</strong><span>{source.latestRun ? `${source.latestRun.status} · 发现 ${source.latestRun.jobs_seen} / 新增 ${source.latestRun.jobs_added}` : source.restricted_reason || "等待首次运行"}</span></div><time>{source.latestRun ? new Date(source.latestRun.started_at).toLocaleString("zh-CN") : "—"}</time></article>)}</div></section>
         </div>
         <section className="admin-feedback"><header><div><h4>建议与 Bug 反馈</h4><span>仅管理员可见 · 共 {overview.feedback.length} 条</span></div><MessageCircleMore size={18} /></header>{overview.feedback.length === 0 ? <p className="admin-feedback-empty">还没有收到用户反馈。</p> : <div>{overview.feedback.map((item) => <article key={item.id}><p>{item.content}</p><footer><span>{item.email || "已注销用户"}</span><time>{new Date(item.created_at).toLocaleString("zh-CN")}</time></footer></article>)}</div>}</section>
       </>}

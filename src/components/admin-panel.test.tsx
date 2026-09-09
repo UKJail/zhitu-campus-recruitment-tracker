@@ -8,9 +8,9 @@ const overview = {
   users: [
     { id: "admin", email: "admin@example.com", display_name: "管理员", is_admin: true, ai_daily_limit: 20 },
     { id: "test-user", email: "test@example.com", display_name: "测试账号", is_admin: false, ai_daily_limit: 20 },
-  ], sources: [], feedback: [],
+  ], feedback: [],
 };
-describe("AdminPanel delete confirmation", () => {
+describe("AdminPanel", () => {
   beforeEach(() => {
     fetchMock.mockReset();
     notify.mockReset();
@@ -22,6 +22,33 @@ describe("AdminPanel delete confirmation", () => {
     render(<AdminPanel onClose={vi.fn()} notify={notify} />);
     fireEvent.click(await screen.findByRole("button", { name: "删除用户 test@example.com" }));
   }
+  it("keeps quota management and feedback without collection health content", async () => {
+    render(<AdminPanel onClose={vi.fn()} notify={notify} />);
+    expect(await screen.findByText("用户与每日 AI 配额")).toBeTruthy();
+    expect(screen.getByText("建议与 Bug 反馈")).toBeTruthy();
+    expect(screen.queryByText("采集来源健康度")).toBeNull();
+    expect(screen.getAllByRole("spinbutton")).toHaveLength(2);
+  });
+  it.each([0, 1])("refreshes the current user's quota immediately after saving row %s", async (index) => {
+    const onQuotaUpdated = vi.fn().mockResolvedValue(undefined);
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ updated: true }) });
+    render(<AdminPanel onClose={vi.fn()} notify={notify} onQuotaUpdated={onQuotaUpdated} />);
+    const input = (await screen.findAllByRole("spinbutton"))[index];
+    fireEvent.change(input, { target: { value: "50" } });
+    fireEvent.blur(input);
+    await waitFor(() => expect(onQuotaUpdated).toHaveBeenCalledTimes(1));
+    expect(fetchMock).toHaveBeenLastCalledWith(`/api/admin/users/${overview.users[index].id}/quota`, expect.objectContaining({ method: "PATCH", body: JSON.stringify({ dailyLimit: 50 }) }));
+    expect(notify).toHaveBeenCalledWith("AI 配额已更新");
+  });
+  it("does not report a refresh or success when saving quota fails", async () => {
+    const onQuotaUpdated = vi.fn();
+    fetchMock.mockResolvedValueOnce({ ok: false, json: async () => ({ error: "配额更新失败" }) });
+    render(<AdminPanel onClose={vi.fn()} notify={notify} onQuotaUpdated={onQuotaUpdated} />);
+    fireEvent.blur((await screen.findAllByRole("spinbutton"))[0]);
+    await waitFor(() => expect(notify).toHaveBeenCalledWith("配额更新失败"));
+    expect(onQuotaUpdated).not.toHaveBeenCalled();
+    expect(notify).not.toHaveBeenCalledWith("AI 配额已更新");
+  });
   it("hides deletion for administrators and cancellation never sends a delete", async () => {
     await openConfirmation();
     expect(screen.queryByRole("button", { name: "删除用户 admin@example.com" })).toBeNull();
