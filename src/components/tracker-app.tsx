@@ -4,7 +4,7 @@ import {
   ArrowUpRight, Bell, Bookmark, BriefcaseBusiness, Building2, CalendarDays, Check, CheckCircle2,
   ChevronDown, ChevronLeft, ChevronRight, CircleUserRound, ClipboardCheck, Clock3, FileCheck2, FilePenLine,
   Copy, Download, ExternalLink, FileText, Inbox, KeyRound, LayoutDashboard, LogOut, Mail, Menu, MessageSquareText, MoreHorizontal,
-  PenLine, Plus, RefreshCw, Save, Search, Send, ShieldCheck, Sparkles, Star, Target, Trash2, Upload, X, XCircle, MailCheck, MessageCircleMore,
+  PenLine, Plus, Puzzle, RefreshCw, Save, Search, Send, ShieldCheck, Sparkles, Star, Target, Trash2, Upload, X, XCircle, MailCheck, MessageCircleMore,
 } from "lucide-react";
 import { type ChangeEvent, type Dispatch, type FormEvent, type SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
@@ -15,6 +15,7 @@ import { formatLocalChineseDate, greetingWithId } from "@/lib/local-time";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { InterviewPrepPage } from "@/components/interview-prep-page";
 import { ResumePdfPreview } from "@/components/resume-pdf-preview";
+import { PluginPage } from "@/components/plugin-page";
 import { BrandMascot } from "@/components/brand-mascot";
 import { CareerPortalDirectory } from "@/components/career-portal-directory";
 import { allowedConfirmationLinks, forwardingConfirmationProvider, forwardingVerificationState, gmailForwardingConfirmationCode, gmailRecruitmentFilterQuery, hasRecentInboundEmail, isGmailForwardingConfirmation, isQqForwardingConfirmation, recruitmentFilterKeywords } from "@/lib/mail/forwarding";
@@ -26,7 +27,7 @@ import { DEFAULT_DAILY_APPLICATION_TARGET, DEFAULT_JOB_PREFERENCES, hasJobPrefer
 import { matchJobPreferences } from "@/lib/jobs/preferences";
 import { downloadResumePdf, prepareResumePdf, downloadPreparedResumePdf, type PreparedResumePdf } from "@/lib/resumes/pdf-download";
 
-type PageKey = "home" | "jobs" | "resumes" | "progress" | "prep" | "reviews";
+type PageKey = "home" | "jobs" | "resumes" | "progress" | "prep" | "reviews" | "plugin";
 type AccountProfile = { displayName: string | null; email: string; isAdmin: boolean; dailyApplicationTarget: number; jobPreferences: JobPreferences };
 type NotificationItem = {
   id: string;
@@ -50,9 +51,10 @@ const navItems = [
   { key: "progress" as const, label: "求职进度", icon: Target },
   { key: "prep" as const, label: "面试准备", icon: Sparkles },
   { key: "reviews" as const, label: "面试复盘", icon: MessageSquareText },
+  { key: "plugin" as const, label: "填表插件", icon: Puzzle },
 ];
 
-export function TrackerApp() {
+export function TrackerApp({ pluginUrl = null }: { pluginUrl?: string | null } = {}) {
   const [page, setPage] = useState<PageKey>("home");
   const [sidebar, setSidebar] = useState(false);
   const [jobs, setJobs] = useState<Job[]>(isDemoMode ? seedJobs : []);
@@ -269,6 +271,7 @@ export function TrackerApp() {
           {page === "progress" && <ProgressPage jobs={jobs} refreshJobs={loadJobs} notify={notify} onOpenMailSettings={() => setSettingsOpen(true)} />}
           {page === "prep" && <InterviewPrepPage notify={notify} aiQuota={aiQuota} onQuotaChanged={setAIQuota} />}
           {page === "reviews" && <ReviewsPage reviews={reviews} setReviews={setReviews} notify={notify} />}
+          {page === "plugin" && <PluginPage downloadUrl={pluginUrl} />}
         </main>
       </section>
       {settingsOpen && <MailSettings onClose={() => setSettingsOpen(false)} notify={notify} />}
