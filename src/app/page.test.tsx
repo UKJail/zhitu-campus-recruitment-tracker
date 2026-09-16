@@ -47,6 +47,49 @@ describe("LoginPage session redirect", () => {
     await waitFor(() => expect(authMocks.replace).toHaveBeenCalledWith("/app"));
   });
 
+  it("shows the approved public-security filing beside the existing ICP filing", async () => {
+    authMocks.fetch.mockResolvedValue({ ok: false });
+    render(<LoginPage />);
+
+    const icp = screen.getByRole("link", { name: "湘ICP备2026036134号" });
+    const securityFiling = screen.getByRole("link", { name: "粤公网安备44030002016360号" });
+    expect(icp.getAttribute("href")).toBe("https://beian.miit.gov.cn/");
+    expect(securityFiling.getAttribute("href")).toBe("https://beian.mps.gov.cn/#/query/webSearch?code=44030002016360");
+    expect(securityFiling.closest("footer")).toBe(icp.closest("footer"));
+    for (const link of [icp, securityFiling]) {
+      expect(link.getAttribute("target")).toBe("_blank");
+      expect(link.getAttribute("rel")?.split(" ")).toEqual(expect.arrayContaining(["noopener", "noreferrer"]));
+    }
+    const icon = securityFiling.querySelector("img");
+    expect(icon?.getAttribute("src")).toBe("/beian-icon.png");
+    expect(icon?.getAttribute("width")).toBe("18");
+    expect(icon?.getAttribute("height")).toBe("20");
+    expect(securityFiling.firstElementChild).toBe(icon);
+  });
+
+  it("restores the brand logo without redundant login and public-test copy", () => {
+    authMocks.fetch.mockResolvedValue({ ok: false });
+    const { container } = render(<LoginPage />);
+
+    expect(container.querySelector(".login-story .brand img")?.getAttribute("src")).toContain("brand-rabbit-3d-v2.webp");
+    expect(container.querySelector(".login-brand-lockup strong")?.textContent).toBe("职途tracker");
+    expect(screen.queryByText("已有账号可直接登录，新用户可以使用邮箱免费注册。")).toBeNull();
+    expect(screen.queryByText(/公开测试/)).toBeNull();
+    expect(screen.queryByText(/旧激活链接/)).toBeNull();
+    expect(screen.getByRole("button", { name: "继续验证注册邮箱" })).toBeTruthy();
+    expect(screen.getByText(/《服务条款》和《隐私政策》/)).toBeTruthy();
+  });
+
+  it.each(["注册新账号", "使用邮箱验证码登录", "忘记密码？"])("keeps the filing visible when opening %s", async (buttonName) => {
+    authMocks.fetch.mockResolvedValue({ ok: false });
+    render(<LoginPage />);
+
+    fireEvent.click(screen.getByRole("button", { name: buttonName }));
+
+    expect(screen.getByRole("link", { name: "粤公网安备44030002016360号" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "湘ICP备2026036134号" })).toBeTruthy();
+  });
+
   it("offers public email registration without an invitation code", async () => {
     authMocks.fetch.mockResolvedValue({ ok: false });
     render(<LoginPage />);
@@ -54,6 +97,8 @@ describe("LoginPage session redirect", () => {
     fireEvent.click(screen.getByRole("button", { name: /注册新账号/ }));
 
     expect(screen.getByRole("heading", { name: "注册职途" })).toBeTruthy();
+    expect(screen.queryByText(/无需邀请码/)).toBeNull();
+    expect(screen.queryByText(/公开测试/)).toBeNull();
     expect(screen.queryByLabelText("邀请码")).toBeNull();
     expect(screen.getByRole("button", { name: /注册账号/ })).toBeTruthy();
   });
