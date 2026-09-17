@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 import type { Database } from "@/lib/supabase/database.types";
 import type { OfferstarRecord } from "@/lib/jobs/offerstar-catalog";
 import { JOB_QUERY_FILTER_SIZE, JOB_QUERY_PAGE_SIZE } from "@/lib/jobs/query-pages";
+import { offerstarLookupFingerprints } from "@/lib/jobs/offerstar-identity";
 
 const mocks = vi.hoisted(() => ({ auth: vi.fn(), catalog: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ getAuthenticatedUserId: mocks.auth }));
@@ -52,12 +53,13 @@ function fixture(input: Partial<Record<Table, Row[]>> = {}, options: { serverCap
     if (options.fail?.(call)) return Response.json({ message: "private database detail", code: "TEST_ERROR" }, { status: 400 });
     let rows = [...tables[table]];
     // PostgREST ANDs repeated query keys (e.g. id=in.(...) AND id=gt....).
+    const valueAt = (row: Row, key: string) => key.startsWith("raw_data->>") ? (row.raw_data as Row | undefined)?.[key.slice(11)] : row[key];
     for (const [key, filter] of filterEntries) {
-      if (filter.startsWith("eq.")) rows = rows.filter((row) => String(row[key]) === filter.slice(3));
-      else if (filter.startsWith("gt.")) rows = rows.filter((row) => String(row[key]) > filter.slice(3));
+      if (filter.startsWith("eq.")) rows = rows.filter((row) => String(valueAt(row, key)) === filter.slice(3));
+      else if (filter.startsWith("gt.")) rows = rows.filter((row) => String(valueAt(row, key)) > filter.slice(3));
       else if (filter.startsWith("in.(")) {
         const values = filter.slice(4, -1).split(",").map((value) => value.replace(/^"|"$/g, ""));
-        rows = rows.filter((row) => values.includes(String(row[key])));
+        rows = rows.filter((row) => values.includes(String(valueAt(row, key))));
       } else throw new Error("Unexpected test filter " + key + ": " + filter);
     }
     const [orderKey, direction] = call.order.split(".");
@@ -83,7 +85,7 @@ function expectBounded(calls: Call[]) {
     expect(call.order).toBe((call.table === "saved_jobs" ? "job_id" : "id") + ".asc");
     expect(call.url.length).toBeLessThan(8_000);
     if (call.table !== "jobs") expect(call.filters.user_id).toBe("eq." + uid);
-    if (call.table === "jobs") expect(call.filters.id?.startsWith("in.(") || call.filters.fingerprint?.startsWith("in.(") || call.filters.fingerprint?.startsWith("eq.")).toBe(true);
+    if (call.table === "jobs") expect(["id", "fingerprint", "raw_data->>offerstarExternalId", "raw_data->>offerstarSourceId"].some((key) => call.filters[key]?.startsWith("in.(") || call.filters[key]?.startsWith("eq."))).toBe(true);
     for (const value of Object.values(call.filters).filter((value) => value.startsWith("in.("))) {
       expect(value.slice(4, -1).split(",").length).toBeLessThanOrEqual(JOB_QUERY_FILTER_SIZE);
     }
@@ -140,7 +142,7 @@ describe("GET /api/jobs bounded user queries", () => {
     expect(body.jobs[1]).toMatchObject({ applicationId: id(101002), status: "applied" });
     expect(body.jobs[1].events.map((row: Row) => row.id)).toEqual([id(201004), id(201003)]);
     const jobCalls = calls.filter((call) => call.table === "jobs");
-    expect(jobCalls.every((call) => filterValues(call, "fingerprint").every((value) => records.slice(1000).some((row) => row.businessFingerprint === value)))).toBe(true);
+    expect(jobCalls.every((call) => filterValues(call, "fingerprint").every((value) => records.slice(1000).some((row) => offerstarLookupFingerprints(row).includes(value))))).toBe(true);
     expect(calls.filter((call) => call.table === "application_events").every((call) => !filterValues(call, "application_id").includes(id(100001)))).toBe(true);
     expectBounded(calls);
   });
@@ -181,7 +183,7 @@ describe("GET /api/jobs bounded user queries", () => {
     expect(body.meta).toMatchObject({ total: 3, catalogTotal: 4 });
     const idCalls = calls.filter((call) => call.table === "jobs" && call.filters.id?.startsWith("in.("));
     expect(idCalls.length).toBeGreaterThan(10);
-    expect(idCalls.every((call) => call.select === "id,fingerprint")).toBe(true);
+    expect(idCalls.every((call) => call.select === "id,fingerprint,apply_url,raw_data")).toBe(true);
     expectBounded(calls);
   });
 
@@ -192,6 +194,59 @@ describe("GET /api/jobs bounded user queries", () => {
     });
     expect(await (await GET(request())).json()).toEqual({ jobs: [] });
     expect(calls.map((call) => call.table).sort()).toEqual(["applications", "saved_jobs"]);
+  });
+
+  it.each(["", "&savedOnly=true"])("keeps saved/application state after a city change %s", async (filter) => {
+    setCatalog([{ ...record(1), sourceId: "source-1", location: "深圳、广州", businessFingerprint: "new-fp", legacyFingerprints: ["fp-1"] }]);
+    const { calls } = fixture({ jobs: [{ ...job(1), raw_data: { offerstarExternalId: "offerstar-1" } }],
+      saved_jobs: [{ user_id: uid, job_id: id(1) }], applications: [application(1)], application_events: [event(1, 1)] });
+    const response = await GET(request("?scope=catalog" + filter));
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.jobs).toHaveLength(1);
+    expect(body.jobs[0]).toMatchObject({ id: "offerstar-1", databaseJobId: id(1), location: "深圳、广州", saved: true, applicationId: id(100001), status: "applied" });
+    expect(body.jobs[0].events).toHaveLength(1);
+    expectBounded(calls);
+  });
+
+  it("does not copy a saved/application state to a second announcement sharing an old fingerprint", async () => {
+    setCatalog([{ ...record(1), businessFingerprint: "new-1", legacyFingerprints: ["fp-1"] },
+      { ...record(2), businessFingerprint: "new-2", legacyFingerprints: ["fp-1"] }]);
+    fixture({ jobs: [{ ...job(1), raw_data: { offerstarExternalId: "offerstar-1" } }],
+      saved_jobs: [{ user_id: uid, job_id: id(1) }], applications: [application(1)] });
+    const body = await (await GET(request("?scope=catalog"))).json();
+    expect(body.jobs[0]).toMatchObject({ databaseJobId: id(1), saved: true });
+    expect(body.jobs[1]).toMatchObject({ saved: false });
+    expect(body.jobs[1].databaseJobId).toBeUndefined();
+    expect(body.jobs[1].applicationId).toBeUndefined();
+    const saved = await (await GET(request("?scope=catalog&savedOnly=true"))).json();
+    expect(saved.jobs.map((row: Row) => row.id)).toEqual(["offerstar-1"]);
+  });
+
+  it("preserves historical activity for announcements absent from the latest catalog", async () => {
+    setCatalog([]);
+    fixture({ jobs: [job(1)], saved_jobs: [{ user_id: uid, job_id: id(1) }], applications: [application(1)] });
+    const body = await (await GET(request("?scope=activity"))).json();
+    expect(body.jobs[0]).toMatchObject({ id: id(1), saved: true, applicationId: id(100001), status: "applied" });
+  });
+
+  it("uses the stable source key for a newly stored announcement", async () => {
+    setCatalog([{ ...record(1), sourceId: "source-1", businessFingerprint: "changed-again" }]);
+    fixture({ jobs: [{ ...job(1), fingerprint: "offerstar:source-1", raw_data: { offerstarSourceId: "source-1", offerstarExternalId: "offerstar-1" } }],
+      saved_jobs: [{ user_id: uid, job_id: id(1) }] });
+    const body = await (await GET(request("?scope=catalog"))).json();
+    expect(body.jobs[0]).toMatchObject({ databaseJobId: id(1), saved: true });
+  });
+
+  it("finds older rows by stored external identity even when their fingerprint predates the available baseline", async () => {
+    setCatalog([{ ...record(1), sourceId: "source-1", businessFingerprint: "new-fp", legacyFingerprints: ["last-baseline-fp"] }]);
+    const { calls } = fixture({ jobs: [{ ...job(1), fingerprint: "much-older-fp", raw_data: { offerstarExternalId: "offerstar-1" } }],
+      saved_jobs: [{ user_id: uid, job_id: id(1) }], applications: [application(1)] });
+    const response = await GET(request("?scope=catalog"));
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.jobs[0]).toMatchObject({ databaseJobId: id(1), saved: true, status: "applied" });
+    expectBounded(calls);
   });
 
   it("uses exact bounded queries for fingerprints with quotes/backslashes instead of malformed in lists", async () => {

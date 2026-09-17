@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { APPLICATION_DELETED_ACTION, APPLICATION_RESTORED_ACTION, isApplicationHidden } from "@/lib/applications/visibility";
 import { materializeOfferstarJob } from "@/lib/jobs/materialize-offerstar";
+import { OfferstarIdentityError } from "@/lib/jobs/offerstar-identity";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -10,7 +11,12 @@ export async function POST(_request: Request, context: RouteContext<"/api/jobs/[
   const { supabase, userId } = await getAuthenticatedUserId();
   if (!userId) return NextResponse.json({ error: "请先登录" }, { status: 401 });
   const { id } = await context.params;
-  const materialized = z.string().uuid().safeParse(id).success ? { id } : await materializeOfferstarJob(supabase, id);
+  let materialized;
+  try {
+    materialized = z.string().uuid().safeParse(id).success ? { id } : await materializeOfferstarJob(supabase, id);
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof OfferstarIdentityError ? error.message : "职位关联暂时无法读取，请稍后重试" }, { status: error instanceof OfferstarIdentityError ? 409 : 503 });
+  }
   if (!materialized) return NextResponse.json({ error: "职位编号无效" }, { status: 400 });
   const { data, error } = await supabase.rpc("prepare_job_application", { p_job_id: materialized.id });
   if (error || !data) return NextResponse.json({ error: error?.message || "无法创建准备投递记录" }, { status: 400 });

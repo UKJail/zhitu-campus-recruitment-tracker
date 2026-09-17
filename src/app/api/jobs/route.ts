@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { isApplicationHidden } from "@/lib/applications/visibility";
 import { loadOfferstarCatalog, offerstarCatalogMeta, offerstarRecordToJob, searchOfferstarRecords, type OfferstarInteraction } from "@/lib/jobs/offerstar-catalog";
 import { JOB_QUERY_PAGE_SIZE, JobsReadError, readJobQueryChunks, readJobQueryPages } from "@/lib/jobs/query-pages";
+import { indexOfferstarJobs, OfferstarIdentityError, offerstarLookupFingerprints } from "@/lib/jobs/offerstar-identity";
 import { getAuthenticatedUserId } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
 import type { ApplicationStatus } from "@/lib/types";
@@ -46,7 +47,7 @@ async function loadUserLinks(supabase: Client, userId: string) {
   return { savedSet: new Set(saved.map((row) => row.job_id)), applications };
 }
 
-async function loadJobs(supabase: Client, column: "id" | "fingerprint", values: string[]) {
+async function loadJobs(supabase: Client, column: "id" | "fingerprint" | "raw_data->>offerstarExternalId" | "raw_data->>offerstarSourceId", values: string[]) {
   return readJobQueryChunks(values, (chunk) => readJobQueryPages((after) => {
     let query = supabase.from("jobs").select(JOB_FIELDS);
     query = chunk.length === 1 && /["\\]/.test(chunk[0]) ? query.eq(column, chunk[0]) : query.in(column, chunk);
@@ -56,13 +57,13 @@ async function loadJobs(supabase: Client, column: "id" | "fingerprint", values: 
   }, (row) => row.id));
 }
 
-async function loadSavedFingerprints(supabase: Client, ids: string[]) {
+async function loadSavedIdentities(supabase: Client, ids: string[]) {
   const rows = await readJobQueryChunks(ids, (chunk) => readJobQueryPages((after) => {
-    let query = supabase.from("jobs").select("id,fingerprint").in("id", chunk).order("id", { ascending: true }).limit(JOB_QUERY_PAGE_SIZE);
+    let query = supabase.from("jobs").select("id,fingerprint,apply_url,raw_data").in("id", chunk).order("id", { ascending: true }).limit(JOB_QUERY_PAGE_SIZE);
     if (after) query = query.gt("id", after);
     return query;
   }, (row) => row.id));
-  return new Set(rows.map((row) => row.fingerprint));
+  return indexOfferstarJobs(rows);
 }
 
 async function loadApplicationState(supabase: Client, userId: string, applications: Application[]) {
@@ -165,8 +166,8 @@ export async function GET(request: NextRequest) {
     }
 
     const catalog = await loadOfferstarCatalog();
-    const savedFingerprints = query.get("savedOnly") === "true" ? await loadSavedFingerprints(supabase, [...savedSet]) : null;
-    const catalogRecords = savedFingerprints ? catalog.data.records.filter((record) => savedFingerprints.has(record.businessFingerprint)) : catalog.data.records;
+    const savedIdentities = query.get("savedOnly") === "true" ? await loadSavedIdentities(supabase, [...savedSet]) : null;
+    const catalogRecords = savedIdentities ? catalog.data.records.filter((record) => savedIdentities(record)) : catalog.data.records;
     const recruitmentType = query.get("recruitmentType");
     const result = searchOfferstarRecords(catalogRecords, {
       query: query.get("query") || undefined,
@@ -181,16 +182,24 @@ export async function GET(request: NextRequest) {
       preferredOnly,
       preferences: parsedPreferences.success ? parsedPreferences.data : DEFAULT_JOB_PREFERENCES,
     });
-    const materialized = await loadJobs(supabase, "fingerprint", result.records.map((record) => record.businessFingerprint));
-    const selectedIds = new Set(materialized.map((job) => job.id));
+    const materialized = (await Promise.all([
+      loadJobs(supabase, "fingerprint", result.records.flatMap(offerstarLookupFingerprints)),
+      loadJobs(supabase, "raw_data->>offerstarExternalId", result.records.map((record) => record.externalId)),
+      loadJobs(supabase, "raw_data->>offerstarSourceId", result.records.flatMap((record) => record.sourceId ? [record.sourceId] : [])),
+    ])).flat();
+    const resolveJob = indexOfferstarJobs(materialized);
+    const selected = new Map(result.records.map((record) => [record.externalId, resolveJob(record)]));
+    const selectedIds = new Set([...selected.values()].flatMap((job) => job ? [job.id] : []));
     const state = await loadApplicationState(supabase, userId, applications.filter((item) => selectedIds.has(item.job_id)));
-    const interactionByFingerprint = new Map(materialized.map((job) => [job.fingerprint, interactionFor(job.id, savedSet, state)]));
     return NextResponse.json({
-      jobs: result.records.map((record) => offerstarRecordToJob(record, interactionByFingerprint.get(record.businessFingerprint))),
+      jobs: result.records.map((record) => {
+        const job = selected.get(record.externalId);
+        return offerstarRecordToJob(record, job ? interactionFor(job.id, savedSet, state) : undefined);
+      }),
       meta: offerstarCatalogMeta(catalog.data.records, result, catalog.data.generatedAt),
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof JobsReadError ? error.message : "职位加载失败，请稍后重试" }, {
+    return NextResponse.json({ error: error instanceof JobsReadError || error instanceof OfferstarIdentityError ? error.message : "职位加载失败，请稍后重试" }, {
       status: error instanceof JobsReadError ? 503 : 500,
       headers: { "Cache-Control": "no-store" },
     });

@@ -2,7 +2,7 @@
 
 import { ArrowUpRight, Building2, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { careerPortalIndustries, filterCareerPortals, type CareerPortal } from "@/lib/jobs/career-portals";
+import { careerPortalIndustries, careerPortalStatus, filterCareerPortals, type CareerPortal } from "@/lib/jobs/career-portals";
 
 const PAGE_SIZE = 24;
 
@@ -49,11 +49,11 @@ export function CareerPortalDirectory({ notify }: { notify: (message: string) =>
       <label className="portal-industry-filter"><span>行业</span><select aria-label="行业" value={industry} onChange={(event) => { setIndustry(event.target.value); setPage(1); }}><option>全部行业</option>{industries.map((item) => <option key={item}>{item}</option>)}</select></label>
     </section>
     <section className="portal-directory" aria-busy={loading}>
-      <header><span>共找到 <strong>{filtered.length}</strong> 家企业</span><small>只提供官网入口，不计入岗位与投递统计</small></header>
+      <header><span>共找到 <strong>{filtered.length}</strong> 家企业</span><small>入口状态仅供参考，不代表当前正在招聘</small></header>
       {loading ? <div className="jobs-empty"><span className="loading-dot" />正在加载企业入口…</div> : error ? <div className="jobs-empty"><strong>企业入口暂时无法加载</strong><span>{error}</span><button className="text-button" onClick={() => window.location.reload()}>刷新页面</button></div> : visible.length === 0 ? <div className="jobs-empty"><Search size={22} /><strong>没有找到对应企业</strong><span>换一个名称或行业关键词试试。</span></div> : <div className="portal-grid">{visible.map((portal) => <article className="portal-card" key={portal.key}>
         <span className="portal-monogram" aria-hidden="true">{portal.name.slice(0, 1)}</span>
-        <div><h4>{portal.name}</h4><p>{portal.industry}</p></div>
-        <a href={portal.url} target="_blank" rel="noopener noreferrer" onClick={() => notify(`正在打开 ${portal.name} 官方招聘网站`)}>进入官方招聘网站 <ArrowUpRight size={15} /></a>
+        <div><h4>{portal.name}</h4><p>{portal.industry}</p><small title={portal.checkedAt ? `最近检查：${portal.checkedAt.slice(0, 10)}` : undefined}>{careerPortalStatus(portal)}</small></div>
+        {portal.status === "unavailable" ? <span className="portal-unavailable">原入口暂不可用</span> : <a href={portal.url} target="_blank" rel="noopener noreferrer" onClick={() => notify(`正在打开 ${portal.name} 招聘入口`)}>查看招聘入口 <ArrowUpRight size={15} /></a>}
       </article>)}</div>}
       {!loading && !error && filtered.length > PAGE_SIZE && <div className="pagination"><button disabled={visiblePage === 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>上一页</button><span>{visiblePage} / {pageCount}</span><button disabled={visiblePage === pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))}>下一页</button></div>}
     </section>
