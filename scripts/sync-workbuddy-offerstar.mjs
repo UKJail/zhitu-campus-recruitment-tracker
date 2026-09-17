@@ -2,6 +2,7 @@ import { readFile, stat } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import path from "node:path";
 import { atomicWriteJson } from "./atomic-json-file.mjs";
+import { attachOfferstarIdentityHistory } from "./offerstar-identity-history.mjs";
 
 const defaultSource = "C:\\Users\\k'k\\WorkBuddy\\zhitu-career-jobs\\latest\\offerstar-to-zhitu.json";
 const argumentsList = process.argv.slice(2);
@@ -107,6 +108,7 @@ for (const [index, item] of raw.entries()) {
   const offerstarType = firstText(item?.offerstarType, rawData.offerstarType, inferBatchFromTitle(title));
   records.push({
     externalId,
+    sourceId: text(item?.sourceId),
     company,
     title,
     location,
@@ -132,9 +134,18 @@ for (const [index, item] of raw.entries()) {
 if (records.length < 1) throw new Error("OfferStar 没有可导入岗位");
 if (records.length < raw.length * 0.9) throw new Error(`有效岗位比例异常：${records.length}/${raw.length}`);
 
+let previous = {};
+try {
+  previous = JSON.parse(await readFile(outputPath, "utf8"));
+  if (!Array.isArray(previous.records)) throw new Error("现有岗位目录格式无效，无法保留历史关联");
+} catch (error) {
+  if (error.code !== "ENOENT") throw error;
+}
+const identityHistory = attachOfferstarIdentityHistory(records, previous);
+
 const report = {
   source: "offerstar",
-  sourcePath,
+  sourcePath: path.basename(sourcePath),
   syncedAt: new Date().toISOString(),
   sourceModifiedAt: sourceInfo.mtime.toISOString(),
   sourceSha256: createHash("sha256").update(sourceBytes).digest("hex"),
@@ -143,6 +154,12 @@ const report = {
   accepted: records.length,
   duplicates,
   rejected: rejected.length,
+  identityCompatibility: {
+    changedFingerprints: identityHistory.changedFingerprints,
+    recordsWithLegacyFingerprints: identityHistory.records.filter((record) => record.legacyFingerprints.length).length,
+    retainedAbsentRecords: identityHistory.retiredRecords.length,
+    sourceIds: identityHistory.records.filter((record) => record.sourceId).length,
+  },
   wechatApplyUrls: records.filter((item) => item.applyUrlIsWechat).length,
   byRecruitmentType: Object.fromEntries(Object.entries(records.reduce((counts, item) => {
     counts[item.recruitmentType] = (counts[item.recruitmentType] || 0) + 1;
@@ -156,7 +173,7 @@ const report = {
 };
 
 if (!dryRun) {
-  await atomicWriteJson(outputPath, { generatedAt: report.syncedAt, sourceModifiedAt: report.sourceModifiedAt, sourceSha256: report.sourceSha256, records });
+  await atomicWriteJson(outputPath, { generatedAt: report.syncedAt, sourceModifiedAt: report.sourceModifiedAt, sourceSha256: report.sourceSha256, records: identityHistory.records, retiredRecords: identityHistory.retiredRecords });
   await atomicWriteJson(reportPath, report, 2);
 }
 console.log(JSON.stringify(report, null, 2));

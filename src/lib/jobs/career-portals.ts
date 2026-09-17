@@ -3,7 +3,20 @@ export type CareerPortal = {
   name: string;
   industry: string;
   url: string;
+  status?: string;
+  verifiedAt?: string | null;
+  checkedAt?: string | null;
 };
+
+export function careerPortalStatus(portal: CareerPortal) {
+  switch (portal.status) {
+    case "active": return "入口可访问";
+    case "seasonal": return "按招聘季开放";
+    case "restricted": return "访问受限";
+    case "unavailable": return "入口暂不可用";
+    default: return "入口待核验";
+  }
+}
 
 export function filterCareerPortals(portals: CareerPortal[], query: string, industry: string) {
   const keyword = query.trim().toLocaleLowerCase("zh-CN");

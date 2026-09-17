@@ -8,6 +8,8 @@ import { matchJobPreferences } from "@/lib/jobs/preferences";
 
 export type OfferstarRecord = {
   externalId: string;
+  sourceId?: string;
+  legacyFingerprints?: string[];
   company: string;
   title: string;
   location: string;
@@ -25,7 +27,7 @@ export type OfferstarRecord = {
   applyUrlIsWechat: boolean;
 };
 
-type CatalogFile = { generatedAt: string; records: OfferstarRecord[] };
+type CatalogFile = { generatedAt: string; records: OfferstarRecord[]; retiredRecords?: OfferstarRecord[] };
 type CatalogCache = { modifiedAt: number; data: CatalogFile; byId: Map<string, OfferstarRecord> };
 let cache: CatalogCache | null = null;
 
@@ -80,7 +82,7 @@ function inferBatchFromTitle(title: string) {
 }
 
 export function offerstarBatchLabel(record: OfferstarRecord) {
-  return record.offerstarType || inferBatchFromTitle(record.title) || record.category || (record.recruitmentType === "实习" ? "实习" : "校招");
+  return record.offerstarType || inferBatchFromTitle(record.title) || record.category || "批次未注明";
 }
 
 export function offerstarRecordToJob(record: OfferstarRecord, interaction: OfferstarInteraction = {}): Job {

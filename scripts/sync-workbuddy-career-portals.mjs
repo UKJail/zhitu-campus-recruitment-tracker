@@ -24,7 +24,11 @@ const portals = source.portals.map((item) => {
   if (!key || !name || !industry || !validUrl) {
     throw new Error(`企业入口字段无效：${name || key || "未知记录"}`);
   }
-  return { key, name, industry, url };
+  const statuses = ["active", "seasonal", "restricted", "unavailable", "review_required"];
+  const status = statuses.includes(item.status) ? item.status : "review_required";
+  const verifiedAt = typeof item.verifiedAt === "string" && Number.isFinite(Date.parse(item.verifiedAt)) ? item.verifiedAt : null;
+  const checkedAt = typeof item.attemptedAt === "string" && Number.isFinite(Date.parse(item.attemptedAt)) ? item.attemptedAt : source.generatedAt;
+  return { key, name, industry, url, status, verifiedAt, checkedAt };
 });
 
 const duplicateKeys = portals.filter((item, index) => portals.findIndex((candidate) => candidate.key === item.key) !== index);
