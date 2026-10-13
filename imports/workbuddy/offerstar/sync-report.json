@@ -1,101 +1,101 @@
 {
   "source": "offerstar",
   "sourcePath": "offerstar-to-zhitu.json",
-  "syncedAt": "2026-09-28T16:10:07.853Z",
-  "sourceModifiedAt": "2026-09-28T15:53:06.326Z",
-  "sourceSha256": "4a1a2a03858b19bdd6a7b0773badda29859dcea2ee2173de1f5ec612506edf5a",
+  "syncedAt": "2026-10-13T17:03:00.715Z",
+  "sourceModifiedAt": "2026-10-13T15:21:25.845Z",
+  "sourceSha256": "c078add95ee891c1de6aa435bb029b8c37be59ed3380bdbc18be894e05bacc12",
   "dryRun": false,
-  "received": 24550,
-  "accepted": 24550,
+  "received": 25458,
+  "accepted": 25458,
   "duplicates": 0,
   "rejected": 0,
   "identityCompatibility": {
     "changedFingerprints": 0,
     "recordsWithLegacyFingerprints": 8460,
     "retainedAbsentRecords": 92,
-    "sourceIds": 24550
+    "sourceIds": 25458
   },
-  "wechatApplyUrls": 22444,
+  "wechatApplyUrls": 23319,
   "byRecruitmentType": {
     "其他": 10,
-    "实习": 350,
-    "校招": 24190
+    "实习": 360,
+    "校招": 25088
   },
   "fieldCoverage": [
     {
       "label": "公司名称",
       "key": "company",
-      "filled": 24550,
-      "total": 24550,
+      "filled": 25458,
+      "total": 25458,
       "coverage": 1
     },
     {
       "label": "标题",
       "key": "title",
-      "filled": 24550,
-      "total": 24550,
+      "filled": 25458,
+      "total": 25458,
       "coverage": 1
     },
     {
       "label": "批次",
       "key": "offerstarType",
-      "filled": 21142,
-      "total": 24550,
-      "coverage": 0.8612
+      "filled": 22002,
+      "total": 25458,
+      "coverage": 0.8642
     },
     {
       "label": "更新时间",
       "key": "postDate",
-      "filled": 24550,
-      "total": 24550,
+      "filled": 25458,
+      "total": 25458,
       "coverage": 1
     },
     {
       "label": "招聘岗位",
       "key": "position",
-      "filled": 24507,
-      "total": 24550,
-      "coverage": 0.9982
+      "filled": 25406,
+      "total": 25458,
+      "coverage": 0.998
     },
     {
       "label": "工作地点",
       "key": "location",
-      "filled": 24550,
-      "total": 24550,
+      "filled": 25458,
+      "total": 25458,
       "coverage": 1
     },
     {
       "label": "行业",
       "key": "industry",
-      "filled": 24550,
-      "total": 24550,
+      "filled": 25458,
+      "total": 25458,
       "coverage": 1
     },
     {
       "label": "招聘类型",
       "key": "recruitmentType",
-      "filled": 24550,
-      "total": 24550,
+      "filled": 25458,
+      "total": 25458,
       "coverage": 1
     },
     {
       "label": "截止时间",
       "key": "deadline",
-      "filled": 24550,
-      "total": 24550,
+      "filled": 25458,
+      "total": 25458,
       "coverage": 1
     },
     {
       "label": "操作链接",
       "key": "applyUrl",
-      "filled": 24550,
-      "total": 24550,
+      "filled": 25458,
+      "total": 25458,
       "coverage": 1
     }
   ],
   "displayContractWarnings": [
-    "批次(offerstarType) 覆盖 21142/24550",
-    "招聘岗位(position) 覆盖 24507/24550"
+    "批次(offerstarType) 覆盖 22002/25458",
+    "招聘岗位(position) 覆盖 25406/25458"
   ],
   "rejectedSamples": []
 }
